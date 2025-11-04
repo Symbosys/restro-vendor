@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "130400520635",
+    "project_id": "minta-fresh-f502a",
+    "storage_bucket": "minta-fresh-f502a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:130400520635:android:6f57d46846e87dbd0f5c9e",
+        "android_client_info": {
+          "package_name": "com.mintafresh.vendor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLoU0FTO5WeAENoXijrXoFU-RCBecnt1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

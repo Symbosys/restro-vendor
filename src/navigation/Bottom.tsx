@@ -10,6 +10,7 @@ import Orders from '../screen/tabs/Orders';
 import Notification from '../screen/tabs/Notification';
 import Profile from '../screen/tabs/Profile';
 import Analytics from '../screen/tabs/Analytics';
+import { WebSocketProvider } from '../context/WebSocketContext';
 
 export type RootTabParamList = {
     Home: undefined;
@@ -23,6 +24,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const BottomTab = ({ navigation }: AppNavigation) => {
     return (
+        <WebSocketProvider>
         <SafeAreaView style={styles.safeArea} edges={['bottom']}>
             <Tab.Navigator
                 screenOptions={({ route }) => ({
@@ -77,7 +79,8 @@ const BottomTab = ({ navigation }: AppNavigation) => {
                 <Tab.Screen name='Analytics' component={Analytics} />
                 <Tab.Screen name="Profile" component={Profile} />
             </Tab.Navigator>
-        </SafeAreaView>
+            </SafeAreaView>
+        </WebSocketProvider>
     );
 };
 

@@ -20,6 +20,7 @@ import api from '../../api/api';
 import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../types/types';
 import { ErrorMessage } from '../../utils/utils';
+import { useAuth } from '../../context/AuthContext';
 // import { useAuth } from '../../context/AuthContext';
 
 const {width, height} = Dimensions.get('window');
@@ -31,17 +32,16 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<RootStackParamLis
   const slideAnim = useRef(new Animated.Value(height)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
-//   const {id} = useAuth()
-//   console.log(id)
+  const {vendorId: id} = useAuth()
 
-//   useEffect(() => {
-//     if(id) {
-//       navigation.reset({
-//         index: 0,
-//         routes: [{ name: 'OutletScreen' }],
-//       });
-//     }
-//   }, [id])
+  useEffect(() => {
+    if(id) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'BottomTab' }],
+      });
+    }
+  }, [id])
 
   useEffect(() => {
     if (showPhoneModal) {

@@ -1,4 +1,3 @@
-
 import React from 'react'
 import StackNavigation from './src/navigation/Stack'
 import AuthProvider from './src/context/AuthContext'
@@ -8,8 +7,8 @@ const App = () => {
   return (
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <StackNavigation /> 
+        <AuthProvider>
+          <StackNavigation />
         </AuthProvider>
       </GestureHandlerRootView>
     </>

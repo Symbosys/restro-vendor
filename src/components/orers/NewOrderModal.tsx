@@ -1,31 +1,28 @@
-// NewOrderModal.tsx
 import React, { useEffect } from 'react';
 import {
-    View,
-    Text,
-    Image,
-    Modal,
-    TouchableOpacity,
-    StyleSheet,
     Animated,
     Dimensions,
+    Image,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
-
+import { parseToDecimal } from '../../utils/utils';
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 const maxWidth = Math.min(screenWidth, 375);
-
 interface NewOrderModalProps {
     visible: boolean;
+    currentOrder?: any;
     onDismiss: () => void;
-    onAccept: () => void;
+    onAccept: () => Promise<void>;
     onReject: () => void;
 }
-
 const NewOrderModal: React.FC<NewOrderModalProps> = ({
     visible,
+    currentOrder,
     onDismiss,
     onAccept,
     onReject,
@@ -33,7 +30,11 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({
     const slideAnim = new Animated.Value(screenHeight);
     const translateX = new Animated.Value(0);
     const scale = new Animated.Value(1);
-
+    // Dynamic values from currentOrder
+    const customer = currentOrder ? `${currentOrder.address.receiverName}, ${currentOrder.address.mainAddress}` : 'Alex Doe, Downtown';
+    const orderValue = parseToDecimal(currentOrder?.totalAmount);
+    const pickupTime = 'In 15 minutes'; // Hardcoded for now; can be dynamic if ETA available
+    const subtitle = 'Incoming Order'; // Since vendor not assigned yet
     useEffect(() => {
         if (visible) {
             Animated.spring(slideAnim, {
@@ -67,44 +68,9 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({
             }).start();
         }
     }, [visible]);
-
-    const pan = Gesture.Pan()
-        .onUpdate((event) => {
-            translateX.setValue(event.translationX);
-        })
-        .onEnd((event) => {
-            const { translationX } = event;
-            if (translationX > 100) {
-                // Swipe right - Accept
-                Animated.spring(translateX, {
-                    toValue: 300,
-                    useNativeDriver: true,
-                }).start(() => {
-                    translateX.setValue(0);
-                    onAccept();
-                });
-            } else if (translationX < -100) {
-                // Swipe left - Reject
-                Animated.spring(translateX, {
-                    toValue: -300,
-                    useNativeDriver: true,
-                }).start(() => {
-                    translateX.setValue(0);
-                    onReject();
-                });
-            } else {
-                // Return to center
-                Animated.spring(translateX, {
-                    toValue: 0,
-                    useNativeDriver: true,
-                }).start();
-            }
-        });
-
     if (!visible) {
         return null;
     }
-
     return (
         <Modal
             transparent
@@ -125,7 +91,6 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({
                     <TouchableOpacity style={styles.handleContainer} onPress={onDismiss}>
                         <View style={styles.handle} />
                     </TouchableOpacity>
-
                     {/* Profile Header */}
                     <View style={styles.header}>
                         <View style={styles.contentCenter}>
@@ -140,76 +105,55 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({
                             </View>
                             <View style={styles.titleWrapper}>
                                 <Text style={styles.title}>New Order</Text>
-                                <Text style={styles.subtitle}>The Gourmet Kitchen</Text>
+                                <Text style={styles.subtitle}>{subtitle}</Text>
                             </View>
                         </View>
                     </View>
-
                     {/* Description List */}
                     <View style={styles.descriptionGrid}>
                         <View style={[styles.descriptionItem, styles.prItem]}>
                             <Text style={styles.label}>Customer</Text>
-                            <Text style={styles.value}>Alex Doe, Downtown</Text>
+                            <Text style={styles.value} numberOfLines={1}>{customer}</Text>
                         </View>
                         <View style={[styles.descriptionItem, styles.plItem]}>
                             <Text style={styles.label}>Order Value</Text>
-                            <Text style={styles.value}>₹640</Text>
+                            <Text style={styles.value}>{parseToDecimal(orderValue)}</Text>
                         </View>
                         <View style={[styles.descriptionItem, styles.prItem]}>
                             <Text style={styles.label}>Items</Text>
-                            <Text style={styles.value}>3 items</Text>
+                            {currentOrder?.items?.map((item: any, index: number) => (
+                                <Text key={index} style={styles.value} numberOfLines={1}>
+                                    {item.quantity} x {item.product?.name?.trim() || 'Unknown Item'} {item.product?.weight ? `(${item.product.weight})` : ''}
+                                </Text>
+                            )) || <Text style={styles.value}>No items</Text>}
                         </View>
                         <View style={[styles.descriptionItem, styles.plItem]}>
                             <Text style={styles.label}>Pickup Time</Text>
-                            <Text style={styles.value}>In 15 minutes</Text>
+                            <Text style={styles.value}>{pickupTime}</Text>
                         </View>
                     </View>
-
                     {/* Countdown */}
                     <Text style={styles.countdown}>15s left to respond</Text>
-
-                    {/* Swipe to Accept/Reject */}
-                    <View style={styles.sliderWrapper}>
-                        <View style={styles.sliderOuter}>
-                            <TouchableOpacity style={styles.rejectButton} onPress={onReject}>
-                                <MaterialIcons name="close" size={32} color={COLORS.danger} />
-                            </TouchableOpacity>
-                            <GestureDetector gesture={pan}>
-                                <Animated.View
-                                    style={[
-                                        styles.sliderHandleWrapper,
-                                        {
-                                            transform: [{ translateX }],
-                                        },
-                                    ]}
-                                >
-                                    <Animated.View
-                                        style={[
-                                            {
-                                                transform: [{ scale }],
-                                            },
-                                        ]}
-                                    >
-                                        <View style={styles.sliderHandle} />
-                                        <MaterialIcons
-                                            name="phone-in-talk"
-                                            size={40}
-                                            color={COLORS.white}
-                                        />
-                                    </Animated.View>
-                                </Animated.View>
-                            </GestureDetector>
-                            <TouchableOpacity style={styles.acceptButton} onPress={onAccept}>
-                                <MaterialIcons name="check" size={32} color="#22C55E" />
-                            </TouchableOpacity>
-                        </View>
+                    {/* Accept/Reject Buttons */}
+                    <View style={styles.buttonWrapper}>
+                        <TouchableOpacity
+                            style={styles.rejectButton}
+                            onPress={onReject}
+                        >
+                            <Text style={styles.rejectButtonText}>Reject</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.acceptButton}
+                            onPress={onAccept}
+                        >
+                            <Text style={styles.acceptButtonText}>Accept</Text>
+                        </TouchableOpacity>
                     </View>
                 </Animated.View>
             </View>
         </Modal>
     );
 };
-
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
@@ -316,64 +260,47 @@ const styles = StyleSheet.create({
         paddingBottom: 4,
         paddingHorizontal: 16,
     },
-    sliderWrapper: {
-        width: '100%',
+    buttonWrapper: {
+        flexDirection: 'row',
         padding: 16,
         paddingBottom: 32,
-    },
-    sliderOuter: {
-        position: 'relative',
-        flexDirection: 'row',
-        height: 80,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderRadius: 40,
-        backgroundColor: '#E5E7EB',
-        padding: 8,
+        gap: 16,
     },
     rejectButton: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: COLORS.danger + '20',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    acceptButton: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#22C55E20',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    sliderHandleWrapper: {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        marginLeft: -40,
-        marginTop: -40,
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: COLORS.primary,
+        flex: 1,
+        height: 56,
+        backgroundColor: COLORS.danger,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 5,
-        borderWidth: 4,
-        borderColor: COLORS.background,
+        shadowRadius: 4,
+        elevation: 3,
     },
-    sliderHandle: {
-        position: 'absolute',
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        backgroundColor: COLORS.primary,
+    rejectButtonText: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    acceptButton: {
+        flex: 1,
+        height: 56,
+        backgroundColor: '#22C55E',
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    acceptButtonText: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontWeight: '600',
     },
 });
-
 export default NewOrderModal;
