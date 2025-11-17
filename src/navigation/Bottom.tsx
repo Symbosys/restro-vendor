@@ -7,15 +7,16 @@ import { AppNavigation } from '../types/types';
 import { COLORS } from '../theme/color';
 import Home from '../screen/tabs/Home';
 import Orders from '../screen/tabs/Orders';
-import Notification from '../screen/tabs/Notification';
+import Wallet from '../screen/tabs/Wallet'; // ✅ ADDED
 import Profile from '../screen/tabs/Profile';
 import Analytics from '../screen/tabs/Analytics';
+// import Notification from '../screen/tabs/Notification';  // ❌ REMOVED
 import { WebSocketProvider } from '../context/WebSocketContext';
 
 export type RootTabParamList = {
     Home: undefined;
     Orders: undefined;
-    Notification: undefined;
+    Wallet: undefined; // ✅ ADDED
     Analytics: undefined;
     Profile: undefined;
 };
@@ -24,7 +25,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const BottomTab = ({ navigation }: AppNavigation) => {
     return (
-        <WebSocketProvider>
+        // <WebSocketProvider>
         <SafeAreaView style={styles.safeArea} edges={['bottom']}>
             <Tab.Navigator
                 screenOptions={({ route }) => ({
@@ -36,13 +37,13 @@ const BottomTab = ({ navigation }: AppNavigation) => {
                                 iconName = 'home';
                                 break;
                             case 'Orders':
-                                iconName = 'receipt'; // Changed to a valid MaterialIcons name for orders
+                                iconName = 'receipt';
                                 break;
-                            case 'Notification':
-                                iconName = 'notifications';
+                            case 'Wallet': // ✅ ADDED
+                                iconName = 'account-balance-wallet';
                                 break;
                             case 'Analytics':
-                                iconName = 'bar-chart'; // Changed to a valid MaterialIcons name for analytics
+                                iconName = 'bar-chart';
                                 break;
                             case 'Profile':
                                 iconName = 'person';
@@ -75,12 +76,19 @@ const BottomTab = ({ navigation }: AppNavigation) => {
                 })}>
                 <Tab.Screen name="Home" component={Home} />
                 <Tab.Screen name="Orders" component={Orders} />
+
+                {/* ❌ Removed Notification
                 <Tab.Screen name="Notification" component={Notification} />
+                */}
+
+                {/* ✅ Added Wallet */}
+                <Tab.Screen name="Wallet" component={Wallet} />
+
                 <Tab.Screen name='Analytics' component={Analytics} />
                 <Tab.Screen name="Profile" component={Profile} />
             </Tab.Navigator>
-            </SafeAreaView>
-        </WebSocketProvider>
+        </SafeAreaView>
+        // </WebSocketProvider>
     );
 };
 
@@ -94,7 +102,6 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         paddingVertical: 8,
-        // ✅ Add safe bottom padding for iOS gesture area
         paddingBottom: Platform.OS === 'ios' ? 25 : 10,
         height: Platform.OS === 'ios' ? 85 : 70,
         shadowColor: COLORS.textPrimary,
@@ -103,7 +110,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 5,
         borderTopWidth: 0,
-        position: 'absolute', // ✅ keeps it floating above gestures
+        position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,

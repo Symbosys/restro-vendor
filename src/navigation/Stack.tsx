@@ -10,6 +10,14 @@ import UpdateProfile from '../screen/profile/UpdatePofile';
 import Uplod from '../screen/profile/ShopeImge';  
 import ShopDetails from '../screen/verification/ShopDetails';
 import BottomTab from './Bottom';
+import ProductsScreen from '../screen/products/MyProducts';
+import OrderDetailsScreen from '../screen/orders/OrderDetails';
+import PackingScreen from '../screen/packing/PackingItem';
+import PackingItemCart from '../screen/packing/PackingItemCart';
+import PackingOrderConfirmedScreen from '../screen/packing/PackingOrderConfirm';
+import PackingOrderHistoryScreen from '../screen/packing/PackingOrderHistory';
+import InstallmentDetailsScreen from '../screen/packing/PackingOrderInstallment';
+import NotificationsScreen from '../screen/tabs/Notification';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -18,7 +26,7 @@ export default function StackNavigation() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        // initialRouteName='Uplod'
+        // initialRouteName='PackingOrderInstallment'
       
         screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -35,6 +43,21 @@ export default function StackNavigation() {
 
 
         <Stack.Screen name="BottomTab" component={BottomTab} />
+
+        <Stack.Screen name='Notification' component={NotificationsScreen} />
+
+        <Stack.Screen name='MyProducts' component={ProductsScreen} />
+
+        <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+
+
+
+        {/* Packing Beg  */}
+        <Stack.Screen name="PackingBegItems" component={PackingScreen} />
+        <Stack.Screen name='Packingcart' component={PackingItemCart} />
+        <Stack.Screen name='PackingOrderConfirmation' component={PackingOrderConfirmedScreen} />
+        <Stack.Screen name='PackingOrderHistory' component={PackingOrderHistoryScreen} />
+        <Stack.Screen name='PackingOrderInstallment' component={InstallmentDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

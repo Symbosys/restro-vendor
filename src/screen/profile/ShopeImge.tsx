@@ -11,18 +11,7 @@ import {
 import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../types/types';
 import { launchImageLibrary } from 'react-native-image-picker';
-
-export const COLORS = {
-  primary: '#8719C6', // Deep Purple (for buttons, highlights)
-  secondary: '#f9eae9', // Soft Pink (for backgrounds, cards)
-  accent: '#b58ff0', // Lavender (hover, subtle accents)
-  highlight: '#ff9fa3', // Coral/Peach (alerts, badges)
-  background: '#fafafa', // Default background
-  white: '#ffffff', // White color
-  textPrimary: '#222222', // Main text
-  textSecondary: '#4a4a4a', // Secondary text
-  muted: '#888888', // Muted text or icons
-};
+import { COLORS } from '../../theme/color';
 
 interface ShopImageUploadScreenProps {
   navigation: NavigationProp<RootStackParamList>;
@@ -66,7 +55,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
     try {
       // Placeholder API call (replace with your actual API endpoint)
       // Example: await api.post('/upload/shop-image', { image: imageUri });
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000)); 
       ToastAndroid.show('Shop image uploaded successfully!', ToastAndroid.SHORT);
       navigation.reset({
         index: 0,
@@ -230,7 +219,7 @@ const styles = StyleSheet.create({
   selectButtonText: {
     color: COLORS.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   buttonContainer: {
     width: '100%',
@@ -252,7 +241,7 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     color: COLORS.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   skipButton: {
     borderWidth: 2,
@@ -265,7 +254,7 @@ const styles = StyleSheet.create({
   skipButtonText: {
     color: COLORS.primary,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '800',
   },
   buttonDisabled: {
     backgroundColor: COLORS.muted,
