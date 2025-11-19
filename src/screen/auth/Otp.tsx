@@ -17,6 +17,9 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../api/api';
 import { RootStackParamList } from '../../types/types';
 import { useAuth } from '../../context/AuthContext';
+import { getVendorById } from '../../services/vendor.service';
+import { Vendor } from '../../api/query/vendor';
+import { ErrorMessage } from '../../utils/utils';
 
 const { width } = Dimensions.get('window');
 
@@ -34,7 +37,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
   const [loading, _setLoading] = useState<boolean>(false);
   const [verifyLoading, setVerifyLoading] = useState<boolean>(false);
   const inputRefs = useRef<Array<TextInput | null>>([]);
-  const phoneNumber = route?.params?.mobile || '+91 7091291644';
+  const phoneNumber = route?.params?.mobile;
 
   const { login } = useAuth()
 
@@ -111,7 +114,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         otp: otpCode,
         mobile: phoneNumber,
       });
-      console.log(res.data);
+      console.log(res.data.success);
       if (res.data.success) {
         await login(res.data?.data?.vendor?.id, res.data?.data?.token);
         navigation.reset({

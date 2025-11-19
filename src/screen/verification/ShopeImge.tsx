@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,9 @@ import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../types/types';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { COLORS } from '../../theme/color';
+import { useAuth } from '../../context/AuthContext';
+import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
+import api from '../../api/api'; // Assuming api is available for upload
 
 interface ShopImageUploadScreenProps {
   navigation: NavigationProp<RootStackParamList>;
@@ -20,6 +23,17 @@ interface ShopImageUploadScreenProps {
 const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigation }) => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
+
+  const { vendorId } = useAuth();
+  const { data: vendor } = useVendorById();
+  const { mutateAsync } = useUpdateVendorMutation(vendorId!);
+
+  // Prefill imageUri with existing vendor image
+  useEffect(() => {
+    if (vendor?.images?.url) {
+      setImageUri(vendor.images.url);
+    }
+  }, [vendor]);
 
   // Handle image selection from gallery
   const handleSelectImage = async () => {
@@ -39,12 +53,12 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         ToastAndroid.show('Image selected successfully', ToastAndroid.SHORT);
       }
     } catch (error) {
-        console.error(error);
+      console.error(error);
       ToastAndroid.show('Failed to select image', ToastAndroid.SHORT);
     }
   };
 
-  // Handle image upload (placeholder API call)
+  // Handle image upload
   const handleUpload = async () => {
     if (!imageUri) {
       ToastAndroid.show('Please select an image first', ToastAndroid.SHORT);
@@ -53,16 +67,36 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
 
     setUploading(true);
     try {
-      // Placeholder API call (replace with your actual API endpoint)
-      // Example: await api.post('/upload/shop-image', { image: imageUri });
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
+      // Create FormData for image upload
+      const formData = new FormData();
+      formData.append('image', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'shop-image.jpg',
+      } as any);
+      formData.append("status", "PENDING");
+
+      // Upload image to get URL
+      const uploadRes = await api.put(`/vendor/${vendorId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // const imageUrl = uploadRes.data.imageUrl;
+
+      // // Update vendor with new image URL
+      // await mutateAsync({
+      //   images: imageUrl,
+      // });
+
       ToastAndroid.show('Shop image uploaded successfully!', ToastAndroid.SHORT);
       navigation.reset({
         index: 0,
         routes: [{ name: 'Outlet' }],
       });
     } catch (error) {
-        console.error(error);
+      console.error(error);
       ToastAndroid.show('Failed to upload image', ToastAndroid.LONG);
     } finally {
       setUploading(false);
@@ -77,15 +111,22 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
     });
   };
 
+  const isExistingImage = !!vendor?.images?.url;
+
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>📸 Upload Shop Image</Text>
+        <Text style={styles.headerTitle}>
+          {isExistingImage ? '📸 Update Shop Image' : '📸 Upload Shop Image'}
+        </Text>
         <Text style={styles.headerSubtitle}>
-          Add a photo of your shop to complete your profile
+          {isExistingImage
+            ? 'Update your shop photo to keep your profile current'
+            : 'Add a photo of your shop to complete your profile'
+          }
         </Text>
       </View>
 
@@ -129,7 +170,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
             disabled={uploading}
           >
             <Text style={styles.uploadButtonText}>
-              {uploading ? 'Uploading...' : 'Upload Image'}
+              {uploading ? 'Uploading...' : (isExistingImage ? 'Update Image' : 'Upload Image')}
             </Text>
           </TouchableOpacity>
 

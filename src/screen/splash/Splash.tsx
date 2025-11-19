@@ -1,6 +1,12 @@
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { getApp } from '@react-native-firebase/app';
-import { getMessaging, getToken, onMessage, requestPermission, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  getToken,
+  onMessage,
+  requestPermission,
+  setBackgroundMessageHandler,
+} from '@react-native-firebase/messaging';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
@@ -27,12 +33,17 @@ const Splash = () => {
 
   const [showPermissionPopup, setShowPermissionPopup] = useState(false);
 
-  // ✅ Check both permissions
-  const checkPermissions = async () => {
-    const locationGranted = await checkLocationPermission();
-    const notificationGranted = await checkNotificationPermission();
+  console.log({ isAuthenticated, vendorId, token });
 
-    if (locationGranted && notificationGranted) {
+  // ------------------------------------------------------------
+  // PERMISSION HANDLING
+  // ------------------------------------------------------------
+
+  const checkPermissions = async () => {
+    const location = await checkLocationPermission();
+    const notification = await checkNotificationPermission();
+
+    if (location && notification) {
       return true;
     } else {
       setShowPermissionPopup(true);
@@ -40,7 +51,6 @@ const Splash = () => {
     }
   };
 
-  // 📍 LOCATION permission check
   const checkLocationPermission = async () => {
     try {
       const granted = await PermissionsAndroid.check(
@@ -57,17 +67,18 @@ const Splash = () => {
           buttonNegative: 'Deny',
         }
       );
+
       return result === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
-      console.warn('Location permission error:', err);
+      console.warn('Location error:', err);
       return false;
     }
   };
 
-  // 🔔 NOTIFICATION permission check (Android 13+)
   const checkNotificationPermission = async () => {
     try {
-      if (typeof Platform.Version === 'number' && Platform.Version < 33) return true; // auto-granted before Android 13
+      if (typeof Platform.Version === 'number' && Platform.Version < 33)
+        return true;
 
       const granted = await PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
@@ -78,138 +89,139 @@ const Splash = () => {
         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
         {
           title: 'Notification Permission',
-          message: 'We need permission to send you notifications.',
+          message: 'We need permission to send notifications.',
           buttonPositive: 'Allow',
           buttonNegative: 'Deny',
         }
       );
+
       return result === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
-      console.warn('Notification permission error:', err);
+      console.warn('Notification error:', err);
       return false;
     }
   };
 
-  // 🚀 Navigation logic
+  // ------------------------------------------------------------
+  // NAVIGATION LOGIC
+  // ------------------------------------------------------------
+
+  const handleNavigationFlow = async () => {
+    const allowed = await checkPermissions();
+    if (!allowed) return;
+
+    // -----------------------------------
+    // PERMISSIONS GRANTED → Now authenticate
+    // -----------------------------------
+
+    if (isAuthenticated) {
+      navigation.reset({ index: 0, routes: [{ name: 'BottomTab' }] });
+      return;
+    }
+
+    if (vendorId && token && !isAuthenticated) {
+      navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+      return;
+    }
+
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  };
+
   useEffect(() => {
     const timeout = setTimeout(async () => {
-      if (!isAuthenticated || !vendorId || !token) {
-        navigation.navigate('Login');
-      } else {
-        const allowed = await checkPermissions();
-        if (allowed) {
-          await setupFirebaseMessaging();
-          navigation.navigate('BottomTab');
-        }
-      }
+      await setupFirebaseMessaging();
+      await handleNavigationFlow();
     }, 2000);
 
     const app = getApp();
     const messagingInstance = getMessaging(app);
 
     const unsubscribe = onMessage(messagingInstance, async (remoteMessage) => {
-      console.log('📩 Foreground FCM (modular):', remoteMessage);
+      console.log('📩 Foreground FCM:', remoteMessage);
     });
 
     return unsubscribe;
   }, [isAuthenticated, vendorId, token]);
 
+  // ------------------------------------------------------------
+  // SETTINGS REDIRECT
+  // ------------------------------------------------------------
 
-  // ⚙️ Open App Settings when user taps "Allow Permissions"
   const handleOpenSettings = async () => {
-    const locationGranted = await checkLocationPermission();
-    const notificationGranted = await checkNotificationPermission();
+    const location = await checkLocationPermission();
+    const notification = await checkNotificationPermission();
 
-    if (locationGranted && notificationGranted) {
+    if (location && notification) {
       setShowPermissionPopup(false);
-      navigation.navigate('BottomTab');
+      await handleNavigationFlow();
     } else {
-      setShowPermissionPopup(false);
       await Linking.openSettings();
       setShowPermissionPopup(true);
     }
   };
 
-  // 🔥 Firebase FCM setup
-  // 🔥 Firebase FCM setup (v22+ modular syntax)
+  // ------------------------------------------------------------
+  // FIREBASE FCM SETUP
+  // ------------------------------------------------------------
+
   const setupFirebaseMessaging = async () => {
     try {
-      const app = getApp(); // Get your default Firebase app
+      const app = getApp();
       const messagingInstance = getMessaging(app);
 
-      // 🔐 Request permission
       const authStatus = await requestPermission(messagingInstance);
-      console.log('🔐 FCM permission status:', authStatus);
+      console.log('🔐 FCM permission:', authStatus);
 
-      // ✅ Get FCM token (modular API)
       const fcmToken = await getToken(messagingInstance);
-      console.log('✅ FCM Token:', fcmToken);
+      console.log('🔔 FCM Token:', fcmToken);
 
-      // 🔔 Setup Notifee channel
       await notifee.createChannel({
         id: 'default',
-        name: 'Default Channel',
+        name: 'Default',
         importance: AndroidImportance.HIGH,
       });
 
-      // Optionally send token to backend
-      if(vendorId) await updateVendor(vendorId, { fcmToken });
+      if (vendorId) await updateVendor(vendorId, { fcmToken });
 
-      // 📩 Foreground listener
       onMessage(messagingInstance, async (remoteMessage) => {
-        console.log('📩 Foreground FCM:', remoteMessage);
-
-        // Show a Notifee notification
         await notifee.displayNotification({
           title: remoteMessage.notification?.title || 'New Notification',
           body: remoteMessage.notification?.body || '',
-          android: {
-            channelId: 'default',
-            pressAction: {
-              id: 'default',
-            },
-          },
+          android: { channelId: 'default', pressAction: { id: 'default' } },
         });
       });
 
-      // 📬 Background listener (killed/background state)
       setBackgroundMessageHandler(messagingInstance, async (remoteMessage) => {
-        console.log('📬 Background FCM:', remoteMessage);
         await notifee.displayNotification({
           title: remoteMessage.notification?.title || 'New Notification',
           body: remoteMessage.notification?.body || '',
-          android: {
-            channelId: 'default',
-            pressAction: {
-              id: 'default',
-            },
-          },
+          android: { channelId: 'default', pressAction: { id: 'default' } },
         });
       });
 
     } catch (err) {
-      console.error('🔥 FCM setup error:', err);
+      console.error('🔥 FCM setup failed:', err);
     }
   };
-  
+
+  // ------------------------------------------------------------
+  // UI
+  // ------------------------------------------------------------
 
   return (
     <View style={styles.container}>
-      {/* Splash Logo */}
       <Image
         source={require('../../assets/logo/LOGO.png')}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* 🚨 Custom Popup */}
       <Modal visible={showPermissionPopup} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Permissions Required</Text>
             <Text style={styles.modalText}>
-              Please enable both Location and Notification permissions to
-              continue using the app.
+              Please enable both Location and Notification permissions.
             </Text>
 
             <TouchableOpacity
@@ -225,7 +237,10 @@ const Splash = () => {
   );
 };
 
-// 💅 Styles
+// ------------------------------------------------------------
+// STYLES
+// ------------------------------------------------------------
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

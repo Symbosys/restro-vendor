@@ -6,46 +6,108 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Platform,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '../../theme/color';
+import api from '../../api/api';
 
 const { width } = Dimensions.get('window');
 
-
 const AnalyticsScreen = () => {
   const [selectedRange, setSelectedRange] = useState('today');
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [startDate, setStartDate] = useState(new Date('2025-10-19')); // Default: 30 days ago
+  const [endDate, setEndDate] = useState(new Date('2025-11-18')); // Default: today (Nov 18, 2025)
 
-  const kpiData = [
-    { label: 'Total Revenue', value: '$1,250.75', change: '+5.2%', isPositive: true },
-    { label: 'Total Orders', value: '86', change: '-1.5%', isPositive: false },
-    { label: 'Avg. Order Value', value: '$14.54', change: '+2.1%', isPositive: true },
-    { label: 'New Customers', value: '12', change: '+8.0%', isPositive: true },
-  ];
+  const formatDate = (date: Date): string => {
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+  };
 
-  const busiestTimesData = [
-    { day: 'Mon', height: 20 },
-    { day: 'Tue', height: 50 },
-    { day: 'Wed', height: 60 },
-    { day: 'Thu', height: 80 },
-    { day: 'Fri', height: 95 },
-    { day: 'Sat', height: 70 },
-    { day: 'Sun', height: 85 },
-  ];
+  const customStartDate = formatDate(startDate);
+  const customEndDate = formatDate(endDate);
 
-  const topSellers = [
-    { name: 'Milkshake', percentage: 90 },
-    { name: 'Iced Tea', percentage: 80 },
-    { name: 'Fries', percentage: 50 },
-    { name: 'Classic Burger', percentage: 20 },
-    { name: 'Salad', percentage: 10 },
-  ];
+  const { data: analytics, isLoading, error } = useQuery({
+    queryKey: ['analytics', selectedRange, customStartDate, customEndDate],
+    queryFn: async () => {
+      const params: any = { range: selectedRange };
+      if (selectedRange === 'custom') {
+        params.startDate = customStartDate;
+        params.endDate = customEndDate;
+      }
+      const response = await api.get('/vendor/stats/analytics', { params });
+      return response.data.data; // Assuming SuccessResponse structure: { success: true, message: string, data: AnalyticsResponse }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  const detailedReports = [
+  const kpiData = analytics?.kpis || [];
+
+  console.log({analytics})
+
+  const busiestTimesData = analytics?.busiestTimes.data.map((item: any) => ({
+    day: item.day,
+    height: item.height,
+  })) || [];
+
+  const topSellers = analytics?.topSellers.data || [];
+
+  const detailedReports = analytics?.detailedReports || [
     'Sales by Item Report',
     'Order Fulfillment Report',
     'Customer Feedback Summary',
   ];
+
+  const getSubtitle = () => {
+    switch (selectedRange) {
+      case 'today': return 'Today';
+      case '7days': return 'Last 7 Days';
+      case '30days': return 'Last 30 Days';
+      case 'custom': return `${customStartDate} to ${customEndDate}`;
+      default: return '';
+    }
+  };
+
+  const onStartDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || startDate;
+    setShowStartPicker(Platform.OS === 'ios');
+    setStartDate(currentDate);
+  };
+
+  const onEndDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || endDate;
+    setShowEndPicker(Platform.OS === 'ios');
+    setEndDate(currentDate);
+  };
+
+  const showStartDatepicker = () => {
+    setShowStartPicker(true);
+  };
+
+  const showEndDatepicker = () => {
+    setShowEndPicker(true);
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1, justifyContent: 'center' }} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: 'center', marginTop: 50, color: COLORS.muted }}>Error loading analytics data</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -63,9 +125,8 @@ const AnalyticsScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.chipsContainer}
-          contentContainerStyle={{ paddingRight: 16 }} 
+          contentContainerStyle={{ paddingRight: 16 }}
         >
-
           <TouchableOpacity
             style={[styles.chip, selectedRange === 'today' && styles.chipActive]}
             onPress={() => setSelectedRange('today')}
@@ -95,21 +156,39 @@ const AnalyticsScreen = () => {
             onPress={() => setSelectedRange('custom')}
           >
             <Text style={[styles.chipText, selectedRange === 'custom' && styles.chipTextActive]}>
-              Custom{' '}
+              Custom
             </Text>
             <Ionicons
               name="calendar-outline"
               size={14}
-              color={
-                selectedRange === 'custom' ? COLORS.white : COLORS.textPrimary
-              }
+              color={selectedRange === 'custom' ? COLORS.white : COLORS.textPrimary}
             />
           </TouchableOpacity>
         </ScrollView>
 
+        {/* Custom Date Inputs (visible only for custom range) */}
+        {selectedRange === 'custom' && (
+          <View style={styles.customDateContainer}>
+            <TouchableOpacity style={styles.dateInputWrapper} onPress={showStartDatepicker}>
+              <Text style={styles.dateLabel}>Start Date</Text>
+              <View style={[styles.dateInput, styles.dateTouchable]}>
+                <Text style={styles.dateDisplay}>{customStartDate}</Text>
+                <Ionicons name="calendar-outline" size={16} color={COLORS.muted} />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dateInputWrapper} onPress={showEndDatepicker}>
+              <Text style={styles.dateLabel}>End Date</Text>
+              <View style={[styles.dateInput, styles.dateTouchable]}>
+                <Text style={styles.dateDisplay}>{customEndDate}</Text>
+                <Ionicons name="calendar-outline" size={16} color={COLORS.muted} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* KPIs Section */}
         <View style={styles.kpiGrid}>
-          {kpiData.map((kpi, index) => (
+          {kpiData.map((kpi: any, index: any) => (
             <View key={index} style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>{kpi.label}</Text>
               <Text style={styles.kpiValue}>{kpi.value}</Text>
@@ -133,12 +212,21 @@ const AnalyticsScreen = () => {
           <View style={styles.chartCard}>
             <Text style={styles.chartTitle}>Busiest Times</Text>
             <View style={styles.chartHeader}>
-              <Text style={styles.chartValue}>1,240 Orders</Text>
-              <Text style={[styles.chartChange, styles.negative]}>-3.1%</Text>
+              <Text style={styles.chartValue}>
+                {analytics?.busiestTimes.totalOrders.toLocaleString()} Orders
+              </Text>
+              <Text
+                style={[
+                  styles.chartChange,
+                  analytics?.busiestTimes.isPositive ? styles.positive : styles.negative,
+                ]}
+              >
+                {analytics?.busiestTimes.change}
+              </Text>
             </View>
-            <Text style={styles.chartSubtitle}>Last 7 Days</Text>
+            <Text style={styles.chartSubtitle}>{getSubtitle()}</Text>
             <View style={styles.barChartContainer}>
-              {busiestTimesData.map((item, index) => (
+              {busiestTimesData.map((item : any, index: any) => (
                 <View key={index} style={styles.barColumn}>
                   <View style={styles.barWrapper}>
                     <View
@@ -146,7 +234,8 @@ const AnalyticsScreen = () => {
                         styles.bar,
                         {
                           height: `${item.height}%`,
-                          backgroundColor: item.day === 'Fri' ? COLORS.primary : `${COLORS.primary}33`,
+                          backgroundColor:
+                            item.day === 'Fri' ? COLORS.primary : `${COLORS.primary}33`,
                         },
                       ]}
                     />
@@ -168,12 +257,19 @@ const AnalyticsScreen = () => {
           <View style={styles.chartCard}>
             <Text style={styles.chartTitle}>Top Sellers</Text>
             <View style={styles.chartHeader}>
-              <Text style={styles.chartValue}>5 Items</Text>
-              <Text style={[styles.chartChange, styles.positive]}>+7.8%</Text>
+              <Text style={styles.chartValue}>{analytics?.topSellers.totalItems} Items</Text>
+              <Text
+                style={[
+                  styles.chartChange,
+                  analytics?.topSellers.isPositive ? styles.positive : styles.negative,
+                ]}
+              >
+                {analytics?.topSellers.change}
+              </Text>
             </View>
-            <Text style={styles.chartSubtitle}>Last 30 Days</Text>
+            <Text style={styles.chartSubtitle}>{getSubtitle()}</Text>
             <View style={styles.topSellersContainer}>
-              {topSellers.map((item, index) => (
+              {topSellers.map((item: any, index: any) => (
                 <View key={index} style={styles.progressItem}>
                   <Text style={styles.progressLabel}>{item.name}</Text>
                   <View style={styles.progressBar}>
@@ -194,7 +290,7 @@ const AnalyticsScreen = () => {
         <View style={styles.reportsSection}>
           <Text style={styles.reportsTitle}>Detailed Reports</Text>
           <View style={styles.reportsCard}>
-            {detailedReports.map((report, index) => (
+            {detailedReports.map((report: string, index: number) => (
               <TouchableOpacity
                 key={index}
                 style={[
@@ -217,6 +313,30 @@ const AnalyticsScreen = () => {
         <Ionicons name="download" size={20} color={COLORS.white} />
         <Text style={styles.fabText}>Export CSV</Text>
       </TouchableOpacity>
+
+      {/* Date Pickers (Modal for iOS, Inline for Android) */}
+      {showStartPicker && (
+        <DateTimePicker
+          testID="startDateTimePicker"
+          value={startDate}
+          mode="date"
+          is24Hour={true}
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onStartDateChange}
+          maximumDate={endDate}
+        />
+      )}
+      {showEndPicker && (
+        <DateTimePicker
+          testID="endDateTimePicker"
+          value={endDate}
+          mode="date"
+          is24Hour={true}
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onEndDateChange}
+          minimumDate={startDate}
+        />
+      )}
     </View>
   );
 };
@@ -275,6 +395,39 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: COLORS.white,
+  },
+  // Custom Date Styles
+  customDateContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  dateInputWrapper: {
+    gap: 4,
+  },
+  dateLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.muted,
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    backgroundColor: COLORS.white,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateTouchable: {
+    // For TouchableOpacity styling if needed
+  },
+  dateDisplay: {
+    fontSize: 14,
+    color: COLORS.textPrimary,
   },
   kpiGrid: {
     flexDirection: 'row',

@@ -10,10 +10,10 @@ const App = () => {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <AuthProvider>
-          <StackNavigation />
-        </AuthProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AuthProvider>
+            <StackNavigation />
+          </AuthProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </>

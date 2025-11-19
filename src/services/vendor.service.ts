@@ -1,11 +1,13 @@
+import { ToastAndroid } from "react-native";
 import api from "../api/api";
 import type { Vendor, UpdateVendorPayload } from "../types/vendor.types";
+import { AxiosError } from "axios";
 
 /**
  * Fetch a single vendor by ID
  */
 export async function getVendorById(id: number | string): Promise<Vendor> {
-  const res = await api.get(`/vendor/${id}`);
+  const res = await api.get(`/vendor/me?id=${id}`);
   return res.data.data; // matches your SuccessResponse format
 }
 
@@ -39,3 +41,69 @@ export async function updateVendor(id: number | string, payload: UpdateVendorPay
 
   return res.data.data;
 }
+
+
+
+
+
+
+export type FetchVendorsParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isActive?: boolean;
+  status?: string;
+  isApproved?: boolean;
+};
+
+export const fetchVendorsAPI = async (params?: FetchVendorsParams) => {
+  try {
+    const res = await api.get("/vendor/all", { params });
+
+    if (res.data.success) {
+      ToastAndroid.show(res.data.message || "Vendors fetched", ToastAndroid.SHORT);
+    }
+
+    return res.data.data; // vendors, pagination etc.
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      ToastAndroid.show(error.response?.data?.message || "Failed to fetch vendors", ToastAndroid.LONG);
+    }
+    throw error;
+  }
+};
+
+interface VendorData {
+  data: Vendor;
+}
+
+export const fetchVendorByIdAPI = async (id?: string | number): Promise<VendorData> => {
+  try {
+    const res = await api.get(`/vendor/me?id=${id}`);
+    console.log('res', res)
+    return res.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      ToastAndroid.show(error.response?.data?.message || "Failed to fetch vendor", ToastAndroid.LONG);
+    }
+    throw error;
+  }
+};
+
+export const updateVendorAPI = async (data: Partial<Vendor>, id: string | number) => {
+  try {
+    const res = await api.put(`/vendor/${id}`, data);
+
+    console.log('res', res)
+    if (res.data.success) {
+      ToastAndroid.show(res.data.message || "Vendor updated", ToastAndroid.SHORT);
+    }
+
+    return res.data.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      ToastAndroid.show(error.response?.data?.message || "Failed to update vendor", ToastAndroid.LONG);
+    }
+    throw error;
+  }
+};

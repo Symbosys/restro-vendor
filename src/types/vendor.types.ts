@@ -31,12 +31,13 @@ export interface Vendor {
   city?: string;
   state?: string;
   country?: string;
-  isOpen: boolean;
+  isOpen: boolean | string;
   images?: { public_id: string; url: string };
   fcmToken?: string;
   createdAt: string;
   updatedAt: string;
 }
+
 
 export interface UpdateVendorPayload extends Partial<Vendor> {
   image?: File;

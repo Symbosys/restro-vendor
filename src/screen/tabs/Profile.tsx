@@ -12,20 +12,22 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
+import { useVendorById } from '../../hooks/useVendorQueries';
+import api from '../../api/api';
 
 
 interface LinkItem {
   icon: string;
   title: string;
   subtext?: string;
-  route: string; // Navigation route key
+  route: string;
 }
 
 const restaurantInfo: LinkItem[] = [
   {
     icon: 'person',
     title: 'Personal Information',
-    route: 'PersonalInfo',
+    route: 'UpdateProfile',
   },
   {
     icon: 'description',
@@ -35,7 +37,7 @@ const restaurantInfo: LinkItem[] = [
   {
     icon: 'location-on',
     title: 'Address',
-    route: 'Address',
+    route: 'ShopDetails',
   },
   {
     icon: 'inventory',
@@ -46,39 +48,29 @@ const restaurantInfo: LinkItem[] = [
 
 const accountSettings: LinkItem[] = [
   {
-    icon: 'lock',
-    title: 'Change Password',
-    route: 'ChangePassword',
+    icon: 'help',
+    title: 'Help & Support',
+    route: 'HelpSupport',
   },
-  {
-    icon: 'notifications',
-    title: 'Notification Settings',
-    route: 'Notifications',
-  },
-  {
-    icon: 'account-balance',
-    title: 'Linked Bank Account',
-    subtext: '•••• 1234',
-    route: 'BankAccount',
-  },
+  
 ];
 
 const legalSupport: LinkItem[] = [
   {
     icon: 'gavel',
     title: 'Terms & Conditions',
-    route: 'Terms',
+    route: 'TermsAndConditions',
   },
   {
     icon: 'shield',
     title: 'Privacy Policy',
-    route: 'Privacy',
+    route: 'PrivacyPolicy',
   },
-  {
-    icon: 'help',
-    title: 'Help & Support',
-    route: 'Support',
-  },
+  // {
+  //   icon: 'help',
+  //   title: 'Help & Support',
+  //   route: 'Support',
+  // },
 ];
 
 const packingBag: LinkItem[] = [
@@ -99,9 +91,12 @@ const packingBag: LinkItem[] = [
   },
 ];
 
-const VendorProfileScreen = ({navigation}: AppNavigation) => {
+const VendorProfileScreen = ({ navigation }: AppNavigation) => {
 
-  const {logout} = useAuth();
+  const { vendorId , logout} = useAuth();
+  
+  const {data: vendor} = useVendorById();
+
 
   const handleLinkPress = (route: string) => {
     navigation.navigate(route as never);
@@ -127,7 +122,7 @@ const VendorProfileScreen = ({navigation}: AppNavigation) => {
           <View style={styles.avatarContainer}>
             <Image
               source={{
-                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBarBxiYoBgFtrncfKot79v_aM0x_-P5T0CbIdSqT_XbK3FIHs4LoB4mKE_i4eoqL8szp9Gc9eGvGkEex0410ovAJbk3F7TgaFOQr0G0aXJsVF5pCXS7nakYXDEOKu2Axf75b_vCLXpphEQo15la1etV6lVaqMNuYxaZhqWQd0f8E6LRDlA9Z6sUneq8vkrElr0Y94XgS-fte_IXigOfpSem534P76CaPe4Ir9DocS9xPuPVR0PNCD1wExV4FLM7n1vKtSDUTR_3mX_',
+                uri: vendor?.images?.url,
               }}
               style={styles.avatar}
               resizeMode="cover"
@@ -137,8 +132,8 @@ const VendorProfileScreen = ({navigation}: AppNavigation) => {
             </TouchableOpacity>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.restaurantName}>The Gourmet Kitchen</Text>
-            <Text style={styles.address}>123 Culinary Lane, Foodie City, 45678</Text>
+            <Text style={styles.restaurantName}>{vendor?.shopName}</Text>
+            <Text style={styles.address}>{vendor?.completeAddress}</Text>
           </View>
         </View>
         {/* Restaurant Information Card */}
@@ -188,9 +183,9 @@ const VendorProfileScreen = ({navigation}: AppNavigation) => {
           ))}
         </View>
 
-        {/* Account Settings Card */}
+        {/* Help And Support  */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Account Settings</Text>
+          <Text style={styles.cardTitle}>Help And Support</Text>
           {accountSettings.map((item, index) => (
             <TouchableOpacity
               key={index}
@@ -237,7 +232,8 @@ const VendorProfileScreen = ({navigation}: AppNavigation) => {
         </View>
         {/* Logout Button */}
         <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={async() => {
+          <TouchableOpacity style={styles.logoutButton} onPress={async () => {
+            await api.post('/auth/vendor/logout')
             await logout()
             navigation.navigate('Login')
           }}>

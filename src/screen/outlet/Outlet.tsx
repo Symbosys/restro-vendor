@@ -1,24 +1,23 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { AxiosError } from 'axios';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Linking,
+  RefreshControl,
   ScrollView,
   StyleSheet,
-  View,
   Text,
-  RefreshControl,
   TouchableOpacity,
-  ActivityIndicator,
-  Linking,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getVendorById } from '../../services/vendor.service';
-import { useAuth } from '../../context/AuthContext';
-import { Vendor } from '../../types/vendor.types'; // Assuming Vendor type from your types
-import { AppNavigation } from '../../types/types'; // Adjust if needed for navigation prop
-import { COLORS } from '../../theme/color';
 import Loader from '../../components/ui/Loader';
+import { useAuth } from '../../context/AuthContext';
+import { getVendorById } from '../../services/vendor.service';
+import { COLORS } from '../../theme/color';
+import { AppNavigation } from '../../types/types'; // Adjust if needed for navigation prop
+import { Vendor } from '../../types/vendor.types'; // Assuming Vendor type from your types
 import { ErrorMessage } from '../../utils/utils';
-import { AxiosError } from 'axios';
 
 const OutletStatus = ({ navigation }: AppNavigation) => {
   const { vendorId, setAuthStatus } = useAuth();
@@ -30,7 +29,8 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
   const fetchVendorDetailsById = async () => {
     try {
       setLoading(true);
-      const response = await getVendorById(vendorId ?? '1');
+      const response = await getVendorById(vendorId || '');
+      
       setVendorDetails(response);
     } catch (error) {
       ErrorMessage(error as AxiosError | Error);
@@ -57,6 +57,9 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
     if (!vendorDetails) return;
 
     switch (vendorDetails.status) {
+      case "NEW":
+        return;
+        break;
       case 'PROFILE_COMPLETION_NOT_FILLED':
         navigation.reset({ index: 0, routes: [{ name: 'UpdateProfile' }] }); // Adjust route name as needed
         break;
@@ -91,7 +94,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
     const canOpen = await Linking.canOpenURL(url);
     if (canOpen) {
       await Linking.openURL(url);
-    } 
+    }
   };
 
   // 🌀 Loading screen
@@ -327,7 +330,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '800',
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -390,3 +393,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+
+
+// import { StyleSheet, Text, View } from 'react-native'
+// import React from 'react'
+// import { useAuth } from '../../context/AuthContext';
+
+// const Outlet = () => {
+
+//   const { isAuthenticated, vendorId, token } = useAuth();
+  
+//   console.log({isAuthenticated, vendorId, token})
+
+//   return (
+//     <View>
+//       <Text>Outlet</Text>
+//     </View>
+//   )
+// }
+
+// export default Outlet
+
+// const styles = StyleSheet.create({})

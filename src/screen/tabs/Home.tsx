@@ -1418,7 +1418,9 @@
 
 
 
-import React, { useState, useMemo, useCallback } from 'react';
+
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
     View,
     Text,
@@ -1429,6 +1431,8 @@ import {
     Modal,
     ActivityIndicator,
     ScrollView,
+    StatusBar,
+    Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -1437,6 +1441,12 @@ import { useVendorBroadcastedOrders } from '../../hooks/useOrder';
 import { formatDistanceToNow } from 'date-fns';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../types/order.types';
 import { AppNavigation } from '../../types/types';
+import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
+import { useAuth } from '../../context/AuthContext';
+import Error from '../../components/ui/error/Error';
+
+// Get screen dimensions for responsive layout
+const { width } = Dimensions.get('window');
 
 interface OrderModalProps {
     order: VendorBroadcastItem;
@@ -1467,13 +1477,6 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
             default:
                 return COLORS.textSecondary;
         }
-    };
-
-    const formattedKey = (key: string) => {
-        return key
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/\b\w/g, l => l.toUpperCase())
-            .trim();
     };
 
     return (
@@ -1532,21 +1535,20 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
                                     <Text style={styles.dataKey}>Total</Text>
                                     <Text style={styles.dataValue}>₹{order.paidAmount?.toFixed(2) || order.subtotal.toFixed(2)}</Text>
                                 </View>
-                                {/* Add more fields like address, payment if available */}
                             </View>
                             {broadcast.status === BroadcastStatus.PENDING && (
                                 <View style={styles.actionButtons}>
                                     <TouchableOpacity style={[styles.actionButton, styles.rejectButton]} onPress={() => handleAction('reject')}>
-                                        <Text style={styles.rejectButton}>Reject</Text>
+                                        <Text style={styles.rejectButtonText}>Reject</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={[styles.actionButton, styles.acceptButton]} onPress={() => handleAction('accept')}>
-                                        <Text style={styles.acceptButton}>Accept</Text>
+                                        <Text style={styles.acceptButtonText}>Accept</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
                             {order.status === OrderStatus.PREPARING && (
                                 <TouchableOpacity style={[styles.actionButton, styles.readyButton]} onPress={() => handleAction('markReady')}>
-                                    <Text style={styles.readyButton}>Mark as Ready</Text>
+                                    <Text style={styles.readyButtonText}>Mark as Ready</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -1557,8 +1559,8 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
     );
 };
 
-const VendorDashboard = ({navigation}: AppNavigation) => {
-    const [storeOpen, setStoreOpen] = useState(true);
+const VendorDashboard = ({ navigation }: AppNavigation) => {
+    const [storeOpen, setStoreOpen] = useState<string | boolean>(true);
     const [activeTab, setActiveTab] = useState<'all' | 'new' | 'preparing' | 'ready' | 'delivered'>('all');
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<VendorBroadcastItem | null>(null);
@@ -1579,9 +1581,37 @@ const VendorDashboard = ({navigation}: AppNavigation) => {
         delivered: { orderStatus: OrderStatus.DELIVERED },
     }), []);
 
-    const queryParams = useMemo(() => tabToFilter[activeTab], [activeTab, tabToFilter]);
+    // === Force today's date range (current date only) ===
+    const todayDateRange = useMemo(() => {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
-    const { data: queryData, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, error } = useVendorBroadcastedOrders(queryParams || {});
+        return {
+            startDate: startOfDay.toISOString(),
+            endDate: endOfDay.toISOString(),
+        };
+    }, []);
+
+    const queryParams = useMemo(() => {
+        const baseFilter = tabToFilter[activeTab] || {};
+        return { ...baseFilter, ...todayDateRange };
+    }, [activeTab, tabToFilter, todayDateRange]);
+    // =================================================================
+
+    const { data: queryData, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, error, refetch: refetchBroadcasts } = useVendorBroadcastedOrders(queryParams);
+
+    const { vendorId } = useAuth();
+
+    const { data: vendor, refetch: refetchVendor } = useVendorById();
+    const { mutate: vendorUpdate } = useUpdateVendorMutation(vendorId || "");
+
+    // Sync storeOpen with vendor data from query (runs only when vendor data changes)
+    useEffect(() => {
+        if (vendor?.isOpen !== undefined) {
+            setStoreOpen(vendor.isOpen);
+        }
+    }, [vendor?.isOpen]);
 
     const broadcasts = useMemo(() => queryData?.pages.flatMap(page => page.data.broadcasts) || [], [queryData]);
 
@@ -1609,8 +1639,8 @@ const VendorDashboard = ({navigation}: AppNavigation) => {
                 <View style={styles.emptyIconContainer}>
                     <Icon name="shopping-cart" size={64} color={COLORS.primary} />
                 </View>
-                <Text style={styles.emptyTitle}>No Orders Yet</Text>
-                <Text style={styles.emptySubtitle}>Your orders will appear here once customers place them.</Text>
+                <Text style={styles.emptyTitle}>No Orders Today</Text>
+                <Text style={styles.emptySubtitle}>Your orders will appear here once customers place them today.</Text>
             </View>
         );
     }, [isLoading]);
@@ -1698,19 +1728,19 @@ const VendorDashboard = ({navigation}: AppNavigation) => {
                     {isPending ? (
                         <>
                             <TouchableOpacity style={[styles.actionButton, styles.rejectButton]}>
-                                <Text style={styles.rejectButton}>Reject</Text>
+                                <Text style={styles.rejectButtonText}>Reject</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.actionButton, styles.acceptButton]}>
-                                <Text style={styles.acceptButton}>Accept</Text>
+                                <Text style={styles.acceptButtonText}>Accept</Text>
                             </TouchableOpacity>
                         </>
                     ) : order.status === OrderStatus.PREPARING ? (
                         <TouchableOpacity style={[styles.actionButton, styles.readyButton]}>
-                            <Text style={styles.readyButton}>Ready for Pickup</Text>
+                            <Text style={styles.readyButtonText}>Ready for Pickup</Text>
                         </TouchableOpacity>
                     ) : order.status === OrderStatus.READY_FOR_PICKUP ? (
                         <TouchableOpacity style={[styles.actionButton, styles.markDeliveredButton]}>
-                            <Text style={styles.markDeliveredButton}>Mark Delivered</Text>
+                            <Text style={styles.markDeliveredButtonText}>Mark Delivered</Text>
                         </TouchableOpacity>
                     ) : null}
                 </View>
@@ -1719,125 +1749,189 @@ const VendorDashboard = ({navigation}: AppNavigation) => {
     }, [renderStatusBadge, handleOrderPress]);
 
     const handleOrderAction = useCallback((action: 'accept' | 'reject' | 'markReady', orderId: string) => {
-        // TODO: Implement mutation (e.g., api.post(`/vendor/order/${action}-order/${orderId}`))
         console.log(`Action: ${action} for order ${orderId}`);
-        // Invalidate and refetch after success
+        // Implement actual API calls here
     }, []);
+
+    const handleToggleStore = useCallback(async () => {
+        const newStatus = !storeOpen;
+        setStoreOpen(newStatus);
+        const newStatusData = String(newStatus)
+        vendorUpdate({ isOpen: newStatusData });
+    }, [storeOpen, vendorUpdate]);
 
     if (error) {
         return (
-            <SafeAreaView style={styles.container}>
-                <Text>Error loading orders: {error.message}</Text>
-            </SafeAreaView>
+            <Error error={error} onRefresh={() => {
+                refetchBroadcasts();
+                refetchVendor();
+            }} />
         );
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Top Bar */}
-            <View style={styles.topBar}>
-                <View style={styles.logoContainer}>
-                    <Icon name="storefront" style={styles.logoIcon} />
-                    <Text style={styles.storeName}>Meat & Greet</Text>
-                </View>
-                <View style={styles.headerButtons}>
-                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate("Notification")}>
-                        <Icon name="notifications" size={20} color={COLORS.textPrimary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.headerButton}>
-                        <Icon name="account-circle" size={20} color={COLORS.textPrimary} />
-                    </TouchableOpacity>
-                </View>
-            </View>
+            {!storeOpen ? (
+                // =================== IMPROVED OFFLINE UI ===================
+                <View style={styles.offlineContainer}>
+                    <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+                    <View style={styles.offlineContent}>
+                        <View style={styles.offlineIllustration}>
+                            <View style={styles.offlineCircleOuter}>
+                                <View style={styles.offlineCircleInner}>
+                                    <Icon name="store" size={64} color="#94a3b8" />
+                                </View>
+                                <View style={styles.offlineBadgeIcon}>
+                                    <Icon name="pause" size={20} color={COLORS.white} />
+                                </View>
+                            </View>
+                        </View>
 
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Store Status */}
-                <View style={styles.storeStatusContainer}>
-                    <View style={{ gap: 4 }}>
-                        <Text style={styles.storeStatusText}>Your Store is {storeOpen ? 'OPEN' : 'CLOSED'}</Text>
-                        <Text style={styles.storeTimings}>Today's Timings: 9 AM - 10 PM</Text>
-                    </View>
-                    <View style={styles.toggleContainer}>
+                        <View style={styles.offlineTextContainer}>
+                            <Text style={styles.offlineTitle}>You are currently Offline</Text>
+                            <Text style={styles.offlineSubtitle}>
+                                Customers are waiting for your fresh products!
+                                {'\n'}
+                                Go online now to start receiving orders and boosting your revenue.
+                            </Text>
+                        </View>
+
                         <TouchableOpacity
-                            style={[
-                                styles.toggleThumb,
-                                { transform: [{ translateX: storeOpen ? 24 : 0 }] },
-                            ]}
-                            onPress={() => setStoreOpen(!storeOpen)}
-                        />
+                            style={styles.goOnlineButton}
+                            onPress={handleToggleStore}
+                            activeOpacity={0.8}
+                        >
+                            <View style={styles.powerIconContainer}>
+                                <Icon name="power-settings-new" size={28} color={COLORS.primary} />
+                            </View>
+                            <Text style={styles.goOnlineText}>GO ONLINE NOW</Text>
+                            <Icon name="arrow-forward" size={24} color={COLORS.white} />
+                        </TouchableOpacity>
+
+                        <View style={styles.offlineFooter}>
+                            <Icon name="info-outline" size={16} color={COLORS.textSecondary} />
+                            <Text style={styles.offlineFooterText}>Your store is currently hidden from customers.</Text>
+                        </View>
                     </View>
                 </View>
-
-                {/* Today's Summary */}
-                <View>
-                    <Text style={styles.sectionTitle}>Today's Summary</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.summaryContainer}>
-                        <View style={{ flexDirection: 'row', gap: 16 }}>
-                            <View style={styles.summaryCard}>
-                                <Icon name="shopping-cart" style={styles.summaryIcon} />
-                                <Text style={styles.summaryLabel}>Total Orders</Text>
-                                <Text style={styles.summaryValue}>142</Text>
-                            </View>
-                            <View style={styles.summaryCard}>
-                                <Icon name="payments" style={[styles.summaryIcon, { color: '#16a34a' }]} />
-                                <Text style={styles.summaryLabel}>Sales</Text>
-                                <Text style={styles.summaryValue}>₹8,450</Text>
-                            </View>
-                            <View style={styles.summaryCard}>
-                                <Icon name="fiber-new" style={[styles.summaryIcon, { color: '#f97316' }]} />
-                                <Text style={styles.summaryLabel}>New Orders</Text>
-                                <Text style={styles.summaryValue}>5</Text>
-                            </View>
-                            <View style={styles.summaryCard}>
-                                <Icon name="task-alt" style={[styles.summaryIcon, { color: COLORS.textSecondary }]} />
-                                <Text style={styles.summaryLabel}>Completed</Text>
-                                <Text style={styles.summaryValue}>68</Text>
-                            </View>
+                // ===========================================================
+            ) : (
+                <>
+                    {/* Top Bar */}
+                    <View style={styles.topBar}>
+                        <View style={styles.logoContainer}>
+                            <Icon name="storefront" style={styles.logoIcon} />
+                            <Text style={styles.storeName}>Meat & Greet</Text>
                         </View>
-                    </ScrollView>
-                </View>
+                        <View style={styles.headerButtons}>
+                            <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate("Notification")}>
+                                <Icon name="notifications" size={20} color={COLORS.textPrimary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.headerButton}>
+                                <Icon name="account-circle" size={20} color={COLORS.textPrimary} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
 
-                {/* Active Orders Tabs */}
-                <View>
-                    <Text style={styles.sectionTitle}>Active Orders</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.activeOrdersTabs}>
-                        <View style={{ flexDirection: 'row' }}>
-                            {tabs.map((tab) => (
-                                <TouchableOpacity
-                                    key={tab.key}
+                    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                        {/* Store Status */}
+                        <View style={styles.storeStatusContainer}>
+                            <View style={{ gap: 4 }}>
+                                <Text style={styles.storeStatusText}>Your Store is {storeOpen ? 'OPEN' : 'CLOSED'}</Text>
+                                <Text style={styles.storeTimings}>Today's Timings: 9 AM - 10 PM</Text>
+                            </View>
+                            <View style={styles.toggleContainer}>
+                                {/* <TouchableOpacity
                                     style={[
-                                        styles.tab,
-                                        activeTab === tab.key && styles.tabActive,
+                                        styles.toggleThumb,
+                                        { transform: [{ translateX: storeOpen ? 24 : 0 }] },
                                     ]}
-                                    onPress={() => setActiveTab(tab.key)}
-                                >
-                                    <Text style={[
-                                        styles.tabText,
-                                        activeTab !== tab.key && styles.tabTextInactive,
-                                    ]}>
-                                        {tab.label}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
+                                    onPress={handleToggleStore}
+                                /> */}
+                                    
+                                    <Switch
+                                        value={!!storeOpen}
+                                        onValueChange={handleToggleStore}
+                                        thumbColor={storeOpen ? COLORS.primary : "#f4f4f5"}
+                                        trackColor={{ false: "#e5e7eb", true: "#c7d2fe" }}
+                                        style={{ transform: [{ scale: 1.1 }] }}
+                                    />
+
+                            </View>
                         </View>
+
+                        {/* Today's Summary */}
+                        <View>
+                            <Text style={styles.sectionTitle}>Today's Summary</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.summaryContainer}>
+                                <View style={{ flexDirection: 'row', gap: 16 }}>
+                                    <View style={styles.summaryCard}>
+                                        <Icon name="shopping-cart" style={styles.summaryIcon} />
+                                        <Text style={styles.summaryLabel}>Total Orders</Text>
+                                        <Text style={styles.summaryValue}>142</Text>
+                                    </View>
+                                    <View style={styles.summaryCard}>
+                                        <Icon name="payments" style={[styles.summaryIcon, { color: '#16a34a' }]} />
+                                        <Text style={styles.summaryLabel}>Sales</Text>
+                                        <Text style={styles.summaryValue}>₹8,450</Text>
+                                    </View>
+                                    <View style={styles.summaryCard}>
+                                        <Icon name="fiber-new" style={[styles.summaryIcon, { color: '#f97316' }]} />
+                                        <Text style={styles.summaryLabel}>New Orders</Text>
+                                        <Text style={styles.summaryValue}>5</Text>
+                                    </View>
+                                    <View style={styles.summaryCard}>
+                                        <Icon name="task-alt" style={[styles.summaryIcon, { color: COLORS.textSecondary }]} />
+                                        <Text style={styles.summaryLabel}>Completed</Text>
+                                        <Text style={styles.summaryValue}>68</Text>
+                                    </View>
+                                </View>
+                            </ScrollView>
+                        </View>
+
+                        {/* Active Orders Tabs */}
+                        <View>
+                            <Text style={styles.sectionTitle}>Active Orders</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.activeOrdersTabs}>
+                                <View style={{ flexDirection: 'row' }}>
+                                    {tabs.map((tab) => (
+                                        <TouchableOpacity
+                                            key={tab.key}
+                                            style={[
+                                                styles.tab,
+                                                activeTab === tab.key && styles.tabActive,
+                                            ]}
+                                            onPress={() => setActiveTab(tab.key)}
+                                        >
+                                            <Text style={[
+                                                styles.tabText,
+                                                activeTab !== tab.key && styles.tabTextInactive,
+                                            ]}>
+                                                {tab.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </ScrollView>
+                        </View>
+
+                        {/* Orders List */}
+                        <FlatList
+                            data={broadcasts}
+                            renderItem={renderItemCard}
+                            keyExtractor={(item) => item.id}
+                            onEndReached={handleEndReached}
+                            onEndReachedThreshold={0.1}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={styles.mainContent}
+                            ListEmptyComponent={renderEmptyComponent}
+                            ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" color={COLORS.primary} style={{ padding: 20 }} /> : null}
+                        />
+
+                        <View style={{ height: 100 }} />
                     </ScrollView>
-                </View>
-
-                {/* Orders List - Using FlatList for infinite scroll */}
-                <FlatList
-                    data={broadcasts}
-                    renderItem={renderItemCard}
-                    keyExtractor={(item) => item.id}
-                    onEndReached={handleEndReached}
-                    onEndReachedThreshold={0.1}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.mainContent}
-                    ListEmptyComponent={renderEmptyComponent}
-                    ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" color={COLORS.primary} style={{ padding: 20 }} /> : null}
-                />
-
-                <View style={{ height: 100 }} />
-            </ScrollView>
+                </>
+            )}
 
             {modalVisible && selectedOrder && (
                 <OrderDetailModal
@@ -1859,6 +1953,120 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.background,
     },
+    // === OFFLINE STYLES ===
+    offlineContainer: {
+        flex: 1,
+        backgroundColor: '#f8fafc',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    offlineContent: {
+        width: '100%',
+        alignItems: 'center',
+        gap: 32,
+    },
+    offlineIllustration: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    offlineCircleOuter: {
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        backgroundColor: 'rgba(203, 213, 225, 0.2)', // Slate-200 with low opacity
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+    },
+    offlineCircleInner: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: COLORS.white,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#64748b',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    offlineBadgeIcon: {
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
+        backgroundColor: '#64748b',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderColor: '#f8fafc',
+    },
+    offlineTextContainer: {
+        alignItems: 'center',
+        gap: 12,
+    },
+    offlineTitle: {
+        fontSize: 26,
+        fontWeight: '900',
+        color: '#334155',
+        textAlign: 'center',
+        letterSpacing: 0.5,
+    },
+    offlineSubtitle: {
+        fontSize: 16,
+        color: '#64748b',
+        textAlign: 'center',
+        lineHeight: 24,
+        paddingHorizontal: 20,
+    },
+    goOnlineButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.primary,
+        paddingVertical: 16,
+        paddingHorizontal: 32,
+        borderRadius: 100,
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 10,
+        gap: 12,
+        width: '90%',
+        justifyContent: 'center',
+    },
+    powerIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: COLORS.white,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    goOnlineText: {
+        color: COLORS.white,
+        fontSize: 18,
+        fontWeight: '900',
+        letterSpacing: 1,
+    },
+    offlineFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 20,
+        opacity: 0.7,
+    },
+    offlineFooterText: {
+        fontSize: 13,
+        color: '#64748b',
+        fontWeight: '800',
+    },
+    // ======================
     topBar: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2027,15 +2235,12 @@ const styles = StyleSheet.create({
     },
     statusNew: {
         backgroundColor: 'rgba(22, 163, 74, 0.1)',
-        color: '#16a34a',
     },
     statusPreparing: {
         backgroundColor: 'rgba(249, 115, 22, 0.1)',
-        color: '#f97316',
     },
     statusReady: {
         backgroundColor: 'rgba(135, 53, 208, 0.1)',
-        color: COLORS.primary,
     },
     itemRow: {
         flexDirection: 'row',
@@ -2049,9 +2254,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#f1f5f9',
-    },
-    itemIconColor: {
-        color: COLORS.muted,
     },
     itemName: {
         fontSize: 16,
@@ -2117,30 +2319,36 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
-        fontSize: 14,
-        fontWeight: '800',
     },
     rejectButton: {
         backgroundColor: '#f1f5f9',
+    },
+    rejectButtonText: {
         color: COLORS.textPrimary,
-        fontWeight: "900"
+        fontWeight: '900',
     },
     acceptButton: {
         backgroundColor: '#16a34a',
+    },
+    acceptButtonText: {
         color: COLORS.white,
-        fontWeight: "900"
+        fontWeight: '900',
     },
     readyButton: {
         backgroundColor: COLORS.primary,
+    },
+    readyButtonText: {
         color: COLORS.white,
-        fontWeight: "900"
+        fontWeight: '900',
     },
     markDeliveredButton: {
         borderWidth: 1,
         borderColor: COLORS.primary,
         backgroundColor: 'transparent',
+    },
+    markDeliveredButtonText: {
         color: COLORS.primary,
-        fontWeight: "900"
+        fontWeight: '900',
     },
     mainContent: {
         paddingHorizontal: 16,

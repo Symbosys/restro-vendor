@@ -1,4 +1,3 @@
-// types/vendorOrder.type.ts
 export enum BroadcastStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
@@ -105,7 +104,8 @@ export interface VendorBroadcastItem {
 }
 
 export interface VendorBroadcastFilter {
-  date?: string; // ISO date string, e.g., "2025-11-17"
+  startDate?: string; // ISO date string, e.g., "2025-11-17T00:00:00Z"
+  endDate?: string; // ISO date string, e.g., "2025-11-18T23:59:59Z"
   broadcastStatus?: BroadcastStatus;
   orderStatus?: OrderStatus;
   limit?: number;

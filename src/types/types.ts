@@ -26,6 +26,19 @@ export type RootStackParamList = {
     PackingOrderConfirmation: undefined;
     PackingOrderHistory: undefined;
     PackingOrderInstallment: undefined;
+
+
+    // Legal screen
+  TermsAndConditions: undefined;
+  PrivacyPolicy: undefined;
+
+    // Support
+  HelpSupport: undefined;
+  HowToTrackOrder: undefined;
+  SupportHistory: undefined;
+  ChatWithSupport: undefined;
+  ReportIssue: undefined;
+  AiAssistant: undefined;
 };
 
 
