@@ -1,22 +1,21 @@
+import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  Modal,
   ActivityIndicator,
+  FlatList,
+  Modal,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS } from '../../theme/color';
-import { useNotification } from '../../hooks/useNotification';
 import { useAuth } from '../../context/AuthContext';
-import { formatDistanceToNow } from 'date-fns';
-import { NotificationType, NotificationItem } from '../../types/notification.type';
+import { useNotification } from '../../hooks/useNotification';
+import { COLORS } from '../../theme/color';
+import { NotificationItem, NotificationType } from '../../types/notification.type';
 
 interface NotificationItemProps {
   icon: string;

@@ -2,6 +2,7 @@ import { ToastAndroid } from "react-native";
 import api from "../api/api";
 import type { Vendor, UpdateVendorPayload } from "../types/vendor.types";
 import { AxiosError } from "axios";
+import { ErrorMessage, SuccessMessage } from "../utils/utils";
 
 /**
  * Fetch a single vendor by ID
@@ -96,14 +97,12 @@ export const updateVendorAPI = async (data: Partial<Vendor>, id: string | number
 
     console.log('res', res)
     if (res.data.success) {
-      ToastAndroid.show(res.data.message || "Vendor updated", ToastAndroid.SHORT);
+      SuccessMessage(res.data.message || "Vendor updated")
     }
 
     return res.data.data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      ToastAndroid.show(error.response?.data?.message || "Failed to update vendor", ToastAndroid.LONG);
-    }
+    ErrorMessage(error as AxiosError | Error)
     throw error;
   }
 };

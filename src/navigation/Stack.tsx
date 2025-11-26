@@ -23,15 +23,17 @@ import PrivacyPolicy from '../screen/legal/PrivacyPolicy';
 import HelpSupportScreen from '../screen/supprot/HelpAndSupport';
 import ReportProblemScreen from '../screen/supprot/ReportIssue';
 import AISupportAssistantScreen from '../screen/supprot/AiAssistant';
+import CustomAlert from '../components/ui/custom/CustomAlert';
+import { navigationRef } from '../helpers/navigationService';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function StackNavigation() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        // initialRouteName='BottomTab'
+        initialRouteName='Login'
       
         screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -74,6 +76,8 @@ export default function StackNavigation() {
         <Stack.Screen name='ReportIssue' component={ReportProblemScreen} />
         <Stack.Screen name='AiAssistant' component={AISupportAssistantScreen} />
       </Stack.Navigator>
+
+      <CustomAlert />
     </NavigationContainer>
   );
 }

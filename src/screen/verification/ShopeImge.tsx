@@ -7,14 +7,20 @@ import {
   TouchableOpacity,
   StatusBar,
   ToastAndroid,
+  Dimensions,
+  ActivityIndicator,
+  ScrollView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../types/types';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { COLORS } from '../../theme/color';
 import { useAuth } from '../../context/AuthContext';
 import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
-import api from '../../api/api'; // Assuming api is available for upload
+import api from '../../api/api';
+
 
 interface ShopImageUploadScreenProps {
   navigation: NavigationProp<RootStackParamList>;
@@ -28,14 +34,12 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
   const { data: vendor } = useVendorById();
   const { mutateAsync } = useUpdateVendorMutation(vendorId!);
 
-  // Prefill imageUri with existing vendor image
   useEffect(() => {
     if (vendor?.images?.url) {
       setImageUri(vendor.images.url);
     }
   }, [vendor]);
 
-  // Handle image selection from gallery
   const handleSelectImage = async () => {
     try {
       const result = await launchImageLibrary({
@@ -45,20 +49,17 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       });
 
       if (result.didCancel) {
-        ToastAndroid.show('Image selection cancelled', ToastAndroid.SHORT);
+        ToastAndroid.show('Cancelled', ToastAndroid.SHORT);
       } else if (result.errorCode) {
-        ToastAndroid.show(`Error: ${result.errorMessage}`, ToastAndroid.SHORT);
+        ToastAndroid.show(result.errorMessage || 'Error selecting image', ToastAndroid.SHORT);
       } else if (result.assets && result.assets[0].uri) {
         setImageUri(result.assets[0].uri);
-        ToastAndroid.show('Image selected successfully', ToastAndroid.SHORT);
       }
     } catch (error) {
       console.error(error);
-      ToastAndroid.show('Failed to select image', ToastAndroid.SHORT);
     }
   };
 
-  // Handle image upload
   const handleUpload = async () => {
     if (!imageUri) {
       ToastAndroid.show('Please select an image first', ToastAndroid.SHORT);
@@ -67,240 +68,356 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
 
     setUploading(true);
     try {
-      // Create FormData for image upload
       const formData = new FormData();
       formData.append('image', {
         uri: imageUri,
         type: 'image/jpeg',
         name: 'shop-image.jpg',
       } as any);
-      formData.append("status", "PENDING");
 
-      // Upload image to get URL
-      const uploadRes = await api.put(`/vendor/${vendorId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      if (vendor?.status === 'SHOP_IMAGES_NOT_UPLOADED') {
+        formData.append("status", "PENDING");
+      }
+
+      await api.put(`/vendor/${vendorId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // const imageUrl = uploadRes.data.imageUrl;
-
-      // // Update vendor with new image URL
-      // await mutateAsync({
-      //   images: imageUrl,
-      // });
-
-      ToastAndroid.show('Shop image uploaded successfully!', ToastAndroid.SHORT);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Outlet' }],
-      });
+      ToastAndroid.show('Shop image updated!', ToastAndroid.SHORT);
+      navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
     } catch (error) {
       console.error(error);
-      ToastAndroid.show('Failed to upload image', ToastAndroid.LONG);
+      ToastAndroid.show('Upload failed', ToastAndroid.LONG);
     } finally {
       setUploading(false);
     }
   };
 
-  // Handle skip (navigate to OutletScreen)
-  const handleSkip = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Outlet' }],
-    });
+  // Icons for guidelines (using remote icons to match the style without local assets)
+  const ICONS = {
+    sun: 'https://cdn-icons-png.flaticon.com/512/869/869869.png',
+    camera: 'https://cdn-icons-png.flaticon.com/512/685/685655.png',
+    store: 'https://cdn-icons-png.flaticon.com/512/869/869636.png',
+    upload: 'https://cdn-icons-png.flaticon.com/512/1040/1040241.png'
   };
 
-  const isExistingImage = !!vendor?.images?.url;
-
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="#F8FAFC" barStyle="dark-content" />
 
-      {/* Header */}
+      {/* --- Header --- */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          {/* Simple Arrow Icon representation */}
+          <Image
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}
+            style={styles.backIcon}
+          />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {isExistingImage ? '📸 Update Shop Image' : '📸 Upload Shop Image'}
+          {imageUri ? "Shop Image" : "Shop Setup"}
         </Text>
-        <Text style={styles.headerSubtitle}>
-          {isExistingImage
-            ? 'Update your shop photo to keep your profile current'
-            : 'Add a photo of your shop to complete your profile'
-          }
-        </Text>
+        <View style={{ width: 24 }} />{/* Spacer for alignment */}
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Image Preview */}
-        <View style={styles.imageContainer}>
-          {imageUri ? (
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-          ) : (
-            <Image
-              source={{
-                uri: 'https://static.vecteezy.com/system/resources/previews/015/131/905/original/flat-cartoon-style-shop-facade-front-view-modern-flat-storefront-or-supermarket-design-png.png',
-              }}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          )}
-        </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Select Image Button */}
+        {/* --- Main Titles --- */}
+        <Text style={styles.mainTitle}>
+          {imageUri ? "Upload Your Shop's\nMain Photo" : "Showcase Your Shop"}
+        </Text>
+        <Text style={styles.subTitle}>
+          {imageUri
+            ? "Use a high-quality photo of your storefront or a signature dish."
+            : "Upload a photo that represents your business."}
+        </Text>
+
+        {/* --- Upload Area (Dynamic based on state) --- */}
+        {imageUri ? (
+          // Filled State (Matches screen.jpg)
+          <View style={styles.previewContainer}>
+            <View style={styles.imageWrapper}>
+              <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setImageUri(null)}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.changeImageButton} onPress={handleSelectImage}>
+              <Text style={styles.changeImageText}>Change Image</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // Empty State (Matches shop.png dashed box)
+          <TouchableOpacity
+            style={styles.uploadBox}
+            onPress={handleSelectImage}
+            activeOpacity={0.8}
+          >
+            <Image source={{ uri: ICONS.camera }} style={styles.uploadIconMain} />
+            <Text style={styles.uploadBoxTitle}>Upload a high-quality photo</Text>
+            <Text style={styles.uploadBoxSub}>Tap here to select an image</Text>
+
+            <View style={styles.innerUploadBtn}>
+              <Text style={styles.innerUploadBtnText}>Upload Image</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* --- Guidelines Section (Matches shop.png) --- */}
+        {!imageUri && (
+          <View style={styles.guidelinesContainer}>
+            <Text style={styles.guidelinesTitle}>Photo Guidelines</Text>
+
+            <View style={styles.guidelineRow}>
+              <View style={styles.iconCircle}>
+                <Image source={{ uri: ICONS.sun }} style={styles.guidelineIcon} />
+              </View>
+              <Text style={styles.guidelineText}>Use bright, natural lighting.</Text>
+            </View>
+
+            <View style={styles.guidelineRow}>
+              <View style={styles.iconCircle}>
+                <Image source={{ uri: ICONS.camera }} style={styles.guidelineIcon} />
+              </View>
+              <Text style={styles.guidelineText}>Ensure the image is clear and not blurry.</Text>
+            </View>
+
+            <View style={styles.guidelineRow}>
+              <View style={styles.iconCircle}>
+                <Image source={{ uri: ICONS.store }} style={styles.guidelineIcon} />
+              </View>
+              <Text style={styles.guidelineText}>Showcase your storefront</Text>
+            </View>
+          </View>
+        )}
+
+      </ScrollView>
+
+      {/* --- Footer Action --- */}
+      <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.selectButton, uploading && styles.buttonDisabled]}
-          onPress={handleSelectImage}
+          style={[styles.mainButton, uploading && styles.disabledBtn]}
+          onPress={handleUpload}
           disabled={uploading}
         >
-          <Text style={styles.selectButtonText}>
-            {imageUri ? 'Change Image' : 'Select Image'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Upload and Skip Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.uploadButton, uploading && styles.buttonDisabled]}
-            onPress={handleUpload}
-            disabled={uploading}
-          >
-            <Text style={styles.uploadButtonText}>
-              {uploading ? 'Uploading...' : (isExistingImage ? 'Update Image' : 'Upload Image')}
+          {uploading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.mainButtonText}>
+              {imageUri ? "Save" : "Next"}
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={handleSkip}
-            disabled={uploading}
-          >
-            <Text style={styles.skipButtonText}>Skip for Now</Text>
-          </TouchableOpacity>
-        </View>
+          )}
+        </TouchableOpacity>
       </View>
-    </View>
+
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F8FAFC', // Light grey/white background
   },
   header: {
-    backgroundColor: COLORS.primary,
-    paddingTop: 40,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    elevation: 8,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#F8FAFC',
+  },
+  backButton: {
+    padding: 4,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#1E293B',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    textAlign: 'center',
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
   },
-  headerSubtitle: {
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 100,
+  },
+
+  // Titles
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 12,
+    lineHeight: 36,
+  },
+  subTitle: {
     fontSize: 16,
-    color: COLORS.secondary,
-    textAlign: 'center',
-    opacity: 0.95,
+    color: '#475569',
+    lineHeight: 24,
+    marginBottom: 32,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    backgroundColor: COLORS.secondary,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-  },
-  imageContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-    backgroundColor: COLORS.white,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 3,
-    borderColor: COLORS.primary,
+
+  // Upload Box (Empty State - Dashed)
+  uploadBox: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: '#CBD5E1', // Light grey border
     borderStyle: 'dashed',
-    elevation: 4,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  image: {
-    width: 220,
-    height: 180,
-  },
-  selectButton: {
-    backgroundColor: COLORS.accent,
-    paddingVertical: 14,
     borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  uploadIconMain: {
+    width: 56,
+    height: 56,
+    tintColor: COLORS.primary,
+    marginBottom: 16,
+  },
+  uploadBoxTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  uploadBoxSub: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  innerUploadBtn: {
+    backgroundColor: '#DBEAFE', // Very light blue
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  innerUploadBtnText: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+
+  // Preview State (Filled)
+  previewContainer: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  imageWrapper: {
+    width: '100%',
+    height: 250,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+    backgroundColor: '#E2E8F0',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  changeImageButton: {
+    width: '100%',
+    backgroundColor: '#DBEAFE', // Light blue
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  changeImageText: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+
+  // Guidelines
+  guidelinesContainer: {
+    marginTop: 0,
+  },
+  guidelinesTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 16,
+  },
+  guidelineRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    elevation: 4,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
-  selectButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  buttonContainer: {
-    width: '100%',
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#DBEAFE', // Light blue circle
+    justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 16,
   },
-  uploadButton: {
+  guidelineIcon: {
+    width: 20,
+    height: 20,
+    tintColor: COLORS.primary,
+  },
+  guidelineText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#334155',
+    lineHeight: 22,
+  },
+
+  // Footer
+  footer: {
+    padding: 24,
+    backgroundColor: '#F8FAFC',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  mainButton: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 16,
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    marginBottom: 12,
-    elevation: 4,
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
     shadowRadius: 8,
+    elevation: 4,
   },
-  uploadButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  skipButton: {
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: 'center',
-    width: '100%',
-  },
-  skipButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  buttonDisabled: {
-    backgroundColor: COLORS.muted,
-    elevation: 0,
+  disabledBtn: {
+    backgroundColor: '#94A3B8',
     shadowOpacity: 0,
+    elevation: 0,
+  },
+  mainButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 
