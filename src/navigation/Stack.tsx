@@ -25,6 +25,8 @@ import ReportProblemScreen from '../screen/supprot/ReportIssue';
 import AISupportAssistantScreen from '../screen/supprot/AiAssistant';
 import CustomAlert from '../components/ui/custom/CustomAlert';
 import { navigationRef } from '../helpers/navigationService';
+import VendorProductSelection from '../screen/verification/ProductSelection';
+import GlobalAlert from '../components/alert/GlobalAlert';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,7 +35,7 @@ export default function StackNavigation() {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        initialRouteName='Login'
+        initialRouteName='ProductSelection'
       
         screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -47,6 +49,7 @@ export default function StackNavigation() {
         <Stack.Screen name="Documents" component={DocumentVerification} />
         <Stack.Screen name='ShopDetails' component={ShopDetails} />
         <Stack.Screen name="ShopImage" component={Uplod} /> 
+        <Stack.Screen name="ProductSelection" component={VendorProductSelection} /> 
 
 
         <Stack.Screen name="BottomTab" component={BottomTab} />
@@ -78,6 +81,7 @@ export default function StackNavigation() {
       </Stack.Navigator>
 
       <CustomAlert />
+      <GlobalAlert />
     </NavigationContainer>
   );
 }

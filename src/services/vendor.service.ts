@@ -67,9 +67,7 @@ export const fetchVendorsAPI = async (params?: FetchVendorsParams) => {
 
     return res.data.data; // vendors, pagination etc.
   } catch (error) {
-    if (error instanceof AxiosError) {
-      ToastAndroid.show(error.response?.data?.message || "Failed to fetch vendors", ToastAndroid.LONG);
-    }
+    ErrorMessage(error as AxiosError | Error)
     throw error;
   }
 };
@@ -84,9 +82,7 @@ export const fetchVendorByIdAPI = async (id?: string | number): Promise<VendorDa
     console.log('res', res)
     return res.data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      ToastAndroid.show(error.response?.data?.message || "Failed to fetch vendor", ToastAndroid.LONG);
-    }
+    ErrorMessage(error as AxiosError | Error)
     throw error;
   }
 };

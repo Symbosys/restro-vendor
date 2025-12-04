@@ -1,38 +1,35 @@
-import { NavigationProp } from "@react-navigation/native";
-
-
-
+import { NavigationProp } from '@react-navigation/native';
 
 export type RootStackParamList = {
-    Splash: undefined;
-    Outlet: undefined;
-    Otp: { mobile: string };
-    Login: undefined;
-    Documents: undefined;
-    UpdateProfile: undefined;
-    ShopDetails: undefined;
-    ShopImage: undefined;
+  Splash: undefined;
+  Outlet: undefined;
+  Otp: { mobile: string };
+  Login: undefined;
+  Documents: undefined;
+  UpdateProfile: undefined;
+  ShopDetails: undefined;
+  ShopImage: undefined;
+  ProductSelection: undefined;
 
-    Notification: undefined;
+  Notification: undefined;
 
-    BottomTab: undefined;
-    MyProducts: undefined;
+  BottomTab: undefined;
+  MyProducts: undefined;
 
-    OrderDetails: { orderId: number | string };
+  OrderDetails: { orderId: number | string };
 
-    // Packing
-    PackingBegItems: undefined;
-    Packingcart: undefined;
-    PackingOrderConfirmation: undefined;
-    PackingOrderHistory: undefined;
-    PackingOrderInstallment: undefined;
+  // Packing
+  PackingBegItems: undefined;
+  Packingcart: undefined;
+  PackingOrderConfirmation: undefined;
+  PackingOrderHistory: undefined;
+  PackingOrderInstallment: undefined;
 
-
-    // Legal screen
+  // Legal screen
   TermsAndConditions: undefined;
   PrivacyPolicy: undefined;
 
-    // Support
+  // Support
   HelpSupport: undefined;
   HowToTrackOrder: undefined;
   SupportHistory: undefined;
@@ -41,8 +38,6 @@ export type RootStackParamList = {
   AiAssistant: undefined;
 };
 
-
 export type AppNavigation = {
-    navigation: NavigationProp<RootStackParamList>;
-}
-
+  navigation: NavigationProp<RootStackParamList>;
+};
