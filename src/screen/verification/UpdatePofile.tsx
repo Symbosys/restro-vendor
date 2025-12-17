@@ -19,6 +19,7 @@ import useAlertStore from '../../store/useAlertStore';
 import { AppNavigation } from '../../types/types';
 import { AxiosError } from 'axios';
 import { VendorStatus, Vendor } from '../../types/vendor.types';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 
 const UpdateProfile = ({ navigation }: AppNavigation) => {
@@ -64,6 +65,12 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
     }
   };
 
+  const hasChanges = vendor ? (
+    formData.ownerName !== (vendor.ownerName || '') ||
+    formData.companyName !== (vendor.companyName || '') ||
+    formData.email !== (vendor.email || '')
+  ) : false;
+
   // Helper to get initials for the avatar
   const getInitials = () => {
     const name = formData.companyName || formData.ownerName || "V";
@@ -88,6 +95,12 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Back Button */}
+          <View style={{ width: '100%', alignItems: 'flex-start', marginBottom: 10 }}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
+              <Icon name="arrow-back" size={24} color="#111827" />
+            </TouchableOpacity>
+          </View>
 
           {/* --- Header / Avatar Section --- */}
           <View style={styles.headerContainer}>
@@ -143,9 +156,9 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
         {/* --- Floating Action Footer --- */}
         <View style={styles.footerContainer}>
           <TouchableOpacity
-            style={[styles.saveButton, isUpdating && styles.saveButtonDisabled]}
+            style={[styles.saveButton, (isUpdating || !hasChanges) && styles.saveButtonDisabled]}
             onPress={handleUpdate}
-            disabled={isUpdating}
+            disabled={isUpdating || !hasChanges}
             activeOpacity={0.8}
           >
             {isUpdating ? (

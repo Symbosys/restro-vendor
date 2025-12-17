@@ -39,7 +39,7 @@ const UI_COLORS = {
 };
 
 const OutletStatus = ({ navigation }: AppNavigation) => {
-  const { vendorId, setAuthStatus } = useAuth();
+  const { vendorId, setAuthStatus, logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [vendorDetails, setVendorDetails] = useState<Vendor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -318,7 +318,9 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
           {/* Option 2: Login with different account */}
           <TouchableOpacity
             style={styles.secondaryActionBtn}
-            onPress={() => {
+            onPress={async () => {
+              await logout();
+              navigation.navigate('Login');
               // Clear auth or navigate to login
               setAuthStatus(false);
             }}

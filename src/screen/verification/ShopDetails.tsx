@@ -28,7 +28,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../theme/color';
 import { useAuth } from '../../context/AuthContext';
 import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
-import { LoadingOverlay as  Loader } from '../../components/loader/Loading';
+import { LoadingOverlay as Loader } from '../../components/loader/Loading';
 import { ErrorMessage } from '../../utils/utils';
 import { AppNavigation } from '../../types/types';
 
@@ -55,7 +55,12 @@ interface PlaceDetails {
   };
 }
 
-function AddAddress({navigation}: AppNavigation) {
+function AddAddress({ navigation }: AppNavigation) {
+  const { vendorId } = useAuth();
+  const { data: vendor } = useVendorById();
+  const { mutateAsync } = useUpdateVendorMutation(vendorId!);
+  const isShopDetailsFixed = !!(vendor?.shopName && vendor?.completeAddress);
+
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [completeAddress, setCompleteAddress] = useState('');
@@ -385,17 +390,12 @@ function AddAddress({navigation}: AppNavigation) {
     }
   }, []);
 
-  // ✅ Check if all required fields are filled
   const isFormValid =
     shopName.trim().length > 0 &&
     contactNumber.trim().length >= 10 &&
     completeAddress.trim().length > 0 &&
     pincode.trim().length > 0 &&
     currentAddress.trim().length > 0;
-
-  const { vendorId } = useAuth();
-  const { mutateAsync } = useUpdateVendorMutation(vendorId!);
-  const { data: vendor } = useVendorById();
 
   return (
     <View style={styles.container}>
@@ -416,7 +416,7 @@ function AddAddress({navigation}: AppNavigation) {
       {/* Header */}
       <SafeAreaView style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Confirm delivery location</Text>
@@ -528,7 +528,7 @@ function AddAddress({navigation}: AppNavigation) {
               style={styles.bottomSheetContent}
               showsVerticalScrollIndicator={false}>
               <Text style={styles.bottomSheetTitle}>
-                Enter complete address
+                {isShopDetailsFixed ? 'Shop Details' : 'Enter complete address'}
               </Text>
               {/* Shop Details */}
               <View style={styles.receiverSection}>
@@ -541,6 +541,7 @@ function AddAddress({navigation}: AppNavigation) {
                   value={shopName}
                   onChangeText={setShopName}
                   placeholderTextColor={COLORS.muted}
+                  editable={!isShopDetailsFixed}
                 />
                 <TextInput
                   style={styles.textInput}
@@ -550,6 +551,7 @@ function AddAddress({navigation}: AppNavigation) {
                   maxLength={10}
                   placeholderTextColor={COLORS.muted}
                   keyboardType="phone-pad"
+                  editable={!isShopDetailsFixed}
                 />
               </View>
               {/* Current Location Display */}
@@ -560,15 +562,19 @@ function AddAddress({navigation}: AppNavigation) {
                   ) : (
                     <Text style={styles.currentAddress}>{currentAddress}</Text>
                   )}
-                  <TouchableOpacity
-                    style={styles.changeButton}
-                    onPress={handleChangePress}>
-                    <Text style={styles.changeButtonText}>Change</Text>
-                  </TouchableOpacity>
+                  {!isShopDetailsFixed && (
+                    <TouchableOpacity
+                      style={styles.changeButton}
+                      onPress={handleChangePress}>
+                      <Text style={styles.changeButtonText}>Change</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-                <Text style={styles.mapPinNote}>
-                  Updated based on your exact map pin
-                </Text>
+                {!isShopDetailsFixed && (
+                  <Text style={styles.mapPinNote}>
+                    Updated based on your exact map pin
+                  </Text>
+                )}
               </View>
               {/* Form Fields */}
               <View style={styles.formSection}>
@@ -579,6 +585,7 @@ function AddAddress({navigation}: AppNavigation) {
                   onChangeText={setCompleteAddress}
                   placeholderTextColor={COLORS.muted}
                   multiline
+                  editable={!isShopDetailsFixed}
                 />
                 <TextInput
                   style={styles.textInput}
@@ -586,6 +593,7 @@ function AddAddress({navigation}: AppNavigation) {
                   value={floor}
                   onChangeText={setFloor}
                   placeholderTextColor={COLORS.muted}
+                  editable={!isShopDetailsFixed}
                 />
                 <TextInput
                   style={styles.textInput}
@@ -595,6 +603,7 @@ function AddAddress({navigation}: AppNavigation) {
                   placeholderTextColor={COLORS.muted}
                   keyboardType="number-pad"
                   maxLength={6}
+                  editable={!isShopDetailsFixed}
                 />
                 <TextInput
                   style={[
@@ -617,15 +626,19 @@ function AddAddress({navigation}: AppNavigation) {
                   placeholderTextColor={COLORS.muted}
                 />
               </View>
-              {/* Confirm Button */}
+              {/* Confirm / Go Back Button */}
               <TouchableOpacity
                 style={[
                   styles.confirmButton,
-                  !isFormValid && styles.confirmButtonDisabled,
+                  (!isFormValid && !isShopDetailsFixed) && styles.confirmButtonDisabled,
                   formSubmitting && styles.confirmButtonSubmitting,
                 ]}
-                disabled={!isFormValid}
+                disabled={(!isFormValid && !isShopDetailsFixed) || formSubmitting}
                 onPress={async () => {
+                  if (isShopDetailsFixed) {
+                    closeBottomSheet();
+                    return;
+                  }
                   if (!isFormValid) return;
                   try {
                     setFormSubmitting(true);
@@ -653,10 +666,10 @@ function AddAddress({navigation}: AppNavigation) {
                 <Text
                   style={[
                     styles.confirmButtonText,
-                    !isFormValid && styles.confirmButtonTextDisabled,
+                    (!isFormValid && !isShopDetailsFixed) && styles.confirmButtonTextDisabled,
                     formSubmitting && styles.confirmButtonTextSubmitting,
                   ]}>
-                  {formSubmitting ? 'Submitting...' : 'Confirm Address'}
+                  {isShopDetailsFixed ? 'Confirm Address' : (formSubmitting ? 'Submitting...' : 'Confirm Address')}
                 </Text>
               </TouchableOpacity>
             </ScrollView>

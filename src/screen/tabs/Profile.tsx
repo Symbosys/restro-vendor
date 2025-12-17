@@ -14,6 +14,8 @@ import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
 import { useVendorById } from '../../hooks/useVendorQueries';
 import api from '../../api/api';
+import { ErrorMessage } from '../../utils/utils';
+import { AxiosError } from 'axios';
 
 
 interface LinkItem {
@@ -40,9 +42,14 @@ const restaurantInfo: LinkItem[] = [
     route: 'ShopDetails',
   },
   {
-    icon: 'inventory',
-    title: 'My Products',
-    route: 'MyProducts',
+    icon: 'store',
+    title: 'Shop Image',
+    route: 'ShopImage',
+  },
+  {
+    icon: 'analytics',
+    title: 'Analytics',
+    route: 'Analytics',
   },
 ];
 
@@ -52,7 +59,7 @@ const accountSettings: LinkItem[] = [
     title: 'Help & Support',
     route: 'HelpSupport',
   },
-  
+
 ];
 
 const legalSupport: LinkItem[] = [
@@ -93,9 +100,10 @@ const packingBag: LinkItem[] = [
 
 const VendorProfileScreen = ({ navigation }: AppNavigation) => {
 
-  const { vendorId , logout} = useAuth();
-  
-  const {data: vendor} = useVendorById();
+  const { vendorId, logout } = useAuth();
+
+  const { data: vendor } = useVendorById();
+  console.log(vendor);
 
 
   const handleLinkPress = (route: string) => {
@@ -127,7 +135,7 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
               style={styles.avatar}
               resizeMode="cover"
             />
-            <TouchableOpacity style={styles.cameraButton}>
+            <TouchableOpacity style={styles.cameraButton} onPress={() => navigation.navigate('ShopImage' as never)}>
               <Icon name="photo-camera" size={20} color={COLORS.white} />
             </TouchableOpacity>
           </View>
@@ -233,9 +241,13 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
         {/* Logout Button */}
         <View style={styles.logoutContainer}>
           <TouchableOpacity style={styles.logoutButton} onPress={async () => {
-            await api.post('/auth/vendor/logout')
-            await logout()
-            navigation.navigate('Login')
+            try {
+              await api.post('/auth/vendor/logout')
+              await logout()
+              navigation.navigate('Login')
+            } catch (error) {
+              ErrorMessage(error as Error | AxiosError)
+            }
           }}>
             <Icon name="logout" size={20} color={COLORS.white} />
             <Text style={styles.logoutText}>Logout</Text>

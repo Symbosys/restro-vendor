@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     gap: 8,
-    marginBottom: 60,
+    marginBottom: 20,
   },
   fabText: {
     fontSize: 16,

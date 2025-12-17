@@ -18,6 +18,9 @@ export type RootStackParamList = {
 
   OrderDetails: { orderId: number | string };
 
+
+  Analytics: undefined;
+
   // Packing
   PackingBegItems: undefined;
   Packingcart: undefined;

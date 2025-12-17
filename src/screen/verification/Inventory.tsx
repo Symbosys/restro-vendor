@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../../theme/color';
 import { useGetAllProducts } from '../../hooks/useProducts';
@@ -39,6 +40,10 @@ const SPACING = 16;
 const CARD_WIDTH = (width - SPACING * 3) / 2;
 
 const VendorInventoryScreen = () => {
+  const route = useRoute();
+  const isTabScreen = route.name === 'Inventory';
+  const tabBarHeight = isTabScreen ? (Platform.OS === 'ios' ? 90 : 75) : 0;
+
   const [activeTabId, setActiveTabId] = useState('1');
   const { updateInventory, isUpdating } = useUpdateInventory();
 
@@ -234,13 +239,13 @@ const VendorInventoryScreen = () => {
                 <Text>No products found in this category.</Text>
               </View>
             )}
-            <View style={{ height: 100 }} />
+            <View style={{ height: 100 + tabBarHeight }} />
           </View>
         </ScrollView>
       </SafeAreaView>
 
       {/* BOTTOM BAR */}
-      <View style={styles.bottomBarContainer}>
+      <View style={[styles.bottomBarContainer, { bottom: tabBarHeight }]}>
         <View style={styles.bottomBar}>
           <View>
             <Text style={styles.bottomBarLabel}>Total Active Items</Text>

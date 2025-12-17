@@ -31,7 +31,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
   const [uploading, setUploading] = useState<boolean>(false);
 
   const { vendorId } = useAuth();
-  const { data: vendor } = useVendorById();
+  const { data: vendor, refetch: refetchVendor } = useVendorById();
   const { mutateAsync } = useUpdateVendorMutation(vendorId!);
 
   useEffect(() => {
@@ -39,6 +39,9 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       setImageUri(vendor.images.url);
     }
   }, [vendor]);
+
+  const isImageFromApi = vendor?.images?.url === imageUri;
+  const isButtonDisabled = uploading || (isImageFromApi && !!imageUri);
 
   const handleSelectImage = async () => {
     try {
@@ -75,13 +78,17 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         name: 'shop-image.jpg',
       } as any);
 
-      if (vendor?.status === 'SHOP_IMAGES_NOT_UPLOADED') {
-        formData.append("status", "PENDING");
+      if (vendor?.status !== 'APPROVED') {
+        // Send status update only if not approved (e.g. pending verification flow)
+        if (vendor?.status === 'SHOP_IMAGES_NOT_UPLOADED') {
+          formData.append("status", "PENDING");
+        }
       }
 
       await api.put(`/vendor/${vendorId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      refetchVendor();
 
       ToastAndroid.show('Shop image updated!', ToastAndroid.SHORT);
       navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
@@ -200,9 +207,9 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       {/* --- Footer Action --- */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.mainButton, uploading && styles.disabledBtn]}
+          style={[styles.mainButton, isButtonDisabled && styles.disabledBtn]}
           onPress={handleUpload}
-          disabled={uploading}
+          disabled={isButtonDisabled}
         >
           {uploading ? (
             <ActivityIndicator color="#FFF" />

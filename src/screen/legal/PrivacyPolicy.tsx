@@ -4,6 +4,8 @@ import {
     NativeScrollEvent,
     NativeSyntheticEvent,
     ScrollView,
+    Platform,
+    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -67,9 +69,7 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
                             <Icon name="arrow-back" size={24} color={COLORS.white} />
                         </TouchableOpacity>
                         <Text style={styles.headerTitle}>Privacy Policy</Text>
-                        <TouchableOpacity style={styles.headerButton} onPress={handleDownloadPress}>
-                            <Icon name="download" size={24} color={COLORS.white} />
-                        </TouchableOpacity>
+                        <View style={styles.headerButton} />
                     </View>
                 </View>
             </View>
@@ -93,7 +93,7 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
             {/* Main Content */}
             <ScrollView
                 ref={scrollRef}
-                style={styles.main}
+                style={[styles.main, { marginTop: headerHeight }]}
                 contentContainerStyle={styles.mainContent}
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
         zIndex: 20,
     },
     headerGradient: {
-        paddingTop: 16,
+        paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 10 : 50,
         paddingBottom: 16,
         paddingHorizontal: 16,
         shadowColor: "#000",

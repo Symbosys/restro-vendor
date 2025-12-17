@@ -1,32 +1,33 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import OutletScreen from '../screen/outlet/Outlet';
-import Splash from '../screen/splash/Splash';
-import { RootStackParamList } from '../types/types';
-import DocumentVerification from '../screen/verification/Documents';
+import GlobalAlert from '../components/alert/GlobalAlert';
+import CustomAlert from '../components/ui/custom/CustomAlert';
+import { navigationRef } from '../helpers/navigationService';
 import LoginScreen from '../screen/auth/login';
 import OTP from '../screen/auth/Otp';
-import UpdateProfile from '../screen/verification/UpdatePofile'; 
-import Uplod from '../screen/verification/ShopeImge';  
-import ShopDetails from '../screen/verification/ShopDetails';
-import BottomTab from './Bottom';
-import ProductsScreen from '../screen/products/MyProducts';
+import PrivacyPolicy from '../screen/legal/PrivacyPolicy';
+import TermsAndConditions from '../screen/legal/TermsAndCondition';
 import OrderDetailsScreen from '../screen/orders/OrderDetails';
+import OutletScreen from '../screen/outlet/Outlet';
 import PackingScreen from '../screen/packing/PackingItem';
 import PackingItemCart from '../screen/packing/PackingItemCart';
 import PackingOrderConfirmedScreen from '../screen/packing/PackingOrderConfirm';
 import PackingOrderHistoryScreen from '../screen/packing/PackingOrderHistory';
 import InstallmentDetailsScreen from '../screen/packing/PackingOrderInstallment';
-import NotificationsScreen from '../screen/tabs/Notification';
-import TermsAndConditions from '../screen/legal/TermsAndCondition';
-import PrivacyPolicy from '../screen/legal/PrivacyPolicy';
+import ProductsScreen from '../screen/products/MyProducts';
+import Splash from '../screen/splash/Splash';
+import AISupportAssistantScreen from '../screen/supprot/AiAssistant';
 import HelpSupportScreen from '../screen/supprot/HelpAndSupport';
 import ReportProblemScreen from '../screen/supprot/ReportIssue';
-import AISupportAssistantScreen from '../screen/supprot/AiAssistant';
-import CustomAlert from '../components/ui/custom/CustomAlert';
-import { navigationRef } from '../helpers/navigationService';
-import VendorProductSelection from '../screen/verification/ProductSelection';
-import GlobalAlert from '../components/alert/GlobalAlert';
+import NotificationsScreen from '../screen/tabs/Notification';
+import DocumentVerification from '../screen/verification/Documents';
+import VendorInventoryScreen from '../screen/verification/Inventory';
+import ShopDetails from '../screen/verification/ShopDetails';
+import Uplod from '../screen/verification/ShopeImge';
+import UpdateProfile from '../screen/verification/UpdatePofile';
+import { RootStackParamList } from '../types/types';
+import BottomTab from './Bottom';
+import Analytics from '../screen/tabs/Analytics';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -35,7 +36,7 @@ export default function StackNavigation() {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        initialRouteName='ProductSelection'
+        // initialRouteName='ProductSelection'
       
         screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
@@ -49,7 +50,7 @@ export default function StackNavigation() {
         <Stack.Screen name="Documents" component={DocumentVerification} />
         <Stack.Screen name='ShopDetails' component={ShopDetails} />
         <Stack.Screen name="ShopImage" component={Uplod} /> 
-        <Stack.Screen name="ProductSelection" component={VendorProductSelection} /> 
+        <Stack.Screen name="ProductSelection" component={VendorInventoryScreen} /> 
 
 
         <Stack.Screen name="BottomTab" component={BottomTab} />
@@ -64,6 +65,8 @@ export default function StackNavigation() {
         {/* Legal Screen  */}
         <Stack.Screen name='TermsAndConditions' component={TermsAndConditions} />
         <Stack.Screen name='PrivacyPolicy' component={PrivacyPolicy} />
+
+        <Stack.Screen name='Analytics' component={Analytics} />
 
 
         {/* Packing Beg  */}
