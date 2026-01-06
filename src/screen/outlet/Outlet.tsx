@@ -89,6 +89,9 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
       case 'SHOP_IMAGES_NOT_UPLOADED':
         navigation.reset({ index: 0, routes: [{ name: 'ShopImage' }] });
         break;
+      case 'SIGNATURE_NOT_UPLOADED':
+        navigation.reset({ index: 0, routes: [{ name: 'SignatureUpload' }] });
+        break;
       case 'APPROVED':
         setAuthStatus(true);
         navigation.reset({ index: 0, routes: [{ name: 'BottomTab' }] });

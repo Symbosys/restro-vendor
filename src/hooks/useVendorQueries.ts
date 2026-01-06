@@ -13,7 +13,7 @@ export const useVendorsQuery = (params?: FetchVendorsParams) =>
   });
 
 // 🔄 Fetch Single Vendor
-export const useVendorById = () =>
+export const useVendorById = (options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: ["me"],
     queryFn: async () => {
@@ -26,6 +26,7 @@ export const useVendorById = () =>
       }
     },                 
     staleTime: 1000 * 60 * 5,         // 5 minutes
+    enabled: options?.enabled,
   });
 
 

@@ -47,6 +47,11 @@ const restaurantInfo: LinkItem[] = [
     route: 'ShopImage',
   },
   {
+    icon: 'draw',
+    title: 'Signature',
+    route: 'SignatureUpload',
+  },
+  {
     icon: 'analytics',
     title: 'Analytics',
     route: 'Analytics',

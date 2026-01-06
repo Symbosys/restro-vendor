@@ -9,6 +9,7 @@ export type RootStackParamList = {
   UpdateProfile: undefined;
   ShopDetails: undefined;
   ShopImage: undefined;
+  SignatureUpload: undefined;
   ProductSelection: undefined;
 
   Notification: undefined;

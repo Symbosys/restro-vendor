@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { NotificationQueryParams } from "../types/notification.type";
 import { fetchNotification } from "../services/notification.service";
 
-export const useNotification = (queryParams: NotificationQueryParams) => {
+export const useNotification = (queryParams: NotificationQueryParams, options?: { enabled?: boolean }) => {
     return useInfiniteQuery({
         queryKey: ['notifications', queryParams],
         initialPageParam: 1,
@@ -13,5 +13,6 @@ export const useNotification = (queryParams: NotificationQueryParams) => {
             }
             return undefined;
         },
+        enabled: options?.enabled,
     })
 }

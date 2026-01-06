@@ -15,6 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '../../theme/color';
 import api from '../../api/api';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -32,6 +33,8 @@ const AnalyticsScreen = () => {
   const customStartDate = formatDate(startDate);
   const customEndDate = formatDate(endDate);
 
+  const { isAuthenticated } = useAuth();
+
   const { data: analytics, isLoading, error } = useQuery({
     queryKey: ['analytics', selectedRange, customStartDate, customEndDate],
     queryFn: async () => {
@@ -44,11 +47,12 @@ const AnalyticsScreen = () => {
       return response.data.data; // Assuming SuccessResponse structure: { success: true, message: string, data: AnalyticsResponse }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isAuthenticated,
   });
 
   const kpiData = analytics?.kpis || [];
 
-  console.log({analytics})
+  console.log({ analytics })
 
   const busiestTimesData = analytics?.busiestTimes.data.map((item: any) => ({
     day: item.day,
@@ -226,7 +230,7 @@ const AnalyticsScreen = () => {
             </View>
             <Text style={styles.chartSubtitle}>{getSubtitle()}</Text>
             <View style={styles.barChartContainer}>
-              {busiestTimesData.map((item : any, index: any) => (
+              {busiestTimesData.map((item: any, index: any) => (
                 <View key={index} style={styles.barColumn}>
                   <View style={styles.barWrapper}>
                     <View

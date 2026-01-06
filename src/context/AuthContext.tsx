@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setLogoutFunction } from '../helpers/navigationService';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface VendorAuthContextType {
     token: string | null;
@@ -22,6 +23,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [fcmToken, setFcmTokenState] = useState<string | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         setLogoutFunction(logout); // 🔥 expose logout globally
@@ -80,6 +82,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setVendorId(null);
         setFcmTokenState(null);
         setIsAuthenticated(false);
+        queryClient.clear();
 
         await AsyncStorage.multiRemove([
             'vendorToken',

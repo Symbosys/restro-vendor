@@ -182,7 +182,7 @@ const NotificationsScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedNotification, setSelectedNotification] = React.useState<Notification | null>(null);
 
-  const { vendorId } = useAuth();
+  const { vendorId, isAuthenticated } = useAuth();
 
   // CHANGE: Destructure isFetchingNextPage and hasNextPage from the hook (assuming it's useInfiniteQuery)
   const {
@@ -198,7 +198,7 @@ const NotificationsScreen: React.FC = () => {
     recipientId: vendorId || "",
     recipientType: "VENDOR",
     // REMOVE: page: 1, limit: 10  // Infinite query manages these internally
-  });
+  }, { enabled: isAuthenticated });
 
   const notificationsFromApi = React.useMemo(() =>
     queryData?.pages?.flatMap(page => page.data.notifications) || [],

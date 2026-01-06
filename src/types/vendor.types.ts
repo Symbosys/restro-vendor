@@ -4,6 +4,7 @@ export type VendorStatus =
   | "DOCUMENTS_NOT_VERIFIED"
   | "SHOP_DETAILS_NOT_FILLED"
   | "SHOP_IMAGES_NOT_UPLOADED"
+  | "SIGNATURE_NOT_UPLOADED"
   | "PENDING"
   | "APPROVED"
   | "REJECTED"
@@ -14,6 +15,7 @@ export interface Vendor {
   ownerName?: string;
   companyName?: string;
   email?: string;
+  signature?: { public_id: string; url: string };
   mobile: string;
   isActive: boolean;
   status: VendorStatus;

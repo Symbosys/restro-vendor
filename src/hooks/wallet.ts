@@ -3,7 +3,8 @@ import { fetchVendorWalletTransactions } from "../services/wallet.service";
 import { WalletTransactionQueryParams } from "../types/wallet.type";
 
 export const useVendorWalletTransactions = (
-  queryParams: WalletTransactionQueryParams
+  queryParams: WalletTransactionQueryParams,
+  options?: { enabled?: boolean }
 ) => {
   return useInfiniteQuery({
     queryKey: ["vendor-wallet-transactions", queryParams],
@@ -22,5 +23,6 @@ export const useVendorWalletTransactions = (
       }),
     
     staleTime: 1000 * 60 * 5,
+    enabled: options?.enabled,
   });
 };

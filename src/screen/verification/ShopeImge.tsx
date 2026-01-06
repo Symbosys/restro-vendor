@@ -30,7 +30,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
 
-  const { vendorId } = useAuth();
+  const { vendorId, token } = useAuth();
   const { data: vendor, refetch: refetchVendor } = useVendorById();
   const { mutateAsync } = useUpdateVendorMutation(vendorId!);
 
@@ -79,22 +79,32 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       } as any);
 
       if (vendor?.status !== 'APPROVED') {
-        // Send status update only if not approved (e.g. pending verification flow)
-        if (vendor?.status === 'SHOP_IMAGES_NOT_UPLOADED') {
-          formData.append("status", "PENDING");
-        }
+        formData.append("status", "SIGNATURE_NOT_UPLOADED");
       }
 
-      await api.put(`/vendor/${vendorId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      // Use fetch to avoid Axios network errors with FormData  api.mintafresh.com
+      const response = await fetch(`http://192.168.1.4:4000/api/v1/minta-fresh/vendor/${vendorId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Content-Type must be omitted so the browser/engine sets it with boundary
+        },
+        body: formData,
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Upload failed');
+      }
+
       refetchVendor();
 
       ToastAndroid.show('Shop image updated!', ToastAndroid.SHORT);
       navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      ToastAndroid.show('Upload failed', ToastAndroid.LONG);
+      ToastAndroid.show(error.message || 'Upload failed', ToastAndroid.LONG);
     } finally {
       setUploading(false);
     }

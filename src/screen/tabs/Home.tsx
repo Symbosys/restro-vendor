@@ -1599,11 +1599,11 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
     }, [activeTab, tabToFilter, todayDateRange]);
     // =================================================================
 
+    const { vendorId, isAuthenticated } = useAuth();
+
     const { data: queryData, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, error, refetch: refetchBroadcasts } = useVendorBroadcastedOrders(queryParams);
 
-    const { vendorId } = useAuth();
-
-    const { data: vendor, refetch: refetchVendor } = useVendorById();
+    const { data: vendor, refetch: refetchVendor } = useVendorById({ enabled: isAuthenticated });
     const { mutate: vendorUpdate } = useUpdateVendorMutation(vendorId || "");
 
     // Sync storeOpen with vendor data from query (runs only when vendor data changes)
@@ -1848,14 +1848,14 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                                     ]}
                                     onPress={handleToggleStore}
                                 /> */}
-                                    
-                                    <Switch
-                                        value={!!storeOpen}
-                                        onValueChange={handleToggleStore}
-                                        thumbColor={storeOpen ? COLORS.primary : "#f4f4f5"}
-                                        trackColor={{ false: "#e5e7eb", true: "#c7d2fe" }}
-                                        style={{ transform: [{ scale: 1.1 }] }}
-                                    />
+
+                                <Switch
+                                    value={!!storeOpen}
+                                    onValueChange={handleToggleStore}
+                                    thumbColor={storeOpen ? COLORS.primary : "#f4f4f5"}
+                                    trackColor={{ false: "#e5e7eb", true: "#c7d2fe" }}
+                                    style={{ transform: [{ scale: 1.1 }] }}
+                                />
 
                             </View>
                         </View>

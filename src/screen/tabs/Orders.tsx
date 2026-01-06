@@ -21,6 +21,7 @@ import api from '../../api/api';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
 import { VendorBroadcastItem, BroadcastStatus, OrderStatus } from '../../types/order.types';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -94,7 +95,7 @@ const fetchOrders = async (params: OrderQueryParams): Promise<OrderApiResponse> 
   return data;
 };
 
-export const useOrders = (queryParams: Omit<OrderQueryParams, 'page'>) => {
+export const useOrders = (queryParams: Omit<OrderQueryParams, 'page'>, options?: { enabled?: boolean }) => {
   return useInfiniteQuery({
     queryKey: ['orders', queryParams],
     initialPageParam: 1,
@@ -104,6 +105,7 @@ export const useOrders = (queryParams: Omit<OrderQueryParams, 'page'>) => {
         ? lastPage.data.currentPage + 1
         : undefined,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: options?.enabled,
   });
 };
 
@@ -187,6 +189,8 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
     endDateValue,
   ]);
 
+  const { isAuthenticated } = useAuth();
+
   const {
     data: queryData,
     error,
@@ -197,7 +201,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
     hasNextPage,
     fetchNextPage,
     refetch,
-  } = useOrders(queryParams);
+  } = useOrders(queryParams, { enabled: isAuthenticated });
 
   const ordersFromApi = useMemo(
     () =>

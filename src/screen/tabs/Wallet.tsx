@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { COLORS } from '../../theme/color';
 import { useVendorWalletTransactions } from '../../hooks/wallet';
+import { useAuth } from '../../context/AuthContext';
 import { parseToDecimal } from '../../utils/utils';
 import { TransactionType } from '../../types/wallet.type';
 
@@ -26,8 +27,7 @@ const MyWalletScreen = () => {
 
   const filters: FilterType[] = ['All', 'Credits', 'Debits', 'Refunds', 'Payouts'];
 
-  // TODO: Replace with actual vendor ID from auth context
-  const vendorId = '1'; // Placeholder - get from useAuth() or context
+  const { vendorId, isAuthenticated } = useAuth();
 
   const filterToType: Record<Exclude<FilterType, 'All'>, TransactionType> = {
     Credits: 'CREDIT',
@@ -45,7 +45,7 @@ const MyWalletScreen = () => {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useVendorWalletTransactions({ vendorId, transactionType });
+  } = useVendorWalletTransactions({ vendorId: vendorId || "", transactionType }, { enabled: isAuthenticated });
 
   const flatTransactions = useMemo(
     () => walletData?.pages.flatMap((page) => page.transactions) || [],

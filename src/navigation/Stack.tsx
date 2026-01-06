@@ -24,6 +24,7 @@ import DocumentVerification from '../screen/verification/Documents';
 import VendorInventoryScreen from '../screen/verification/Inventory';
 import ShopDetails from '../screen/verification/ShopDetails';
 import Uplod from '../screen/verification/ShopeImge';
+import SignatureUpload from '../screen/verification/SignatureUpload';
 import UpdateProfile from '../screen/verification/UpdatePofile';
 import { RootStackParamList } from '../types/types';
 import BottomTab from './Bottom';
@@ -37,7 +38,7 @@ export default function StackNavigation() {
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         // initialRouteName='ProductSelection'
-      
+
         screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Login" component={LoginScreen} />
@@ -45,12 +46,13 @@ export default function StackNavigation() {
 
         <Stack.Screen name="Outlet" component={OutletScreen} />
 
-         {/* Verification setup */}
+        {/* Verification setup */}
         <Stack.Screen name="UpdateProfile" component={UpdateProfile} />
         <Stack.Screen name="Documents" component={DocumentVerification} />
         <Stack.Screen name='ShopDetails' component={ShopDetails} />
-        <Stack.Screen name="ShopImage" component={Uplod} /> 
-        <Stack.Screen name="ProductSelection" component={VendorInventoryScreen} /> 
+        <Stack.Screen name="ShopImage" component={Uplod} />
+        <Stack.Screen name="SignatureUpload" component={SignatureUpload} />
+        <Stack.Screen name="ProductSelection" component={VendorInventoryScreen} />
 
 
         <Stack.Screen name="BottomTab" component={BottomTab} />
@@ -61,7 +63,7 @@ export default function StackNavigation() {
 
         <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
 
-        
+
         {/* Legal Screen  */}
         <Stack.Screen name='TermsAndConditions' component={TermsAndConditions} />
         <Stack.Screen name='PrivacyPolicy' component={PrivacyPolicy} />
