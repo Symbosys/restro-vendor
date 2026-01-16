@@ -22,6 +22,9 @@ import ReportProblemScreen from '../screen/supprot/ReportIssue';
 import NotificationsScreen from '../screen/tabs/Notification';
 import DocumentVerification from '../screen/verification/Documents';
 import VendorInventoryScreen from '../screen/verification/Inventory';
+import BankAccountScreen from '../screen/verification/BankAccount';
+import BankListScreen from '../screen/bank/BankList';
+import UpdateBankAccountScreen from '../screen/bank/UpdateBankAccount';
 import ShopDetails from '../screen/verification/ShopDetails';
 import Uplod from '../screen/verification/ShopeImge';
 import SignatureUpload from '../screen/verification/SignatureUpload';
@@ -53,9 +56,13 @@ export default function StackNavigation() {
         <Stack.Screen name="ShopImage" component={Uplod} />
         <Stack.Screen name="SignatureUpload" component={SignatureUpload} />
         <Stack.Screen name="ProductSelection" component={VendorInventoryScreen} />
+        <Stack.Screen name="BankAccount" component={BankAccountScreen} />
 
 
         <Stack.Screen name="BottomTab" component={BottomTab} />
+
+        <Stack.Screen name="BankList" component={BankListScreen} />
+        <Stack.Screen name="UpdateBankAccount" component={UpdateBankAccountScreen} />
 
         <Stack.Screen name='Notification' component={NotificationsScreen} />
 

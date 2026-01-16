@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     Image,
     Dimensions,
+    ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SignatureScreen, { SignatureViewRef } from 'react-native-signature-canvas';
@@ -27,6 +28,7 @@ interface SignatureUploadProps {
 
 const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
+    const [scrollEnabled, setScrollEnabled] = useState(true); // State to control scroll
     const { vendorId } = useAuth();
     const { data: vendor, refetch: refetchVendor } = useVendorById();
     const signatureRef = useRef<SignatureViewRef>(null);
@@ -45,24 +47,23 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
         signatureRef.current?.readSignature();
     };
 
+    // Functions to toggle scroll
+    const handleBegin = () => setScrollEnabled(false);
+    const handleEnd = () => setScrollEnabled(true);
+
     const handleOK = async (signature: string) => {
         setLoading(true);
         try {
             const formData = new FormData();
 
-            // Append signature file
-            // Note: react-native-signature-canvas returns a base64 data URI
             formData.append('signature', {
                 uri: signature,
                 type: 'image/png',
                 name: 'signature.png',
             } as any);
 
-            // Update status
             formData.append('status', 'PENDING');
 
-            // We use fetch/axios with multipart/form-data
-            // Assuming api instance handles base URL
             const response = await api.put(`/vendor/${vendorId}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -84,7 +85,6 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
         }
     };
 
-    // If signature exists, user can verify but not edit
     const renderExistingSignature = () => (
         <View style={styles.content}>
             <Text style={styles.mainTitle}>Signature Verified</Text>
@@ -123,6 +123,8 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
                         ref={signatureRef}
                         onOK={handleOK}
                         onEmpty={handleEmpty}
+                        onBegin={handleBegin} // Disable scroll when drawing starts
+                        onEnd={handleEnd}     // Enable scroll when drawing ends
                         descriptionText="Sign within this box"
                         clearText="Clear"
                         confirmText="Save"
@@ -132,7 +134,22 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
                     />
                 </View>
                 <View style={styles.padFooter}>
-                    <Text style={styles.padFooterText}>By signing, you agree to the terms and accuracy of provided details.</Text>
+                    <Text style={styles.padFooterText}>
+                        By signing, you agree to our{' '}
+                        <Text
+                            style={styles.linkText}
+                            onPress={() => navigation.navigate('TermsAndConditions' as any)}
+                        >
+                            Terms & Conditions
+                        </Text>
+                        {' '}and{' '}
+                        <Text
+                            style={styles.linkText}
+                            onPress={() => navigation.navigate('PrivacyPolicy' as any)}
+                        >
+                            Privacy Policy
+                        </Text>.
+                    </Text>
                 </View>
             </View>
 
@@ -164,13 +181,19 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
                 <View style={{ width: 24 }} />
             </View>
 
-            {existingSignatureUrl ? renderExistingSignature() : renderSignaturePad()}
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                scrollEnabled={scrollEnabled} // Controlled by drawing state
+            >
+                {existingSignatureUrl ? renderExistingSignature() : renderSignaturePad()}
+            </ScrollView>
 
             <View style={styles.footer}>
                 {existingSignatureUrl ? (
                     <TouchableOpacity
                         style={styles.submitButton}
-                        onPress={() => navigation.navigate('Outlet')}
+                        onPress={() => navigation.navigate('Outlet' as any)}
                     >
                         <Text style={styles.submitButtonText}>Continue</Text>
                     </TouchableOpacity>
@@ -243,6 +266,10 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1E293B',
     },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: 20,
+    },
     content: {
         flex: 1,
         paddingHorizontal: 24,
@@ -280,15 +307,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFC',
     },
     padFooter: {
-        padding: 12,
+        padding: 16,
         backgroundColor: '#F1F5F9',
         alignItems: 'center',
     },
     padFooterText: {
-        fontSize: 11,
+        fontSize: 12,
         color: '#64748B',
         textAlign: 'center',
         fontWeight: '500',
+        lineHeight: 18,
+    },
+    linkText: {
+        color: COLORS.primary,
+        textDecorationLine: 'underline',
+        fontWeight: '700',
     },
     tipsContainer: {
         marginTop: 24,

@@ -11,6 +11,9 @@ export type RootStackParamList = {
   ShopImage: undefined;
   SignatureUpload: undefined;
   ProductSelection: undefined;
+  BankAccount: undefined;
+  BankList: undefined;
+  UpdateBankAccount: { bankId: string | number; bankDetails: any };
 
   Notification: undefined;
 

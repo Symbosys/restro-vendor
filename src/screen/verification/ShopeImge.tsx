@@ -78,12 +78,13 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         name: 'shop-image.jpg',
       } as any);
 
+      
       if (vendor?.status !== 'APPROVED') {
         formData.append("status", "SIGNATURE_NOT_UPLOADED");
       }
 
       // Use fetch to avoid Axios network errors with FormData  api.mintafresh.com
-      const response = await fetch(`http://192.168.1.4:4000/api/v1/minta-fresh/vendor/${vendorId}`, {
+      const response = await fetch(`http://192.168.1.6:4000/api/v1/minta-fresh/vendor/${vendorId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

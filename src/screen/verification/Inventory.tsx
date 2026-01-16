@@ -17,7 +17,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../../theme/color';
 import { useGetAllProducts } from '../../hooks/useProducts';
@@ -41,6 +41,7 @@ const CARD_WIDTH = (width - SPACING * 3) / 2;
 
 const VendorInventoryScreen = () => {
   const route = useRoute();
+  const navigation = useNavigation<any>();
   const isTabScreen = route.name === 'Inventory';
   const tabBarHeight = isTabScreen ? (Platform.OS === 'ios' ? 90 : 75) : 0;
 
@@ -147,6 +148,7 @@ const VendorInventoryScreen = () => {
 
     // Trigger the API call
     await updateInventory(payload);
+    navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
   };
 
   const activeCategory = categories?.data.find(c => c.id === activeTabId);

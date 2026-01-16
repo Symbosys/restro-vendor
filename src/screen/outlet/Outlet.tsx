@@ -89,6 +89,12 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
       case 'SHOP_IMAGES_NOT_UPLOADED':
         navigation.reset({ index: 0, routes: [{ name: 'ShopImage' }] });
         break;
+      case 'PRODUCT_SELECTION_NOT_DONE':
+        navigation.reset({ index: 0, routes: [{ name: 'ProductSelection' }] });
+        break;
+      case 'BANK_ACCOUNT_NOT_ADDED':
+        navigation.reset({ index: 0, routes: [{ name: 'BankAccount' }] });
+        break;
       case 'SIGNATURE_NOT_UPLOADED':
         navigation.reset({ index: 0, routes: [{ name: 'SignatureUpload' }] });
         break;

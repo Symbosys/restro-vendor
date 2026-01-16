@@ -56,6 +56,11 @@ const restaurantInfo: LinkItem[] = [
     title: 'Analytics',
     route: 'Analytics',
   },
+  {
+    icon: 'account-balance',
+    title: 'Bank Details',
+    route: 'BankList',
+  },
 ];
 
 const accountSettings: LinkItem[] = [
