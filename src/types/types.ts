@@ -30,7 +30,7 @@ export type RootStackParamList = {
   Packingcart: undefined;
   PackingOrderConfirmation: undefined;
   PackingOrderHistory: undefined;
-  PackingOrderInstallment: undefined;
+  PackingOrderInstallment: { orderId?: string; planId?: string } | undefined;
 
   // Legal screen
   TermsAndConditions: undefined;
