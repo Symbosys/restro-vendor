@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { usePackingCart, useCreatePackingOrder } from '../../api/query/packing_items';
+import { usePackingCart, useCreatePackingOrder } from '../../api/hooks/packing_items';
 import { parseToDecimal } from '../../utils/utils';
 
 const { width: screenWidth } = Dimensions.get('window');

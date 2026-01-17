@@ -1,26 +1,25 @@
+import { AxiosError } from 'axios';
 import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Dimensions
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
-import { useAuth } from '../../context/AuthContext';
-import { COLORS } from '../../theme/color';
-import useAlertStore from '../../store/useAlertStore';
-import { AppNavigation } from '../../types/types';
-import { AxiosError } from 'axios';
-import { VendorStatus, Vendor } from '../../types/vendor.types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import { useAuth } from '../../context/AuthContext';
+import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
+import useAlertStore from '../../store/useAlertStore';
+import { COLORS } from '../../theme/color';
+import { AppNavigation } from '../../types/types';
+import { Vendor, VendorStatus } from '../../types/vendor.types';
 
 const UpdateProfile = ({ navigation }: AppNavigation) => {
   const { vendorId } = useAuth();
@@ -71,7 +70,6 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
     formData.email !== (vendor.email || '')
   ) : false;
 
-  // Helper to get initials for the avatar
   const getInitials = () => {
     const name = formData.companyName || formData.ownerName || "V";
     return name.slice(0, 2).toUpperCase();
@@ -85,90 +83,123 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
     );
   }
 
+  const isLocked = !!vendor?.isApproved;
+
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
+        <View style={styles.headerBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerBarTitle}>Edit Profile</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Back Button */}
-          <View style={{ width: '100%', alignItems: 'flex-start', marginBottom: 10 }}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginLeft: -8 }}>
-              <Icon name="arrow-back" size={24} color="#111827" />
-            </TouchableOpacity>
-          </View>
-
-          {/* --- Header / Avatar Section --- */}
-          <View style={styles.headerContainer}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{getInitials()}</Text>
+          {/* Avatar Section */}
+          <View style={styles.profileSection}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{getInitials()}</Text>
+              </View>
+              {/* Optional: Add camera icon if photo upload is supported later */}
             </View>
-            <Text style={styles.headerTitle}>Edit Profile</Text>
-            <Text style={styles.headerSubtitle}>Update your business identity</Text>
+            <Text style={styles.profileName}>{formData.companyName || 'Business Name'}</Text>
+            <View style={[styles.roleBadge, isLocked ? styles.roleBadgeVerified : styles.roleBadgePending]}>
+              <Icon
+                name={isLocked ? "verified" : "account-circle"}
+                size={14}
+                color={isLocked ? "#059669" : "#6B7280"}
+              />
+              <Text style={[styles.roleText, isLocked ? styles.roleTextVerified : styles.roleTextPending]}>
+                {isLocked ? 'Verified Merchant' : 'Merchant Account'}
+              </Text>
+            </View>
           </View>
 
-          {/* --- Clean Form Section --- */}
-          <View style={styles.formSection}>
+          {/* Locked Status Banner */}
+          {isLocked && (
+            <View style={styles.lockedBanner}>
+              <Icon name="verified-user" size={20} color="#059669" />
+              <View style={styles.lockedContent}>
+                <Text style={styles.lockedTitle}>Profile Verified</Text>
+                <Text style={styles.lockedDescription}>
+                  Your profile has been verified. To make changes, please contact support.
+                </Text>
+              </View>
+            </View>
+          )}
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>OWNER FULL NAME</Text>
+          {/* Form Fields */}
+          <View style={styles.formContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Owner Name</Text>
               <TextInput
-                style={styles.cleanInput}
-                placeholder="e.g. John Doe"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, isLocked && styles.disabledInput]}
                 value={formData.ownerName}
                 onChangeText={(text) => handleInputChange('ownerName', text)}
+                placeholder="Enter owner name"
+                placeholderTextColor="#9CA3AF"
+                editable={!isLocked}
               />
             </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>COMPANY / BRAND NAME</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Company Name</Text>
               <TextInput
-                style={styles.cleanInput}
-                placeholder="e.g. Tech Solutions Ltd."
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, isLocked && styles.disabledInput]}
                 value={formData.companyName}
                 onChangeText={(text) => handleInputChange('companyName', text)}
+                placeholder="Enter company name"
+                placeholderTextColor="#9CA3AF"
+                editable={!isLocked}
               />
             </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>BUSINESS EMAIL</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email Address</Text>
               <TextInput
-                style={styles.cleanInput}
-                placeholder="name@company.com"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, isLocked && styles.disabledInput]}
                 value={formData.email}
                 onChangeText={(text) => handleInputChange('email', text)}
+                placeholder="Enter email address"
+                placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLocked}
               />
             </View>
-
           </View>
-
         </ScrollView>
 
-        {/* --- Floating Action Footer --- */}
-        <View style={styles.footerContainer}>
-          <TouchableOpacity
-            style={[styles.saveButton, (isUpdating || !hasChanges) && styles.saveButtonDisabled]}
-            onPress={handleUpdate}
-            disabled={isUpdating || !hasChanges}
-            activeOpacity={0.8}
-          >
-            {isUpdating ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
+        {/* Footer Action */}
+        {!isLocked && (
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                (!hasChanges || isUpdating) && styles.buttonDisabled
+              ]}
+              onPress={handleUpdate}
+              disabled={!hasChanges || isUpdating}
+              activeOpacity={0.8}
+            >
+              {isUpdating ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.buttonText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -177,7 +208,7 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Pure white for clean look
+    backgroundColor: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
@@ -185,81 +216,142 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
   },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 20,
+  },
+  headerBarTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 100, // Space for footer
+    paddingBottom: 100,
   },
-
-  // Header Styling
-  headerContainer: {
+  profileSection: {
     alignItems: 'center',
-    marginBottom: 40,
-    marginTop: 10,
+    paddingVertical: 32,
   },
-  avatarCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.primary, // Uses your theme color
-    justifyContent: 'center',
-    alignItems: 'center',
+  avatarContainer: {
     marginBottom: 16,
-    // Soft shadow for depth
+    position: 'relative',
+  },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 4,
   },
   avatarText: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: 1,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827', // Almost black
-    letterSpacing: -0.5,
-    marginBottom: 6,
+  profileName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
   },
-  headerSubtitle: {
-    fontSize: 15,
-    color: '#6B7280', // Cool gray
-    fontWeight: '800',
+  roleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
   },
-
-  // Form Styling
-  formSection: {
-    width: '100%',
+  roleBadgeVerified: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
   },
-  inputWrapper: {
+  roleBadgePending: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  roleText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  roleTextVerified: {
+    color: '#059669',
+  },
+  roleTextPending: {
+    color: '#6B7280',
+  },
+  lockedBanner: {
+    marginHorizontal: 20,
     marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  lockedContent: {
+    flex: 1,
+  },
+  lockedTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#166534',
+    marginBottom: 4,
+  },
+  lockedDescription: {
+    fontSize: 13,
+    color: '#15803D',
+    lineHeight: 20,
+  },
+  formContainer: {
+    paddingHorizontal: 24,
+  },
+  inputGroup: {
+    marginBottom: 20,
   },
   label: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#9CA3AF', // Light gray label
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
     marginBottom: 8,
-    letterSpacing: 0.8, // Spaced out caps
-    textTransform: 'uppercase',
   },
-  cleanInput: {
-    backgroundColor: '#F3F4F6', // Increased contrast (was #F9FAFB)
-    borderWidth: 1,              // Added border for better visibility
-    borderColor: '#E5E7EB',      // Light gray border
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: '#1F2937',
-    fontWeight: '800',
+  input: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#111827',
   },
-
-  // Footer Styling
-  footerContainer: {
+  disabledInput: {
+    backgroundColor: '#F3F4F6',
+    color: '#6B7280',
+    borderColor: 'transparent',
+  },
+  footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -269,26 +361,27 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
   },
-  saveButton: {
+  button: {
     backgroundColor: COLORS.primary,
-    height: 56,
-    borderRadius: 28, // Pill shape
-    justifyContent: 'center',
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  saveButtonDisabled: {
-    opacity: 0.7,
+  buttonDisabled: {
+    backgroundColor: '#E5E7EB',
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  saveButtonText: {
-    color: '#FFFFFF',
+  buttonText: {
     fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
 

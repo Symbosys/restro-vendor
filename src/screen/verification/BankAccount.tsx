@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { createBankAccount } from '../../services/bank.service';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
+import useAlertStore from '../../store/useAlertStore';
 
 const BankAccountScreen = ({ navigation }: AppNavigation) => {
     const { vendorId } = useAuth();
@@ -36,21 +37,22 @@ const BankAccountScreen = ({ navigation }: AppNavigation) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
+    const { showAlert } = useAlertStore()
+
     const handleSubmit = async () => {
         // Basic Validation
         if (!form.accountHolder || !form.bankName || !form.accountNumber || !form.ifsc) {
-            // You can use a toast or alert here
-            console.warn("Please fill all mandatory fields");
+            showAlert("Error", "Please fill all mandatory fields", "error");
             return;
         }
 
         if (form.accountNumber !== form.confirmAccountNumber) {
-            console.warn("Account numbers do not match");
+            showAlert("Error", "Account numbers do not match", "error");
             return;
         }
 
         if (!vendorId) {
-            console.warn("Vendor ID missing");
+            showAlert("Error", "Vendor ID missing", "error");
             return;
         }
 

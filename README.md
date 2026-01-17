@@ -26,3 +26,7 @@ export const COLORS = {
 
 
 use this color which is located in ../../theme/theme and if you need beyond this theme color and hardcode them  wrap entire code with safeareview import from safearea context
+
+
+
+the UI should look very beautifull attractive impressive ashthetic unique clean and professional UI

@@ -27,8 +27,10 @@
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-android-location-enabler": "^3.0.1",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.29.0",
     "react-native-image-picker": "^8.2.1",
+    "react-native-image-resizer": "^1.4.5",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-maps": "^1.26.18",
     "react-native-pager-view": "^6.9.1",
@@ -40,6 +42,7 @@
     "react-native-tab-view": "^4.2.0",
     "react-native-toast-message": "^2.3.3",
     "react-native-vector-icons": "^10.3.0",
+    "react-native-vision-camera": "^4.7.3",
     "react-native-webview": "^13.16.0",
     "react-native-worklets": "^0.6.1",
     "zustand": "^5.0.8"

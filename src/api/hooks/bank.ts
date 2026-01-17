@@ -7,6 +7,7 @@ import {
     getBankAccountById,
     updateBankAccount
 } from '../../services/bank.service';
+import { ErrorMessage } from '../../utils/utils';
 
 export const BANK_KEYS = {
   all: ['banks'] as const,
@@ -56,7 +57,7 @@ export const useUpdateBankAccount = () => {
       queryClient.invalidateQueries({ queryKey: BANK_KEYS.detail(variables.id) });
     },
     onError: (error: AxiosError | Error) => {
-        // Error handled in service usually
+        ErrorMessage(error)
     }
   });
 };

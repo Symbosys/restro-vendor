@@ -10,11 +10,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import GlobalHeader from '../../components/ui/custom/GlobalHeader';
-import Loader from '../../components/ui/Loader';
-import { useAuth } from '../../context/AuthContext';
-import { useBankAccounts } from '../../api/query/bank';
-import { COLORS } from '../../theme/color';
-import { AppNavigation } from '../../types/types';
+import Loader from '../../../components/ui/Loader';
+import { useAuth } from '../../../context/AuthContext';
+import { useBankAccounts } from '../../../api/hooks/bank';
+import { COLORS } from '../../../theme/color';
+import { AppNavigation } from '../../../types/types';
 
 const BankListScreen = ({ navigation }: AppNavigation) => {
     const { vendorId } = useAuth();

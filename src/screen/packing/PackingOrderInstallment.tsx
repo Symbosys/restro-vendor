@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { usePackingInstallmentsSummary, usePackingInstallmentPlans } from '../../api/query/packing_items';
+import { usePackingInstallmentsSummary, usePackingInstallmentPlans } from '../../api/hooks/packing_items';
 import { PackingInstallment, PackingInstallmentPlan } from '../../services/packing.service';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { parseToDecimal } from '../../utils/utils';

@@ -45,7 +45,6 @@ export const updateBankAccount = async (bankId: string | number, payload: Partia
     return res.data.data;
   } catch (error) {
     ErrorMessage(error as AxiosError | Error);
-    throw error;
   }
 };
 

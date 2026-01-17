@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { useVendorById } from '../../hooks/useVendorQueries';
+import { useVendorDocumentStore } from '../../api/hooks/document';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
 import { ErrorMessage } from '../../utils/utils';
@@ -31,10 +32,10 @@ interface LinkItem {
 // --- Menu Data ---
 const restaurantInfo: LinkItem[] = [
   { icon: 'person', title: 'Personal Info', route: 'UpdateProfile', subtext: 'Update your personal details' },
-  { icon: 'description', title: 'Documents', route: 'Documents', subtext: 'Manage vendor documents' },
-  { icon: 'store', title: 'Shop Details', route: 'ShopDetails', subtext: 'Address & shop info' },
-  { icon: 'image', title: 'Shop Image', route: 'ShopImage', subtext: 'Update storefront photo' },
-  { icon: 'gesture', title: 'Signature', route: 'SignatureUpload', subtext: 'Digital signature' },
+  { icon: 'description', title: 'Documents', route: 'MyDocuments', subtext: 'Manage vendor documents' },
+  { icon: 'store', title: 'Shop Details', route: 'MyShopDetails', subtext: 'Address & shop info' },
+  // { icon: 'image', title: 'Shop Image', route: 'ShopImage', subtext: 'Update storefront photo' },
+  // { icon: 'gesture', title: 'Signature', route: 'SignatureUpload', subtext: 'Digital signature' },
   { icon: 'account-balance', title: 'Bank Details', route: 'BankList', subtext: 'Payout accounts' },
 ];
 
@@ -54,7 +55,14 @@ const support: LinkItem[] = [
 const VendorProfileScreen = ({ navigation }: AppNavigation) => {
   const { logout } = useAuth();
   const { data: vendor, isLoading } = useVendorById();
+  const { document, fetchDocument } = useVendorDocumentStore();
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (vendor?.id) {
+      fetchDocument(vendor.id.toString());
+    }
+  }, [vendor?.id, fetchDocument]);
 
   // Dynamic Header Padding for Status Bar
   const headerPaddingTop = insets.top > 0 ? insets.top + 10 : 30;
@@ -77,25 +85,42 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
     <View style={styles.sectionContainer} key={title}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.menuCard}>
-        {data.map((item, index) => (
-          <View key={index}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => handleLinkPress(item.route)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.iconBox, { backgroundColor: item.color || '#F3E8FF' }]}>
-                <Icon name={item.icon} size={22} color={COLORS.primary} />
-              </View>
-              <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>{item.title}</Text>
-                {item.subtext && <Text style={styles.menuSubtitle}>{item.subtext}</Text>}
-              </View>
-              <Icon name="chevron-right" size={20} color="#CBD5E1" />
-            </TouchableOpacity>
-            {index < data.length - 1 && <View style={styles.separator} />}
-          </View>
-        ))}
+        {data.map((item, index) => {
+          const isDocsRoute = item.route === 'MyDocuments';
+          // Check if all major docs are verified
+          const isVerified = isDocsRoute &&
+            document?.isAadhaarVerified &&
+            document?.isPanVerified &&
+            (document?.fassaiNumber ? document?.isFassaiVerified : true);
+
+          return (
+            <View key={index}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleLinkPress(item.route)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconBox, { backgroundColor: item.color || '#F3E8FF' }]}>
+                  <Icon name={item.icon} size={22} color={COLORS.primary} />
+                </View>
+                <View style={styles.menuContent}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={styles.menuTitle}>{item.title}</Text>
+                    {isVerified && (
+                      <View style={styles.verifiedBadge}>
+                        <Icon name="verified" size={14} color="#059669" />
+                        <Text style={styles.verifiedText}>Verified</Text>
+                      </View>
+                    )}
+                  </View>
+                  {item.subtext && <Text style={styles.menuSubtitle}>{item.subtext}</Text>}
+                </View>
+                <Icon name="chevron-right" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
+              {index < data.length - 1 && <View style={styles.separator} />}
+            </View>
+          )
+        })}
       </View>
     </View>
   );
@@ -336,6 +361,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
     marginTop: 2,
+  },
+  verifiedBadge: {
+    backgroundColor: '#ECFDF5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  verifiedText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#059669',
   },
   separator: {
     height: 1,

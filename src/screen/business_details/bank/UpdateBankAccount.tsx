@@ -12,11 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Loader from '../../components/ui/Loader';
-import { useAuth } from '../../context/AuthContext';
-import { useUpdateBankAccount } from '../../api/query/bank';
-import { COLORS } from '../../theme/color';
-import { AppNavigation } from '../../types/types';
+import Loader from '../../../components/ui/Loader';
+import { useAuth } from '../../../context/AuthContext';
+import { useUpdateBankAccount } from '../../../api/hooks/bank';
+import { COLORS } from '../../../theme/color';
+import { AppNavigation } from '../../../types/types';
 import { useRoute } from '@react-navigation/native';
 
 const UpdateBankAccountScreen = ({ navigation }: AppNavigation) => {
@@ -76,7 +76,7 @@ const UpdateBankAccountScreen = ({ navigation }: AppNavigation) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 10 }}>

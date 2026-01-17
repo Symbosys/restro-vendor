@@ -2,7 +2,7 @@ import { NavigationProp } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, View, ToastAndroid, Image, StyleSheet, StatusBar, TextInput, TouchableOpacity, Text } from 'react-native';
 import { RootStackParamList } from '../../types/types';
-import { useVendorDocumentStore } from '../../api/query/document';
+import { useVendorDocumentStore } from '../../api/hooks/document';
 import { useAuth } from '../../context/AuthContext';
 
 type DocumentType = 'aadhaar' | 'pan' | 'fssai';

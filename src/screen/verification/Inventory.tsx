@@ -52,6 +52,10 @@ const VendorInventoryScreen = () => {
   const [enabledCategories, setEnabledCategories] = useState<string[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
+  // State to track initial values from API (to detect changes)
+  const [initialEnabledCategories, setInitialEnabledCategories] = useState<string[]>([]);
+  const [initialSelectedProductIds, setInitialSelectedProductIds] = useState<string[]>([]);
+
   // State to track if data has been synced with API once
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -82,7 +86,11 @@ const VendorInventoryScreen = () => {
     setEnabledCategories(preSelectedCategoryIds);
     setSelectedProductIds(preSelectedProductIds);
 
-    // 4. Set Active Tab to first category if available
+    // 4. Save initial state for change detection
+    setInitialEnabledCategories(preSelectedCategoryIds);
+    setInitialSelectedProductIds(preSelectedProductIds);
+
+    // 5. Set Active Tab to first category if available
     if (apiCategories.length > 0) {
       setActiveTabId(apiCategories[0].id);
     }
@@ -107,7 +115,11 @@ const VendorInventoryScreen = () => {
       const mandatoryItems = realProducts
         .filter(p => p.categoryId === activeTabId && p.isMandatory)
         .map(p => p.id);
-      setSelectedProductIds(prev => [...prev, ...mandatoryItems]);
+      // Only add mandatory items that aren't already selected to prevent duplicates
+      setSelectedProductIds(prev => {
+        const newItems = mandatoryItems.filter(id => !prev.includes(id));
+        return [...prev, ...newItems];
+      });
     } else {
       setEnabledCategories(prev => prev.filter(id => id !== activeTabId));
       const categoryProductIds = realProducts
@@ -148,11 +160,30 @@ const VendorInventoryScreen = () => {
 
     // Trigger the API call
     await updateInventory(payload);
+
+    // Update initial state to current state (so hasChanges becomes false)
+    setInitialEnabledCategories(enabledCategories);
+    setInitialSelectedProductIds(selectedProductIds);
+
     navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
   };
 
   const activeCategory = categories?.data.find(c => c.id === activeTabId);
   const isCategoryEnabled = enabledCategories.includes(activeTabId);
+
+  // Detect if user has made any changes
+  const hasChanges = useMemo(() => {
+    // Compare arrays by sorting and converting to strings
+    const categoriesChanged =
+      JSON.stringify([...enabledCategories].sort()) !==
+      JSON.stringify([...initialEnabledCategories].sort());
+
+    const productsChanged =
+      JSON.stringify([...selectedProductIds].sort()) !==
+      JSON.stringify([...initialSelectedProductIds].sort());
+
+    return categoriesChanged || productsChanged;
+  }, [enabledCategories, selectedProductIds, initialEnabledCategories, initialSelectedProductIds]);
 
   // Show Loader until hydration is complete
   if (!isHydrated && (!products || !categories)) {
@@ -163,7 +194,7 @@ const VendorInventoryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView
@@ -246,38 +277,40 @@ const VendorInventoryScreen = () => {
         </ScrollView>
       </SafeAreaView>
 
-      {/* BOTTOM BAR */}
-      <View style={[styles.bottomBarContainer, { bottom: tabBarHeight }]}>
-        <View style={styles.bottomBar}>
-          <View>
-            <Text style={styles.bottomBarLabel}>Total Active Items</Text>
-            <Text style={styles.bottomBarCount}>
-              {selectedProductIds.length} Products
-            </Text>
-          </View>
+      {/* BOTTOM BAR - Only show when there are changes */}
+      {hasChanges && (
+        <View style={[styles.bottomBarContainer, { bottom: tabBarHeight }]}>
+          <View style={styles.bottomBar}>
+            <View>
+              <Text style={styles.bottomBarLabel}>Total Active Items</Text>
+              <Text style={styles.bottomBarCount}>
+                {selectedProductIds.length} Products
+              </Text>
+            </View>
 
-          <TouchableOpacity
-            style={[styles.saveButton, isUpdating && { opacity: 0.7 }]} // 👈 Dim when loading
-            activeOpacity={0.85}
-            onPress={handleSave}
-            disabled={isUpdating} // 👈 Disable when loading
-          >
-            {isUpdating ? (
-              // 👈 Show Loader
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <>
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-                <Icon
-                  name="arrow-right-circle"
-                  size={20}
-                  color={COLORS.white}
-                />
-              </>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.saveButton, isUpdating && { opacity: 0.7 }]} // 👈 Dim when loading
+              activeOpacity={0.85}
+              onPress={handleSave}
+              disabled={isUpdating} // 👈 Disable when loading
+            >
+              {isUpdating ? (
+                // 👈 Show Loader
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                  <Icon
+                    name="arrow-right-circle"
+                    size={20}
+                    color={COLORS.white}
+                  />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* DISABLED OVERLAY */}
       {!isCategoryEnabled && (
@@ -348,13 +381,16 @@ const ProductCard = ({
   isCategoryEnabled: boolean;
   toggleProductSelection: (id: string, isMandatory: boolean) => void;
 }) => {
-  const isSelected = selectedProductIds.includes(item.id);
+  // Fix: Check if product is selected OR if it's mandatory and category is enabled
+  // This ensures mandatory products show as selected immediately when category is toggled on
+  const isSelected = selectedProductIds.includes(item.id) || (item.isMandatory && isCategoryEnabled);
   const isDisabled = !isCategoryEnabled;
 
-  const cardBg = isSelected && !isDisabled ? '#FBF5FF' : COLORS.white;
-  const borderColor = isSelected && !isDisabled ? COLORS.primary : '#E0E0E0';
-  const borderWidth = isSelected && !isDisabled ? 2 : 1;
-  const opacity = isDisabled ? 0.5 : 1;
+  // Show selected styling for all selected products (including mandatory ones)
+  const cardBg = isSelected ? '#FBF5FF' : COLORS.white;
+  const borderColor = isSelected ? COLORS.primary : '#E0E0E0';
+  const borderWidth = isSelected ? 2 : 1;
+  const opacity = isDisabled && !isSelected ? 0.5 : 1;
 
   return (
     <TouchableOpacity

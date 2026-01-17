@@ -20,7 +20,7 @@ import {
     useUpdatePackingCartItem,
     useRemovePackingCartItem,
     useClearPackingCart,
-} from '../../api/query/packing_items';
+} from '../../api/hooks/packing_items';
 import { parseToDecimal } from '../../utils/utils';
 
 export default function CartScreen({ navigation }: AppNavigation) {

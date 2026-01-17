@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { usePackingOrders } from '../../api/query/packing_items';
+import { usePackingOrders } from '../../api/hooks/packing_items';
 import { PackingOrder } from '../../services/packing.service';
 import { parseToDecimal } from '../../utils/utils';
 

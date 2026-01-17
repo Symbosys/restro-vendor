@@ -1,4 +1,4 @@
-import { NavigationProp } from '@react-navigation/native';
+import { NavigationProp, RouteProp } from '@react-navigation/native';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -43,8 +43,17 @@ export type RootStackParamList = {
   ChatWithSupport: undefined;
   ReportIssue: undefined;
   AiAssistant: undefined;
+
+  // Issues
+  MyTickets: undefined;
+  TicketDetails: { ticketId: string };
+
+  // Business Details
+  MyShopDetails: undefined;
+  MyDocuments: undefined;
 };
 
 export type AppNavigation = {
   navigation: NavigationProp<RootStackParamList>;
+  route: any;
 };
