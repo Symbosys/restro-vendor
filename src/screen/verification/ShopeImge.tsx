@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  StatusBar,
-  ToastAndroid,
-  Dimensions,
-  ActivityIndicator,
-  ScrollView,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../types/types';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { COLORS } from '../../theme/color';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
-import api from '../../api/api';
+import { COLORS } from '../../theme/color';
+import { RootStackParamList } from '../../types/types';
 
 
 interface ShopImageUploadScreenProps {
@@ -84,7 +81,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       }
 
       // Use fetch to avoid Axios network errors with FormData  api.mintafresh.com
-      const response = await fetch(`http://192.168.1.6:4000/api/v1/minta-fresh/vendor/${vendorId}`, {
+      const response = await fetch(`http://localhost:4000/api/v1/minta-fresh/vendor/${vendorId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

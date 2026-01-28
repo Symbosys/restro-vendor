@@ -60,6 +60,7 @@ const VendorInventoryScreen = () => {
   const [isHydrated, setIsHydrated] = useState(false);
 
   const { data: products } = useGetAllProducts();
+  console.log('products', products);
   const { data: categories } = useGetAllCategories();
 
   // ==========================================================
