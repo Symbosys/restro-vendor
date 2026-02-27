@@ -115,10 +115,6 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<RootStackParamLis
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="" />
 
-      {/* Skip Button */}
-      <TouchableOpacity style={styles.skipButton}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
 
       {/* Green Background Section with Image */}
       <View style={styles.topSection}>
@@ -188,10 +184,6 @@ const LoginScreen = ({navigation}: {navigation: NavigationProp<RootStackParamLis
                 style={styles.backButton}
                 onPress={handleCloseModal}>
                 <Icon name="arrow-back" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.skipButtonModal}>
-                <Text style={styles.skipText}>Skip</Text>
               </TouchableOpacity>
 
               <Text style={styles.lowestPriceText}>Quick & Fresh</Text>
@@ -274,11 +266,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 25,
     zIndex: 10,
-  },
-  skipText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
   topSection: {
     flex: 1,

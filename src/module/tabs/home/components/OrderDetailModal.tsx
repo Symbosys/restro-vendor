@@ -157,10 +157,10 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
                                     <Text style={modalStyles.summaryLabel}>Item Total</Text>
                                     <Text style={modalStyles.summaryValue}>₹{order.subtotal.toFixed(0)}</Text>
                                 </View>
-                                <View style={modalStyles.summaryLine}>
+                                {/* <View style={modalStyles.summaryLine}>
                                     <Text style={modalStyles.summaryLabel}>Delivery Fee</Text>
                                     <Text style={modalStyles.summaryValue}>₹{order.deliveryFee.toFixed(0)}</Text>
-                                </View>
+                                </View> */}
                                 <View style={modalStyles.totalLine}>
                                     <Text style={modalStyles.totalLabel}>Grand Total</Text>
                                     <Text style={[modalStyles.totalAmount, { color: theme.color }]}>
@@ -172,7 +172,7 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
 
                         {/* Customer Info Placeholder - to make card look fuller */}
                         <View style={modalStyles.card}>
-                            <View style={modalStyles.cardHeader}>
+                            {/* <View style={modalStyles.cardHeader}>
                                 <Icon name="person" size={22} color="#1e293b" />
                                 <Text style={modalStyles.cardTitle}>Customer Information</Text>
                             </View>
@@ -185,7 +185,7 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
                                     <Text style={modalStyles.summaryLabel}>Delivery at</Text>
                                     <Text style={modalStyles.summaryValue} numberOfLines={1}>24, Greens Park, Mumbai</Text>
                                 </View>
-                            </View>
+                            </View> */}
                         </View>
 
                         {/* Action Buttons */}

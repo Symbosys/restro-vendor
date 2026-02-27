@@ -131,7 +131,7 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                 </>
             )}
 
-            {/* {modalVisible && selectedOrder && (
+            {modalVisible && selectedOrder && (
                 <OrderDetailModal
                     order={selectedOrder}
                     visible={modalVisible}
@@ -141,7 +141,7 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                     }}
                     onAction={handleOrderAction}
                 />
-            )} */}
+            )}
         </SafeAreaView>
     );
 };

@@ -81,7 +81,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       }
 
       // Use fetch to avoid Axios network errors with FormData  api.mintafresh.com
-      const response = await fetch(`http://localhost:4000/api/v1/minta-fresh/vendor/${vendorId}`, {
+      const response = await fetch(`https://api.mintafresh.com/api/v1/minta-fresh/vendor/${vendorId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -12,7 +12,7 @@ import {
     ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -23,6 +23,7 @@ const { width: screenWidth } = Dimensions.get('window');
 const maxWidth = Math.min(screenWidth - 32, 400);
 
 export default function PackingOrderConfirmScreen({ navigation }: AppNavigation) {
+    const insets = useSafeAreaInsets(); // Hook to handle notches
     const [deliveryNotes, setDeliveryNotes] = useState('');
     const [orderPlaced, setOrderPlaced] = useState(false);
     const [orderDetails, setOrderDetails] = useState<{
@@ -54,7 +55,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
         }
     }, [createOrderMutation, deliveryNotes]);
 
-    // Success State
+    // SUCCESS STATE
     if (orderPlaced && orderDetails) {
         return (
             <SafeAreaView style={styles.safeArea}>
@@ -72,84 +73,88 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                     </View>
 
                     {/* Main Content */}
-                    <View style={styles.main}>
-                        {/* Success Icon */}
-                        <View style={styles.successIcon}>
-                            <MaterialIcons name="check-circle" size={80} color="#10B981" />
-                        </View>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.successScrollContent}
+                    >
+                        <View style={styles.main}>
+                            {/* Success Icon */}
+                            <View style={styles.successIcon}>
+                                <MaterialIcons name="check-circle" size={80} color="#10B981" />
+                            </View>
 
-                        {/* Headline */}
-                        <Text style={styles.headline}>Order Confirmed! 🎉</Text>
+                            <Text style={styles.headline}>Order Confirmed! 🎉</Text>
 
-                        {/* Body Text */}
-                        <Text style={styles.bodyText}>
-                            Your packing materials order has been placed successfully!
-                        </Text>
+                            <Text style={styles.bodyText}>
+                                Your packing materials order has been placed successfully!
+                            </Text>
 
-                        {/* Details Card */}
-                        <View style={[styles.detailsCard, { width: maxWidth }]}>
-                            {/* Order Summary */}
-                            <View>
-                                <Text style={styles.sectionTitle}>Order Summary</Text>
-                                <View style={styles.summaryRows}>
-                                    <View style={styles.row}>
-                                        <Text style={styles.rowLabel}>Order ID</Text>
-                                        <Text style={styles.rowValue}>{orderDetails.orderNumber}</Text>
+                            {/* Details Card */}
+                            <View style={[styles.detailsCard, { width: maxWidth }]}>
+                                <View>
+                                    <Text style={styles.sectionTitle}>Order Summary</Text>
+                                    <View style={styles.summaryRows}>
+                                        <View style={styles.row}>
+                                            <Text style={styles.rowLabel}>Order ID</Text>
+                                            <Text style={styles.rowValue}>{orderDetails.orderNumber}</Text>
+                                        </View>
+                                        <View style={styles.row}>
+                                            <Text style={styles.rowLabel}>Total Order Amount</Text>
+                                            <Text style={styles.rowValue}>₹{orderDetails.totalAmount.toFixed(0)}</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.row}>
-                                        <Text style={styles.rowLabel}>Total Order Amount</Text>
-                                        <Text style={styles.rowValue}>₹{orderDetails.totalAmount.toFixed(0)}</Text>
+                                </View>
+
+                                <View style={styles.divider} />
+
+                                <View>
+                                    <Text style={styles.sectionTitle}>Installment Plan</Text>
+                                    <View style={styles.installmentContent}>
+                                        <Text style={styles.installmentText}>
+                                            Payment will be deducted from your Wallet.
+                                        </Text>
+                                        <Text style={styles.installmentText}>
+                                            Total amount of <Text style={styles.strongText}>₹{orderDetails.totalAmount.toFixed(0)}</Text> will be cut in{' '}
+                                            <Text style={styles.strongText}>3 weekly installments of ₹{orderDetails.installmentAmount.toFixed(0)}</Text>.
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
-
-                            {/* Divider */}
-                            <View style={styles.divider} />
-
-                            {/* Installment Details */}
-                            <View>
-                                <Text style={styles.sectionTitle}>Installment Plan</Text>
-                                <View style={styles.installmentContent}>
-                                    <Text style={styles.installmentText}>
-                                        Payment will be deducted from your Wallet.
-                                    </Text>
-                                    <Text style={styles.installmentText}>
-                                        Total amount of <Text style={styles.strongText}>₹{orderDetails.totalAmount.toFixed(0)}</Text> will be cut in{' '}
-                                        <Text style={styles.strongText}>3 weekly installments of ₹{orderDetails.installmentAmount.toFixed(0)}</Text>.
-                                    </Text>
-                                    <Text style={styles.installmentText}>
-                                        You will receive a notification each week before deduction.
-                                    </Text>
-                                </View>
-                            </View>
                         </View>
+                    </ScrollView>
 
-                        {/* Action Buttons */}
-                        <View style={[styles.actionButtons, { width: maxWidth }]}>
-                            <TouchableOpacity onPress={() => navigation.navigate('PackingOrderHistory')}>
-                                <LinearGradient
-                                    colors={[COLORS.primary, COLORS.accent]}
-                                    style={styles.primaryButton}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                >
-                                    <Text style={styles.primaryButtonText}>View Order History</Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.secondaryButton}
-                                onPress={() => navigation.navigate('BottomTab')}
+                    {/* Action Buttons with Notch Fix */}
+                    <View style={[
+                        styles.actionButtonsContainer,
+                        { paddingBottom: Math.max(insets.bottom, 20) }
+                    ]}>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('PackingOrderHistory')}
+                            style={{ width: maxWidth }}
+                        >
+                            <LinearGradient
+                                colors={[COLORS.primary, COLORS.accent]}
+                                style={styles.primaryButton}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
                             >
-                                <Text style={styles.secondaryButtonText}>Back to Home</Text>
-                            </TouchableOpacity>
-                        </View>
+                                <Text style={styles.primaryButtonText}>View Order History</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.secondaryButton, { width: maxWidth }]}
+                            onPress={() => navigation.navigate('BottomTab')}
+                        >
+                            <Text style={styles.secondaryButtonText}>Back to Home</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </SafeAreaView>
         );
     }
 
-    // Confirmation State (before placing order)
+    // CONFIRMATION STATE
     return (
         <SafeAreaView style={styles.safeArea}>
             <KeyboardAvoidingView
@@ -236,8 +241,8 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                     </View>
                 </ScrollView>
 
-                {/* Bottom Button */}
-                <View style={styles.bottomBar}>
+                {/* Bottom Bar with Notch Fix */}
+                <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                     <TouchableOpacity
                         onPress={handlePlaceOrder}
                         disabled={createOrderMutation.isPending || cartItems.length === 0}
@@ -278,18 +283,16 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         backgroundColor: COLORS.white,
         paddingHorizontal: 16,
-        paddingVertical: 16,
-        paddingBottom: 8,
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#E5E7EB',
     },
     backButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'transparent',
     },
     topTitle: {
         fontSize: 18,
@@ -302,25 +305,28 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     emptyRight: {
-        width: 48,
+        width: 40,
     },
     scrollView: {
         flex: 1,
     },
     scrollContent: {
         padding: 16,
-        paddingBottom: 120,
+        paddingBottom: 40,
+    },
+    successScrollContent: {
+        paddingBottom: 20,
     },
     summaryCard: {
         backgroundColor: COLORS.white,
         borderRadius: 12,
         padding: 20,
         marginBottom: 16,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.1,
         shadowRadius: 2,
-        elevation: 2,
     },
     cardTitle: {
         fontSize: 16,
@@ -364,10 +370,6 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 20,
         marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
         elevation: 2,
     },
     installmentHeader: {
@@ -409,10 +411,6 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
         borderRadius: 12,
         padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
         elevation: 2,
     },
     notesInput: {
@@ -425,10 +423,6 @@ const styles = StyleSheet.create({
         minHeight: 80,
     },
     bottomBar: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         backgroundColor: COLORS.white,
         padding: 16,
         borderTopWidth: 1,
@@ -450,13 +444,11 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: COLORS.white,
     },
-    // Success state styles
     main: {
-        flex: 1,
         paddingHorizontal: 16,
-        paddingVertical: 32,
+        paddingTop: 40,
+        paddingBottom: 20,
         alignItems: 'center',
-        justifyContent: 'center',
     },
     successIcon: {
         width: 96,
@@ -468,16 +460,14 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     headline: {
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: '800',
         color: COLORS.primary,
         textAlign: 'center',
         marginBottom: 12,
-        letterSpacing: -0.5,
     },
     bodyText: {
         fontSize: 16,
-        fontWeight: '400',
         color: COLORS.textPrimary,
         textAlign: 'center',
         marginBottom: 32,
@@ -487,12 +477,8 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
         borderRadius: 12,
         padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
         elevation: 2,
-        gap: 24,
+        gap: 20,
     },
     sectionTitle: {
         fontSize: 18,
@@ -506,29 +492,25 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 24,
     },
     rowLabel: {
         fontSize: 14,
-        fontWeight: '400',
         color: '#7A6388',
     },
     rowValue: {
         fontSize: 14,
         fontWeight: '600',
         color: COLORS.textPrimary,
-        textAlign: 'right',
     },
     divider: {
         borderTopWidth: 1,
         borderTopColor: '#E5E7EB',
     },
     installmentContent: {
-        gap: 16,
+        gap: 12,
     },
     installmentText: {
         fontSize: 14,
-        fontWeight: '400',
         color: '#7A6388',
         lineHeight: 20,
     },
@@ -536,16 +518,21 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: COLORS.textPrimary,
     },
-    actionButtons: {
-        marginTop: 40,
+    actionButtonsContainer: {
+        backgroundColor: COLORS.white,
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        alignItems: 'center',
         gap: 12,
-        width: '100%',
+        borderTopWidth: 1,
+        borderTopColor: '#E5E7EB',
     },
     primaryButton: {
-        height: 48,
-        borderRadius: 8,
+        height: 52,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
+        width: '100%',
     },
     primaryButtonText: {
         fontSize: 16,
@@ -553,16 +540,17 @@ const styles = StyleSheet.create({
         color: COLORS.white,
     },
     secondaryButton: {
-        height: 48,
-        borderRadius: 8,
+        height: 52,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: COLORS.primary,
+        width: '100%',
     },
     secondaryButtonText: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '700',
         color: COLORS.primary,
     },
 });
