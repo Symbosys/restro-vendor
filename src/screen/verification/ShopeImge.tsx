@@ -17,7 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
 import { COLORS } from '../../theme/color';
 import { RootStackParamList } from '../../types/types';
-
+import api from '../../api/api';
 
 interface ShopImageUploadScreenProps {
   navigation: NavigationProp<RootStackParamList>;
@@ -75,13 +75,14 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         name: 'shop-image.jpg',
       } as any);
 
-      
+
       if (vendor?.status !== 'APPROVED') {
         formData.append("status", "SIGNATURE_NOT_UPLOADED");
       }
 
-      // Use fetch to avoid Axios network errors with FormData  api.mintafresh.com
-      const response = await fetch(`https://api.mintafresh.com/api/v1/minta-fresh/vendor/${vendorId}`, {
+      // Use fetch to avoid Axios network errors with FormData
+      const baseURL = api.defaults.baseURL || 'http://192.168.31.40:4000/api/v1/minta-fresh';
+      const response = await fetch(`${baseURL}/vendor/${vendorId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -90,7 +91,14 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         body: formData,
       });
 
-      const result = await response.json();
+      const responseText = await response.text();
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (err) {
+        console.error("Non-JSON API response:", responseText);
+        throw new Error("Server returned an invalid response. Check console for details.");
+      }
 
       if (!response.ok) {
         throw new Error(result.message || 'Upload failed');

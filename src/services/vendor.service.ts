@@ -102,3 +102,18 @@ export const updateVendorAPI = async (data: Partial<Vendor>, id: string | number
     throw error;
   }
 };
+
+export const verifyShopDetailsAPI = async (data: Partial<Vendor>, id: string | number) => {
+  try {
+    const res = await api.put(`/vendor/${id}/shop-details`, data);
+    
+    if (res.data.success) {
+      SuccessMessage(res.data.message || "Shop details verified");
+    }
+
+    return res.data.data;
+  } catch (error) {
+    ErrorMessage(error as AxiosError | Error);
+    throw error;
+  }
+};

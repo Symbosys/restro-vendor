@@ -16,7 +16,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../../theme/color';
@@ -42,6 +42,7 @@ const CARD_WIDTH = (width - SPACING * 3) / 2;
 const VendorInventoryScreen = () => {
   const route = useRoute();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const isTabScreen = route.name === 'Inventory';
   const tabBarHeight = isTabScreen ? (Platform.OS === 'ios' ? 90 : 75) : 0;
 
@@ -280,7 +281,7 @@ const VendorInventoryScreen = () => {
 
       {/* BOTTOM BAR - Only show when there are changes */}
       {hasChanges && (
-        <View style={[styles.bottomBarContainer, { bottom: tabBarHeight }]}>
+        <View style={[styles.bottomBarContainer, { bottom: Math.max(tabBarHeight, insets.bottom) }]}>
           <View style={styles.bottomBar}>
             <View>
               <Text style={styles.bottomBarLabel}>Total Active Items</Text>

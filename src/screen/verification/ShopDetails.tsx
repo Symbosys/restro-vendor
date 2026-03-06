@@ -27,7 +27,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../theme/color';
 import { useAuth } from '../../context/AuthContext';
-import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
+import { useVerifyShopDetailsMutation, useVendorById } from '../../hooks/useVendorQueries';
 import { LoadingOverlay as Loader } from '../../components/loader/Loading';
 import { ErrorMessage } from '../../utils/utils';
 import { AppNavigation } from '../../types/types';
@@ -58,7 +58,7 @@ interface PlaceDetails {
 function AddAddress({ navigation }: AppNavigation) {
   const { vendorId } = useAuth();
   const { data: vendor } = useVendorById();
-  const { mutateAsync } = useUpdateVendorMutation(vendorId!);
+  const { mutateAsync } = useVerifyShopDetailsMutation(vendorId!);
   const isShopDetailsFixed = !!(vendor?.shopName && vendor?.completeAddress);
 
   const [showBottomSheet, setShowBottomSheet] = useState(false);
@@ -398,7 +398,7 @@ function AddAddress({ navigation }: AppNavigation) {
     currentAddress.trim().length > 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
       {hasLocationPermission ? null : (
         <View
@@ -414,14 +414,14 @@ function AddAddress({ navigation }: AppNavigation) {
       )}
 
       {/* Header */}
-      <SafeAreaView style={styles.header}>
+      <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Confirm delivery location</Text>
         </View>
-      </SafeAreaView>
+      </View>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <TouchableOpacity style={styles.searchBar} onPress={handleSearchPress}>
@@ -768,7 +768,7 @@ function AddAddress({ navigation }: AppNavigation) {
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

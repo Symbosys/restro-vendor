@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchVendorsAPI, fetchVendorByIdAPI, updateVendorAPI, FetchVendorsParams } from "../services/vendor.service";
+import { fetchVendorsAPI, fetchVendorByIdAPI, updateVendorAPI, verifyShopDetailsAPI, FetchVendorsParams } from "../services/vendor.service";
 import { ErrorMessage } from "../utils/utils";
 import { AxiosError } from "axios";
 import { Vendor } from "../types/vendor.types";
@@ -56,5 +56,28 @@ export const useUpdateVendorMutation = (id: string | number) => {
       console.error(error);
       ErrorMessage(error as AxiosError | Error);
     },
+  });
+};
+
+export const useVerifyShopDetailsMutation = (id: string | number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: Partial<Vendor>) => {
+      try {
+        const response = await verifyShopDetailsAPI(data, id);
+        return response; // wait, in service it returns res.data.data directly
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: (updatedVendor) => {
+      queryClient.setQueryData(["vendor", updatedVendor?.id], updatedVendor);
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: (error) => {
+      console.error(error);
+    }, // error message is handled in service
   });
 };
