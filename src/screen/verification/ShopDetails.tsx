@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
+import { State, City, IState, ICity } from 'country-state-city';
 import api from '../../api/api';
 import {
   checkLocationPermission,
@@ -86,7 +87,29 @@ function AddAddress({ navigation }: AppNavigation) {
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
+  // ── State / City / Area picker states ───────────────────────────────
+  const [selectedState, setSelectedState] = useState<IState | null>(null);
+  const [selectedCity, setSelectedCity] = useState<ICity | null>(null);
+  const [areaName, setAreaName] = useState('');
+  const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [stateSearchText, setStateSearchText] = useState('');
+  const [citySearchText, setCitySearchText] = useState('');
+
+  // Pre-computed lists
+  const allStates = State.getStatesOfCountry('IN');
+  const citiesOfState = selectedState
+    ? City.getCitiesOfState('IN', selectedState.isoCode)
+    : [];
+
   const mapRef = useRef<MapView>(null);
+
+  // ── Helper: extract area name from address ──────────────────────────
+  const extractAreaName = (address: string): string => {
+    // First segment before comma is usually the locality/area
+    const parts = address.split(',').map(p => p.trim());
+    return parts[0] || 'Unknown Area';
+  };
 
   // Get address from Ola Maps Reverse Geocoding
   const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
@@ -136,6 +159,7 @@ function AddAddress({ navigation }: AppNavigation) {
           location.longitude,
         );
         setCurrentAddress(address);
+        setAreaName(extractAreaName(address));
         mapRef.current?.animateToRegion(
           {
             latitude: location.latitude,
@@ -164,6 +188,7 @@ function AddAddress({ navigation }: AppNavigation) {
             location.longitude,
           );
           setCurrentAddress(address);
+          setAreaName(extractAreaName(address));
           mapRef.current?.animateToRegion(
             {
               latitude: location.latitude,
@@ -262,6 +287,7 @@ function AddAddress({ navigation }: AppNavigation) {
       };
       setSelectedCoords(newCoords);
       setCurrentAddress(details.formatted_address);
+      setAreaName(extractAreaName(details.formatted_address));
       mapRef.current?.animateToRegion(
         {
           latitude: newCoords.latitude,
@@ -306,6 +332,7 @@ function AddAddress({ navigation }: AppNavigation) {
               location.longitude,
             );
             setCurrentAddress(address);
+            setAreaName(extractAreaName(address));
             mapRef.current?.animateToRegion(
               {
                 latitude: location.latitude,
@@ -330,6 +357,7 @@ function AddAddress({ navigation }: AppNavigation) {
                 location.longitude,
               );
               setCurrentAddress(address);
+              setAreaName(extractAreaName(address));
               mapRef.current?.animateToRegion(
                 {
                   latitude: location.latitude,
@@ -362,6 +390,7 @@ function AddAddress({ navigation }: AppNavigation) {
             selectedCoords.longitude,
           );
           setCurrentAddress(address);
+          setAreaName(extractAreaName(address));
         } catch (error) {
           console.error('Address update error:', error);
         } finally {
@@ -387,15 +416,48 @@ function AddAddress({ navigation }: AppNavigation) {
       setCompleteAddress(vendor.completeAddress || '');
       setFloor(vendor.floor || '');
       setPincode(vendor.pincode || '');
+
+      // Prefill state/city if available
+      if (vendor.state) {
+        const matchedState = allStates.find(
+          s => s.name.toLowerCase() === vendor.state?.toLowerCase()
+        );
+        if (matchedState) {
+          setSelectedState(matchedState);
+          if (vendor.city) {
+            const cities = City.getCitiesOfState('IN', matchedState.isoCode);
+            const matchedCity = cities.find(
+              c => c.name.toLowerCase() === vendor.city?.toLowerCase()
+            );
+            if (matchedCity) setSelectedCity(matchedCity);
+          }
+        }
+      }
     }
   }, []);
+
+  // ── Filtered lists for picker search ────────────────────────────────
+  const filteredStates = stateSearchText
+    ? allStates.filter(s =>
+      s.name.toLowerCase().includes(stateSearchText.toLowerCase())
+    )
+    : allStates;
+
+  const filteredCities = citySearchText
+    ? citiesOfState.filter(c =>
+      c.name.toLowerCase().includes(citySearchText.toLowerCase())
+    )
+    : citiesOfState;
 
   const isFormValid =
     shopName.trim().length > 0 &&
     contactNumber.trim().length >= 10 &&
     completeAddress.trim().length > 0 &&
     pincode.trim().length > 0 &&
-    currentAddress.trim().length > 0;
+    currentAddress.trim().length > 0 &&
+    selectedState !== null &&
+    selectedCity !== null &&
+    areaName.trim().length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -605,26 +667,74 @@ function AddAddress({ navigation }: AppNavigation) {
                   maxLength={6}
                   editable={!isShopDetailsFixed}
                 />
+
+                {/* ── Area Name (auto-filled from reverse geocode) ── */}
                 <TextInput
+                  style={styles.textInput}
+                  placeholder="Area / Locality Name *"
+                  value={areaName}
+                  onChangeText={setAreaName}
+                  placeholderTextColor={COLORS.muted}
+                  editable={!isShopDetailsFixed}
+                />
+
+                {/* ── State Picker ── */}
+                <TouchableOpacity
                   style={[
                     styles.textInput,
-                    { backgroundColor: COLORS.secondary, color: COLORS.textSecondary },
+                    styles.pickerButton,
+                    isShopDetailsFixed && { backgroundColor: COLORS.secondary },
                   ]}
-                  placeholder="City *"
-                  value="Ranchi"
-                  editable={false}
-                  placeholderTextColor={COLORS.muted}
-                />
-                <TextInput
+                  onPress={() => {
+                    if (!isShopDetailsFixed) {
+                      setStateSearchText('');
+                      setShowStatePicker(true);
+                    }
+                  }}
+                  disabled={isShopDetailsFixed}>
+                  <Text
+                    style={[
+                      styles.pickerButtonText,
+                      !selectedState && { color: COLORS.muted },
+                      isShopDetailsFixed && { color: COLORS.textSecondary },
+                    ]}>
+                    {selectedState ? selectedState.name : 'Select State *'}
+                  </Text>
+                  {!isShopDetailsFixed && (
+                    <Text style={styles.pickerArrow}>▼</Text>
+                  )}
+                </TouchableOpacity>
+
+                {/* ── City Picker ── */}
+                <TouchableOpacity
                   style={[
                     styles.textInput,
-                    { backgroundColor: COLORS.secondary, color: COLORS.textSecondary },
+                    styles.pickerButton,
+                    (!selectedState || isShopDetailsFixed) && { backgroundColor: COLORS.secondary },
                   ]}
-                  placeholder="State *"
-                  value="Jharkhand"
-                  editable={false}
-                  placeholderTextColor={COLORS.muted}
-                />
+                  onPress={() => {
+                    if (!isShopDetailsFixed && selectedState) {
+                      setCitySearchText('');
+                      setShowCityPicker(true);
+                    }
+                  }}
+                  disabled={!selectedState || isShopDetailsFixed}>
+                  <Text
+                    style={[
+                      styles.pickerButtonText,
+                      !selectedCity && { color: COLORS.muted },
+                      (!selectedState || isShopDetailsFixed) && { color: COLORS.textSecondary },
+                    ]}>
+                    {selectedCity
+                      ? selectedCity.name
+                      : selectedState
+                        ? 'Select City *'
+                        : 'Select State first'}
+                  </Text>
+                  {!isShopDetailsFixed && selectedState && (
+                    <Text style={styles.pickerArrow}>▼</Text>
+                  )}
+                </TouchableOpacity>
               </View>
               {/* Confirm / Go Back Button */}
               <TouchableOpacity
@@ -649,8 +759,11 @@ function AddAddress({ navigation }: AppNavigation) {
                       contactNumber,
                       floor,
                       pincode,
-                      city: 'Ranchi',
-                      state: 'Jharkhand',
+                      city: selectedCity!.name,
+                      state: selectedState!.name,
+                      stateCode: selectedState!.isoCode,
+                      countryCode: 'IN',
+                      areaName,
                       latitude: selectedCoords?.latitude,
                       longitude: selectedCoords?.longitude,
                       status: 'SHOP_IMAGES_NOT_UPLOADED',
@@ -674,6 +787,122 @@ function AddAddress({ navigation }: AppNavigation) {
               </TouchableOpacity>
             </ScrollView>
           </View>
+        </View>
+      </Modal>
+
+      {/* ── State Picker Modal ── */}
+      <Modal
+        visible={showStatePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowStatePicker(false)}>
+        <View style={styles.searchModalOverlay}>
+          <SafeAreaView style={styles.searchModalContainer}>
+            <View style={styles.searchModalHeader}>
+              <TouchableOpacity
+                style={styles.searchModalBackButton}
+                onPress={() => setShowStatePicker(false)}>
+                <Text style={styles.backArrow}>←</Text>
+              </TouchableOpacity>
+              <Text style={styles.searchModalTitle}>Select State</Text>
+            </View>
+            <View style={styles.searchModalInputContainer}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput
+                style={styles.searchModalInput}
+                placeholder="Search state..."
+                placeholderTextColor={COLORS.muted}
+                value={stateSearchText}
+                onChangeText={setStateSearchText}
+                autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            <FlatList
+              data={filteredStates}
+              keyExtractor={item => item.isoCode}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.predictionItem,
+                    selectedState?.isoCode === item.isoCode && styles.selectedPickerItem,
+                  ]}
+                  onPress={() => {
+                    setSelectedState(item);
+                    setSelectedCity(null); // Reset city when state changes
+                    setShowStatePicker(false);
+                  }}>
+                  <Text style={styles.mainText}>{item.name}</Text>
+                  <Text style={styles.secondaryText}>Code: {item.isoCode}</Text>
+                </TouchableOpacity>
+              )}
+              style={styles.resultsList}
+              keyboardShouldPersistTaps="handled"
+            />
+          </SafeAreaView>
+        </View>
+      </Modal>
+
+      {/* ── City Picker Modal ── */}
+      <Modal
+        visible={showCityPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowCityPicker(false)}>
+        <View style={styles.searchModalOverlay}>
+          <SafeAreaView style={styles.searchModalContainer}>
+            <View style={styles.searchModalHeader}>
+              <TouchableOpacity
+                style={styles.searchModalBackButton}
+                onPress={() => setShowCityPicker(false)}>
+                <Text style={styles.backArrow}>←</Text>
+              </TouchableOpacity>
+              <Text style={styles.searchModalTitle}>
+                Select City in {selectedState?.name || ''}
+              </Text>
+            </View>
+            <View style={styles.searchModalInputContainer}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput
+                style={styles.searchModalInput}
+                placeholder="Search city..."
+                placeholderTextColor={COLORS.muted}
+                value={citySearchText}
+                onChangeText={setCitySearchText}
+                autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            <FlatList
+              data={filteredCities}
+              keyExtractor={(item, index) => `${item.name}-${index}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.predictionItem,
+                    selectedCity?.name === item.name && styles.selectedPickerItem,
+                  ]}
+                  onPress={() => {
+                    setSelectedCity(item);
+                    setShowCityPicker(false);
+                  }}>
+                  <Text style={styles.mainText}>{item.name}</Text>
+                  {item.stateCode && (
+                    <Text style={styles.secondaryText}>{selectedState?.name}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              style={styles.resultsList}
+              keyboardShouldPersistTaps="handled"
+              ListEmptyComponent={
+                <View style={styles.noResults}>
+                  <Text style={styles.noResultsText}>No cities found</Text>
+                </View>
+              }
+            />
+          </SafeAreaView>
         </View>
       </Modal>
 
@@ -1008,6 +1237,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
     minHeight: 50,
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  pickerButtonText: {
+    fontSize: 16,
+    color: COLORS.textPrimary,
+  },
+  pickerArrow: {
+    fontSize: 12,
+    color: COLORS.muted,
+  },
+  selectedPickerItem: {
+    backgroundColor: 'rgba(135,25,198,0.08)',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
   },
   confirmButton: {
     backgroundColor: COLORS.primary,

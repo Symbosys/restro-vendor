@@ -35,6 +35,9 @@ export interface Vendor {
   city?: string;
   state?: string;
   country?: string;
+  areaName?: string;
+  countryCode?: string;
+  stateCode?: string;
   isOpen: boolean | string;
   images?: { public_id: string; url: string };
   fcmToken?: string;
