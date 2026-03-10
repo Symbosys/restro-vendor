@@ -165,3 +165,21 @@ export const getAddressFromCoords = async (lat: number, lng: number) => {
   }
   return 'Unknown Address';
 };
+
+// Ola Maps API
+export const getAddressFromCoordsOla = async (lat: number, lng: number) => {
+  const apiKey = 'AbLgb9uuCk5EsknyN9nd1hol4dk85ehUH7izgU1e';
+  const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${apiKey}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log('API response:', data);
+    if (data.results && data.results[0]) {
+      console.log('API response:', data);
+      return data.results[0].formatted_address;
+    }
+  } catch (error) {
+    console.error('Error fetching address:', error);
+  }
+  return 'Unknown Address';
+};

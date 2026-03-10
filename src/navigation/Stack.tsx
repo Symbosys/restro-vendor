@@ -36,6 +36,7 @@ import Analytics from '../screen/tabs/Analytics';
 import MyTicketsScreen from '../screen/supprot/Issues/MyTickets';
 import TicketDetailsScreen from '../screen/supprot/Issues/TicketDetails';
 import MyShopDetails from '../screen/business_details/shop_details/MyShopDetails';
+import TestLocation from '../screen/userAddress/TestLocation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -43,7 +44,7 @@ export default function StackNavigation() {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        // initialRouteName='MyShopDetails'
+        initialRouteName='TestLocation'
 
         screenOptions={{ headerShown: false }}
       >
@@ -76,6 +77,7 @@ export default function StackNavigation() {
         />
         <Stack.Screen name="MyDocuments" component={MyDocuments} />
         <Stack.Screen name="MyShopDetails" component={MyShopDetails} />
+        <Stack.Screen name="TestLocation" component={TestLocation} />
 
         <Stack.Screen name="Notification" component={NotificationsScreen} />
 

@@ -2,9 +2,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate, triggerLogout } from '../helpers/navigationService';
 
+// const API_BASE_URL = "http://localhost:4000/api/v1/minta-fresh";
+const API_BASE_URL = "https://api.mintafresh.com/api/v1/minta-fresh";
+
 const api = axios.create({
-  baseURL: 'http://192.168.1.2:4000/api/v1/minta-fresh',
-  // baseURL: 'https://api.mintafresh.com/api/v1/minta-fresh',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 });

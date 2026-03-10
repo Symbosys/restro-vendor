@@ -110,7 +110,7 @@ function AddAddress({ navigation }: AppNavigation) {
     const parts = address.split(',').map(p => p.trim());
     return parts[0] || 'Unknown Area';
   };
-
+  
   // Get address from Ola Maps Reverse Geocoding
   const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
     try {
@@ -118,6 +118,7 @@ function AddAddress({ navigation }: AppNavigation) {
         `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${OLA_API_KEY}`
       );
       const data = await response.json();
+      console.log("ola map response", data)
       if (data && data.status === 'ok' && data.results && data.results.length > 0) {
         return data.results[0].formatted_address || 'Unknown location';
       }
@@ -232,6 +233,7 @@ function AddAddress({ navigation }: AppNavigation) {
         )}&api_key=${OLA_API_KEY}&language=en`,
       );
       const apiResponse = await response.json();
+      console.log("ola map response", apiResponse)
       const apiData = apiResponse.data || apiResponse;
       if (apiData && apiData.status === 'ok') {
         let preds = apiData.predictions || [];
@@ -260,6 +262,7 @@ function AddAddress({ navigation }: AppNavigation) {
         `https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${OLA_API_KEY}`,
       );
       const apiResponse = await response.json();
+      console.log("ola map response", apiResponse)
       const apiData = apiResponse.data || apiResponse;
       if (apiData && apiData.status === 'ok') {
         const details: PlaceDetails = apiData.result;
