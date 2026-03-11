@@ -44,7 +44,7 @@ export default function StackNavigation() {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        initialRouteName='TestLocation'
+        // initialRouteName='ShopImage'
 
         screenOptions={{ headerShown: false }}
       >

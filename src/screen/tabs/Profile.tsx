@@ -8,7 +8,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Linking
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -47,7 +48,7 @@ const operations: LinkItem[] = [
 ];
 
 const support: LinkItem[] = [
-  { icon: 'help-outline', title: 'Help & Support', route: 'HelpSupport' },
+  { icon: 'help-outline', title: 'Help & Support', route: 'mailto:support@mintafresh.com' },
   { icon: 'gavel', title: 'Terms & Conditions', route: 'TermsAndConditions' },
   { icon: 'verified-user', title: 'Privacy Policy', route: 'PrivacyPolicy' },
 ];
@@ -68,7 +69,11 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
   const headerPaddingTop = insets.top > 0 ? insets.top + 10 : 30;
 
   const handleLinkPress = (route: string) => {
-    navigation.navigate(route as never);
+    if (route.startsWith('mailto:')) {
+      Linking.openURL(route);
+    } else {
+      navigation.navigate(route as never);
+    }
   };
 
   const handleLogout = async () => {

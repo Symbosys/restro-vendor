@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchCamera } from 'react-native-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
@@ -42,7 +42,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
 
   const handleSelectImage = async () => {
     try {
-      const result = await launchImageLibrary({
+      const result = await launchCamera({
         mediaType: 'photo',
         quality: 1,
         includeBase64: false,
@@ -52,8 +52,16 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         ToastAndroid.show('Cancelled', ToastAndroid.SHORT);
       } else if (result.errorCode) {
         ToastAndroid.show(result.errorMessage || 'Error selecting image', ToastAndroid.SHORT);
-      } else if (result.assets && result.assets[0].uri) {
-        setImageUri(result.assets[0].uri);
+      } else if (result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        // 5MB = 5 * 1024 * 1024 bytes
+        if (asset.fileSize && asset.fileSize > 5242880) {
+          ToastAndroid.show('Image size must be under 5MB', ToastAndroid.LONG);
+          return;
+        }
+        if (asset.uri) {
+          setImageUri(asset.uri);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -181,11 +189,11 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
             activeOpacity={0.8}
           >
             <Image source={{ uri: ICONS.camera }} style={styles.uploadIconMain} />
-            <Text style={styles.uploadBoxTitle}>Upload a high-quality photo</Text>
-            <Text style={styles.uploadBoxSub}>Tap here to select an image</Text>
+            <Text style={styles.uploadBoxTitle}>Take a high-quality photo</Text>
+            <Text style={styles.uploadBoxSub}>Tap here to open camera</Text>
 
             <View style={styles.innerUploadBtn}>
-              <Text style={styles.innerUploadBtnText}>Upload Image</Text>
+              <Text style={styles.innerUploadBtnText}>Take Photo</Text>
             </View>
           </TouchableOpacity>
         )}
