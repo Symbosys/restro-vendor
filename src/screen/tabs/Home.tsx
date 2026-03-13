@@ -1,30 +1,29 @@
 import React, { useCallback } from 'react';
 import {
-    View,
-    FlatList,
     ActivityIndicator,
+    FlatList,
+    RefreshControl,
     ScrollView,
     StatusBar,
-    RefreshControl,
+    Text,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import Error from '../../components/ui/error/Error';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import Error from '../../components/ui/error/Error';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Text } from 'react-native';
 
 // Import from module
 import {
-    useHome,
-    styles,
-    OrderDetailModal,
-    OrderCard,
-    OfflineView,
     HomeHeader,
-    StoreStatus,
-    TodaySummary,
+    OfflineView,
+    OrderCard,
     OrderTabs,
+    StoreStatus,
+    styles,
+    TodaySummary,
+    useHome
 } from '../../module/tabs/home';
 
 const VendorDashboard = ({ navigation }: AppNavigation) => {

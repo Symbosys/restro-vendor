@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { styles } from '../styles/homeStyles';
 import { useHome } from '../hooks/useHome';
+import { styles } from '../styles/homeStyles';
 
 interface HomeHeaderProps {
     navigation: any;
