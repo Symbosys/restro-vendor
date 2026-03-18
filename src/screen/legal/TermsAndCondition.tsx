@@ -1,32 +1,37 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
+    Dimensions,
     NativeScrollEvent,
     NativeSyntheticEvent,
     ScrollView,
-    Platform,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../theme/color";
 import { AppNavigation } from "../../types/types";
 
+const { width: screenWidth } = Dimensions.get("window");
 
 const PRIMARY_COLOR = COLORS.primary;
 const ACCENT_COLOR = COLORS.accent;
 const BODY_TEXT = COLORS.textSecondary;
 const WHITE_30 = "rgba(255, 255, 255, 0.3)";
+const WHITE_80 = "rgba(255, 255, 255, 0.8)";
+const GRAY_200_80 = "rgba(229, 231, 235, 0.8)";
 const BODY_TEXT_80 = "rgba(74, 74, 74, 0.8)";
 const BODY_TEXT_60 = "rgba(74, 74, 74, 0.6)";
-
+const BODY_TEXT_50 = "rgba(74, 74, 74, 0.5)";
 
 const TermsAndConditions = ({ navigation }: AppNavigation) => {
     const [headerHeight, setHeaderHeight] = useState(72);
     const [progress, setProgress] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
+    const insets = useSafeAreaInsets();
+
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
         const scrollY = contentOffset.y;
@@ -34,32 +39,24 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
         const calculatedProgress = height > 0 ? Math.min(scrollY / height, 1) : 1;
         setProgress(calculatedProgress);
     };
+
     const handleBackPress = () => {
         navigation.goBack();
     };
-    const handleDownloadPress = () => {
-        // Handle download
-    };
+
     const handleAcceptPress = () => {
         // Handle accept and continue
     };
+
     return (
-        <View
-            style={[
-                styles.container,
-                { backgroundColor: COLORS.white }
-            ]}
-        >
+        <View style={styles.container}>
             {/* Header */}
             <View
                 style={styles.header}
                 onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
             >
                 <View
-                    style={[
-                        styles.headerGradient,
-                        { backgroundColor: COLORS.primary }
-                    ]}
+                    style={[styles.headerGradient, { paddingTop: insets.top + 16 }]}
                 >
                     <View style={styles.headerContent}>
                         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
@@ -70,6 +67,7 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
                     </View>
                 </View>
             </View>
+
             {/* Progress Bar */}
             <View
                 style={[
@@ -78,15 +76,10 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
                 ]}
             >
                 <View
-                    style={[
-                        styles.progressFill,
-                        {
-                            width: `${progress * 100}%`,
-                            backgroundColor: COLORS.primary
-                        }
-                    ]}
+                    style={[styles.progressFill, { width: `${progress * 100}%` }]}
                 />
             </View>
+
             {/* Main Content */}
             <ScrollView
                 ref={scrollRef}
@@ -98,220 +91,412 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
             >
                 {/* Sub-header */}
                 <View style={styles.subHeader}>
-                    <Text style={styles.subHeaderText}>Minta Club Pvt Ltd. (“FTH”) is the owner of the brand mintafresh.com and the website www.mintafresh.com, the minta fresh mobile application on iOS and Android devices (together referred as ”Platform”).</Text>
-                    <Text style={styles.lastUpdated}>Last Updated: November 09, 2025</Text>
+                    <Text style={styles.subHeaderText}>
+                        Minta Club Private Limited (Brand Name: Minta Fresh)
+                    </Text>
+                    <Text style={styles.lastUpdated}>Last Updated: 50/02/2026</Text>
                 </View>
+
                 {/* Content Card */}
                 <View style={styles.contentCard}>
-                    {/* Customer Registration and Privacy Policy */}
+                    {/* 1. About Us */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="info" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>1. Customer Registration and Privacy Policy</Text>
+                            <Text style={styles.sectionTitle}>1. About Us</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            The platform provides for registration process to serve its customer better and may now or in the future collect the following personally identifiable information to serve you better: a) Name including first and last name; b) email address; c) mobile phone numbers and contact details; d) Postal Pin code; e) Personal demographic profile like your age, gender, occupation, location, education, address etc.,
-                            By completing the registration or placing an order, the Customer agrees to receive promotional and transactional communication, text messages, mobile notifications, phone calls and newsletters. The Customer can opt out by contacting the customer service at customercare@mintaclub.com. We will never sell or provide your information to third party companies or outside agencies for commercial purposes. However, the platform may contain links to other web sites that we do not directly manage such as Google Analytics used to understand and optimize user’s behaviour. FTH shall not be responsible for the privacy policies of such external web sites.
+                            Minta Club Private Limited (“Company”, “we”, “our”, “us”) is a company incorporated under the Companies Act, 2013, India.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Minta Fresh is a brand owned and operated by Minta Club Private Limited.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Minta Fresh operates an online platform for the sale and delivery of raw food products, including raw chicken, raw fish, and raw goat meat, sourced from authorized vendors and delivered to customers.
                         </Text>
                     </View>
-                    {/* Who Can Sign Up */}
+
+                    {/* 2. Nature of Services */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="info" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>2. Nature of Services (Important Disclosure)</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            Minta Fresh is strictly a food ordering and delivery platform.
+                        </Text>
+                        <Text style={styles.sectionText}>• We enable customers to place orders for raw meat and fish products</Text>
+                        <Text style={styles.sectionText}>• We coordinate packaging and delivery of these products</Text>
+                        <Text style={styles.sectionText}>• We do not provide cooked food, ready-to-eat meals, or restaurant dining services</Text>
+                        <Text style={styles.sectionText}>
+                            This app is not a financial service, investment platform, gaming app, or reward-based application.
+                        </Text>
+                    </View>
+
+                    {/* 3. Eligibility to Use the App */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="person" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>2. Who Can Sign Up</Text>
+                            <Text style={styles.sectionTitle}>3. Eligibility to Use the App</Text>
                         </View>
+                        <Text style={styles.sectionText}>You must be:</Text>
+                        <Text style={styles.sectionText}>• At least 18 years old</Text>
+                        <Text style={styles.sectionText}>• Legally capable of entering into a binding contract under Indian law</Text>
                         <Text style={styles.sectionText}>
-                            Any person can sign up for services provided if he or she is competent to enter a contract. Section 11 of the Indian Contract Act, 1872 specifies that every person is competent to contract provided he or she has attained the age of 18 years, is of sound mind and not disqualified from contracting by any other law to which he or she is subject to.
+                            By using the app, you confirm that you meet these requirements.
                         </Text>
                     </View>
-                    {/* Terms of access to Platform */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="payment" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>3. Terms of access to Platform</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            FTH grants customers limited access rights for personal use on this platform and not to download (other than page caching) or edit any portion of it.
-                            The access to this platform is for personal use of the Customer and not for any commercial use or to access its contents to collect and use of product listings, descriptions, or prices; any derivative use of this platform or any use of data mining, robots, or similar data gathering and extraction tools. No portions of this platform may be reproduced, duplicated, copied, sold, resold or otherwise exploited for any commercial purpose without express written consent of FTH.
-                            Further no Customer is authorized to frame or utilize framing techniques to enclose any trademark, logo, or other proprietary information (including images, text, page layout, or form) on the platform without express written consent of FTH.
-                            Any unauthorized use automatically terminates the permission granted by FTH.
-                        </Text>
-                    </View>
-                    {/* Pricing */}
+
+                    {/* 4. Orders & Product Information */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="local_shipping" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>4. Pricing</Text>
+                            <Text style={styles.sectionTitle}>4. Orders & Product Information</Text>
                         </View>
+                        <Text style={styles.sectionText}>• All products sold are raw and perishable</Text>
+                        <Text style={styles.sectionText}>• Product images are representative and actual appearance may vary</Text>
+                        <Text style={styles.sectionText}>• Weight may vary slightly due to natural processing of raw meat</Text>
+                        <Text style={styles.sectionText}>• Products must be cooked thoroughly before consumption</Text>
+                    </View>
+
+                    {/* 5. Pricing & Payments */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="payment" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>5. Pricing & Payments</Text>
+                        </View>
+                        <Text style={styles.sectionText}>• Prices displayed are inclusive of applicable taxes unless stated otherwise</Text>
+                        <Text style={styles.sectionText}>• Payments are accepted only for purchasing food and delivery services</Text>
+                        <Text style={styles.sectionText}>• Payments are processed via third-party payment gateways</Text>
+                        <Text style={styles.sectionText}>• The Company does not store customer card or bank details</Text>
+                    </View>
+
+                    {/* 6. No Financial Services Declaration */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="info" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>6. No Financial Services Declaration (Critical)</Text>
+                        </View>
+                        <Text style={styles.sectionText}>Minta Fresh does NOT:</Text>
+                        <Text style={styles.sectionText}>• Offer banking services</Text>
+                        <Text style={styles.sectionText}>• Offer wallets with withdrawable balance</Text>
+                        <Text style={styles.sectionText}>• Offer stored-value accounts</Text>
+                        <Text style={styles.sectionText}>• Provide loans, credit, investments, or interest-bearing products</Text>
+                        <Text style={styles.sectionText}>• Provide any form of financial advisory service</Text>
                         <Text style={styles.sectionText}>
-                            Prices displayed for all the products on www.mintafresh.com exclude GST. The prices of all products mentioned at the time of ordering will be charged on the date of the delivery except for fresh food products. In case fresh food prices are higher or lower on the date of delivery, additional charges will be collected or refunded at the time of the delivery of the order.
+                            Any payment functionality exists solely to complete food purchase transactions.
                         </Text>
                     </View>
-                    {/* Delivery and Handling Charges */}
+
+                    {/* 7. Wallet / Credits */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="account-balance-wallet" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>7. Wallet / Credits (If Applicable)</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            If an in-app wallet or credit balance is shown:
+                        </Text>
+                        <Text style={styles.sectionText}>• It is a closed-system adjustment mechanism</Text>
+                        <Text style={styles.sectionText}>• Used only for:</Text>
+                        <Text style={styles.sectionText}>  • Refunds</Text>
+                        <Text style={styles.sectionText}>  • Order adjustments</Text>
+                        <Text style={styles.sectionText}>  • Promotional price corrections</Text>
+                        <Text style={styles.sectionText}>• Wallet balance cannot be withdrawn as cash</Text>
+                        <Text style={styles.sectionText}>• Wallet balance cannot be transferred to other users</Text>
+                        <Text style={styles.sectionText}>• Wallet balance cannot be used outside the Minta Fresh platform</Text>
+                    </View>
+
+                    {/* 8. No Rewards, Earnings, or Incentives */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="star" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>8. No Rewards, Earnings, or Incentives</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            Minta Fresh does NOT operate any reward, earning, or cash-based incentive program.
+                        </Text>
+                        <Text style={styles.sectionText}>Specifically:</Text>
+                        <Text style={styles.sectionText}>• No “earn money” features</Text>
+                        <Text style={styles.sectionText}>• No betting, gaming, or chance-based rewards</Text>
+                        <Text style={styles.sectionText}>• No monetary rewards for app usage</Text>
+                        <Text style={styles.sectionText}>• No investment or income opportunities</Text>
+                        <Text style={styles.sectionText}>
+                            Any discounts or promotions (if offered) are price reductions only, not monetary rewards.
+                        </Text>
+                    </View>
+
+                    {/* 9. Delivery & Acceptance */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="local_shipping" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>9. Delivery & Acceptance</Text>
+                        </View>
+                        <Text style={styles.sectionText}>• Delivery timelines are estimates</Text>
+                        <Text style={styles.sectionText}>• Customers must inspect products at the time of delivery</Text>
+                        <Text style={styles.sectionText}>• Issues must be reported immediately upon delivery</Text>
+                        <Text style={styles.sectionText}>
+                            Once accepted, the order is considered delivered in good condition.
+                        </Text>
+                    </View>
+
+                    {/* 10. Refunds & Cancellations */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="undo" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>5. Delivery and Handling Charges</Text>
+                            <Text style={styles.sectionTitle}>10. Refunds & Cancellations</Text>
+                        </View>
+                        <Text style={styles.sectionText}>• Due to the perishable nature of raw meat and fish, cancellations may be restricted</Text>
+                        <Text style={styles.sectionText}>• Refunds, if applicable, are processed:</Text>
+                        <Text style={styles.sectionText}>• To the original payment method OR</Text>
+                        <Text style={styles.sectionText}>• As non-withdrawable adjustment credits within the app</Text>
+                        <Text style={styles.sectionText}>
+                            • The app includes payment functionality for food orders only. Any wallet shown is used solely for internal order adjustments or refunds and is not withdrawable. Payouts to partners are backend operational settlements and are not user-facing features.
+                        </Text>
+                        <Text style={styles.sectionText}>• Refund eligibility is determined at the Company’s discretion.</Text>
+                    </View>
+
+                    {/* 11. Partner & Vendor Settlements */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="people" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>11. Partner & Vendor Settlements</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            FTH may impose delivery and handling fees and taxes from time to time.
-                            FTH endeavours to fulfil orders on time, but the actual delivery time may differ from the delivery time stated at the time of placing the order. Delivery delays will be communicated by FTH.
+                            Payments to vendors, delivery partners, or service providers are handled through backend settlement processes and are not customer-facing features.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Customers do not participate in or access partner payout systems.
                         </Text>
                     </View>
-                    {/* Order Cancellation */}
+
+                    {/* 12. Prohibited Use */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="block" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>12. Prohibited Use</Text>
+                        </View>
+                        <Text style={styles.sectionText}>Users agree not to:</Text>
+                        <Text style={styles.sectionText}>• Misuse payment features</Text>
+                        <Text style={styles.sectionText}>• Attempt unauthorized withdrawals</Text>
+                        <Text style={styles.sectionText}>• Use the app for unlawful purposes</Text>
+                        <Text style={styles.sectionText}>• Reverse engineer or abuse the platform</Text>
+                    </View>
+
+                    {/* 13. Intellectual Property */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="copyright" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>13. Intellectual Property</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            All content, branding, trademarks, and software belong to Minta Club Private Limited.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Unauthorized use is strictly prohibited.
+                        </Text>
+                    </View>
+
+                    {/* 14. Limitation of Liability */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="gavel" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>6. Order Cancellation</Text>
+                            <Text style={styles.sectionTitle}>14. Limitation of Liability</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            A Customer can opt to cancel order within 15 minute for the order placed either online or by calling our customer service and receive refund of advance paid if any. This is not applicable for Express delivery orders since those are processed and shipped immediately. To avoid any damage claims after delivery, users are recommended to inspect the product seal before accepting the order.
-                            FTH reserves the right to cancel any order at its discretion based on product availability or if it suspects any fraudulent transaction by a customer or breaches the terms & conditions of using the platform.
+                            To the maximum extent permitted by law, the Company shall not be liable for:
+                        </Text>
+                        <Text style={styles.sectionText}>• Indirect or consequential damages</Text>
+                        <Text style={styles.sectionText}>• Improper handling or cooking of raw products</Text>
+                        <Text style={styles.sectionText}>• Delays caused by factors beyond control</Text>
+                    </View>
+
+                    {/* 15. Governing Law & Jurisdiction */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="location-on" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>15. Governing Law & Jurisdiction</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            These Terms shall be governed by the laws of India.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Courts at Ranchi, Jharkhand shall have exclusive jurisdiction.
                         </Text>
                     </View>
-                    {/* Return & Refunds */}
+
+                    {/* 16. Changes to Terms */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="update" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>16. Changes to Terms</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            We may update these Terms from time to time.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Continued use of the app constitutes acceptance of the revised Terms.
+                        </Text>
+                    </View>
+
+                    {/* 17. Mandatory Terms for Raw Poultry, Meat & Fish Products */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="info" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>7. Return & Refunds</Text>
+                            <Text style={styles.sectionTitle}>17. Mandatory Terms for Raw Poultry, Meat & Fish Products</Text>
                         </View>
+
+                        {/* Clause 1 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 1: Nature of Products
+                        </Text>
                         <Text style={styles.sectionText}>
-                            FTH believes in Centum Customer satisfaction and "no questions asked return and refund policy" for issues relating to quality or freshness of its supplies. Customer may request for a refund/replacement within 1 hours of delivery of the products in case of any quality issues.
-                            The mode of refund shall be as determined by FTH from time to time, such as, credit to mintacash, or to the original payment source. However, considering the order value and challenges to refund for cash on delivery orders in particular, the refunds will be applied to the subsequent purchases or credited to Customers mintacash account.
+                            1.1 Minta Fresh supplies raw, freshly cut chicken, fish, and goat meat intended only for cooking purposes.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            1.2 All products are uncooked, unprocessed, and not ready-to-eat or ready-to-cook.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            1.3 Raw meat and fish, when freshly cut and unwashed, may have a natural odor, which is an inherent characteristic of fresh raw products and does not indicate spoilage.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            1.4 This natural odor typically reduces or disappears after proper washing and complete cooking.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            1.5 Natural variations in odor, appearance, or texture are normal for raw agricultural food products and do not constitute a defect.
+                        </Text>
+                        <Text style={[styles.sectionText, { fontWeight: "700" }]}>Clarification:</Text>
+                        <Text style={styles.sectionText}>• Natural odor = inherent characteristic of fresh raw meat/fish</Text>
+                        <Text style={styles.sectionText}>• Spoilage = slimy texture, abnormal discoloration, or strong putrid smell</Text>
+
+                        {/* Clause 2 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 2: Processing & Cleaning Disclosure
+                        </Text>
+                        <Text style={styles.sectionText}>2.1 Products are supplied raw and unwashed.</Text>
+                        <Text style={styles.sectionText}>
+                            2.2 Minta Fresh does not represent the products as cleaned, washed, or ready-to-cook.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            2.3 Washing of raw meat prior to delivery is intentionally avoided to:
+                        </Text>
+                        <Text style={styles.sectionText}>• Maintain freshness</Text>
+                        <Text style={styles.sectionText}>• Reduce cross-contamination risk</Text>
+                        <Text style={styles.sectionText}>• Ensure timely delivery</Text>
+
+                        {/* Clause 3 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 3: Product Disclosure & Acceptance
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            3.1 Product descriptions and notices clearly disclose that:
+                        </Text>
+                        <Text style={styles.sectionText}>• Products are raw and unwashed</Text>
+                        <Text style={styles.sectionText}>• Cleaning and proper cooking are required before consumption</Text>
+                        <Text style={styles.sectionText}>
+                            3.2 By placing an order, the customer confirms acceptance of these disclosures.
+                        </Text>
+
+                        {/* Clause 4 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 4: Delivery & Freshness
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            4.1 Products are generally delivered fresh within 30–45 minutes of cutting, subject to operational conditions.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            4.2 Minor variations in odor, colour, or texture are natural characteristics of raw meat and fish and shall not be treated as quality defects.
+                        </Text>
+
+                        {/* Clause 5 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 5: Customer Responsibility
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            5.1 After delivery, responsibility for:
+                        </Text>
+                        <Text style={styles.sectionText}>• Cleaning</Text>
+                        <Text style={styles.sectionText}>• Handling</Text>
+                        <Text style={styles.sectionText}>• Storage</Text>
+                        <Text style={styles.sectionText}>• Cooking</Text>
+                        <Text style={styles.sectionText}>
+                            rests entirely with the customer.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            5.2 Customers are advised to follow safe food-handling practices and ensure complete cooking before consumption.
+                        </Text>
+
+                        {/* Clause 6 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 6: Refunds & Replacements (Raw Products)
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            6.1 Due to hygiene and safety reasons, raw meat and fish products are non-returnable.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            6.2 Refunds or replacements may be considered only if:
+                        </Text>
+                        <Text style={styles.sectionText}>• Product is spoiled at the time of delivery</Text>
+                        <Text style={styles.sectionText}>• Incorrect item is delivered</Text>
+                        <Text style={styles.sectionText}>• Quantity is materially short</Text>
+                        <Text style={styles.sectionText}>
+                            6.3 Claims must be raised with supporting evidence within 10 minutes of delivery.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            6.4 Refunds are not applicable for:
+                        </Text>
+                        <Text style={styles.sectionText}>• Cleaning-related concerns</Text>
+                        <Text style={styles.sectionText}>• Natural raw product odor or appearance</Text>
+                        <Text style={styles.sectionText}>• Issues arising after washing or cooking</Text>
+
+                        {/* Clause 7 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 7: Limitation of Liability
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            7.1 Minta Club Private Limited shall not be liable for issues arising due to:
+                        </Text>
+                        <Text style={styles.sectionText}>• Post-delivery handling</Text>
+                        <Text style={styles.sectionText}>• Improper cleaning or storage</Text>
+                        <Text style={styles.sectionText}>• Undercooking or contamination after delivery</Text>
+                        <Text style={styles.sectionText}>
+                            7.2 Any liability, if established, shall be limited to the value of the product delivered.
+                        </Text>
+
+                        {/* Clause 8 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 8: Governing Law & Jurisdiction
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            8.1 These Terms shall be governed by the laws of India.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            8.2 Courts and Consumer Commissions at Ranchi, Jharkhand shall have jurisdiction.
+                        </Text>
+
+                        {/* Clause 9 */}
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            Clause 9: Food Safety & Regulatory Compliance
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            The products supplied are raw food ingredients intended for consumer-side handling and cooking.
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            Consumers are advised to follow safe food-handling practices, including thorough cleaning and complete cooking before consumption.
                         </Text>
                     </View>
-                    {/* Customer Acceptance */}
+
+                    {/* Contact Information */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="person" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>8. Customer Acceptance</Text>
+                            <Icon name="contact-support" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>Contact Information</Text>
                         </View>
+                        <Text style={styles.sectionText}>Minta Club Private Limited</Text>
+                        <Text style={styles.sectionText}>Brand: Minta Fresh</Text>
+                        <Text style={styles.sectionText}>Email: support@mintafresh.com</Text>
                         <Text style={styles.sectionText}>
-                            I hereby agree upon:
-                            a. To pay extra cost claimed by FTH in the case of redelivery due to wrong name or address or any other wrong information provided while booking order.
-                            b. To use the platform to transact for lawful purposes in compliance with all applicable laws and regulation.
-                            c. To provide authentic and true information in all instances and authorize FTH to validate the information provided at any point to time and reject registration if any details are found to be untrue wholly or partly.
-                            d. To access the services made available on the platform and to purchase the products offered at my own risk after using best and prudent judgement as a well-informed Customer.
-                            e. That the delivery address provided is correct and proper in all respects.
-                            f. That the product descriptions have been carefully checked before placing the order and agree to be bound by the terms and conditions of sale.
-                            g. That there may be excess / short quantity when ordering a cut SKU of a particular product. For example, the Steak version of a particular fish may have some variance in the final weight, given the fact it is hard to cut a fish in to an exact weight without damaging the shape of the Steak piece. In such instances, I agree to pay the difference amount at the time of delivery or adjust excess payment against next order.
-                        </Text>
-                    </View>
-                    {/* Obligations of Visitor / Customer */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="payment" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>9. Obligations of Visitor / Customer</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            I hereby unconditionally undertake not to use the Platform for:
-                            a. Disseminating any objectionable material, harassing, libelous, abusive, threatening, harmful, vulgar, obscene, or any unlawful activity.
-                            b. To transmit material that constitutes a criminal offence or results in civil liability or otherwise breaches any relevant laws, regulations or code of practice.
-                            c. To gain unauthorized access to other computer network systems.
-                            d. Interfere with any other person's right to use or enjoyment of the platform. Breach of applicable laws.
-                            e. Interfere or disrupt networks or web sites connected to the platform.
-                            f. Make, transmit or store electronic copies of materials protected by copyright without the permission of FTH.
-                            g. To post customer review feedback in violation of this policy or right of any third party, including copyright, trademark, privacy or other personal or proprietary right(s), and cause injury to any person or entity.
-                            h. To post comments containing libelous or otherwise unlawful, threatening, abusive or obscene material, or contain software viruses, political campaigning, commercial solicitation, chain letters, mass mailings or any form of "spam".
-                            i. Not to use a false email address, impersonate any person or entity, or otherwise mislead as to the origin of any Customer feedback submitted on the Platform.
-                            j. To be solely responsible for the content of any Customer Feedback made and agree upon to indemnify FTH for all claims resulting from such Customer Feedback submitted.
-                        </Text>
-                    </View>
-                    {/* Customer Reviews & Feedback */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="local_shipping" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>10. Customer Reviews & Feedback</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            To post customer review feedback in violation of this policy or right of any third party, including copyright, trademark, privacy or other personal or proprietary right(s), and cause injury to any person or entity.
-                        </Text>
-                    </View>
-                    {/* Unsubscribe Process */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="undo" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>11. Unsubscribe Process</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            By taking the steps below, you can choose not to get any marketing or sales messages from us in the future. You can unsubscribe by emailing: customercare@mintaclub.com or by writing to Minta Club Private Limited HI-76, Harmu Colony, Ranchi – 834002, Email: info@mintaclub.com.
-                        </Text>
-                    </View>
-                    {/* Pictures & Colors */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="gavel" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>12. Pictures & Colors</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            FTH has made every effort to display the products and its colors on the platform as accurately as possible. FTH does not guarantee nor take responsibility for variations in pictorial representations for fresh foods and colors variation due to technical reasons.
-                        </Text>
-                    </View>
-                    {/* Right to Modify Terms & Conditions of Service */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="info" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>13. Right to Modify Terms & Conditions of Service</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            FTH reserves unconditional right to modify terms and conditions of transacting business on mintafresh platform without any prior notification and consent of customers. When a registered customer accesses mintafresh platform, he or she is deemed to have accepted the latest version of the Terms & Conditions on the Site.
-                        </Text>
-                    </View>
-                    {/* Governing Law and Jurisdiction */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="person" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>14. Governing Law and Jurisdiction</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            All disputes arising out of or in doing business on the platform shall be amicably settled at the first instance by mutual discussions and negotiations. In the event the dispute is not resolved then the same may be referred to arbitration in accordance with the provisions of the Arbitration and Conciliation Act, 1996 or any enactment of statutory modification thereof. The arbitration proceedings shall be in the English/Hindi language and shall be held in Ranchi. The award of the arbitral tribunal shall be final and binding upon the parties and no appeal against the same shall lie to any court. The courts of competent jurisdiction in Bangalore shall have exclusive jurisdiction over any dispute, differences or claims arising out of this agreement.
-                        </Text>
-                    </View>
-                    {/* Copyright & Trademark Rights */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="payment" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>15. Copyright & Trademark Rights</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            The Customer acknowledges that access to this platform does not confer and shall not be considered as conferring upon anyone any license under any of FTH or any third party's intellectual property rights.
-                            FTH expressly reserve all intellectual property rights in all text, programs, products, processes, technology, content, and other materials, which appear on the Platform.
-                            All rights, including copyright, on this platform is owned by FTH.
-                            Any use of this platform or its contents, including copying or storing it either in whole or part, is prohibited without the permission of FTH.
-                            The names and logos and all related product and service names, design marks and slogans are the trademarks or service marks of FTH.
-                            References on mintafresh Platform to any names, marks, products, or services of third parties or hypertext links to third party sites or information provided is solely for customer convenience and does not in any way constitute or imply FTH endorsement, sponsorship or recommendation of the third party, information, product or service.
-                            FTH is not responsible for content of any third-party sites and does not make any representations regarding the content or accuracy of material on such sites. Customers deciding to link to any such third-party websites, are doing entirely at their own risk.
-                            All materials, including images, text, illustrations, designs, icons, photographs, programs, music clips or downloads, video clips and written and other materials hosted on mintafresh platform (collectively, the "Promotional Material") are intended solely for customer convenience. All software used in mintafresh platform is the property of FTH or its licensees and protected by copyright laws.
-                            The Contents and software in mintafresh platform are to be used only as a shopping resource. Any other use, including the reproduction, modification, distribution, transmission, republication, display, of the Contents on this platform is strictly prohibited.
-                            All Contents are copyrights, trademarks, and/or other intellectual property owned, controlled, or licensed by FTH and its affiliates and are protected by copyright laws.
-                            The compilation (meaning the collection, arrangement, and assembly) of all Contents on this platform is the exclusive property of FTH and is also protected by copyright laws.
-                            Objectionable Material
-                            While all IT security measures are taken to ensure wholesome and socially acceptable content are available on mintafresh platform, notwithstanding the best efforts the customer understands and accepts the risk that while using this platform or any services provided on the www.mintafresh.com, one may encounter Content that may be deemed by some to be offensive, indecent, or objectionable, which Content may or may not be identified as such.
-                            FTH and its affiliates shall have no liability to Customer for Content that may be deemed offensive, indecent, or objectionable to you.
-                        </Text>
-                    </View>
-                    {/* Indemnity */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="local_shipping" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>16. Indemnity</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            As a Customer, I hereby agree upon to defend, indemnify and hold harmless FTH, its employees, directors, officers, agents and their successors and assigns from and against any and all claims, liabilities, damages, losses, costs and expenses, including attorney's fees, caused by or arising out of claims based upon my actions or inactions, which may result in any loss or liability to FTH or any third party including but not limited to breach of any warranties, representations or undertakings or in relation to the non-fulfilment of any obligations under this User Agreement or arising out of violation of any applicable laws, regulations including but not limited to Intellectual Property Rights, payment of statutory dues and taxes, claim of libel, defamation, violation of rights of privacy or publicity, loss of service to other subscribers and infringement of intellectual property or other rights.
-                            This clause shall survive the expiry or termination of this User Agreement. We may terminate this User Agreement at any time, without notice or liability to FTH.
-                        </Text>
-                    </View>
-                    {/* Grievances */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="undo" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>17. Grievances</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            Details of the Grievance contact is given below;
-                            Minta Club Private Limited
-                            HI-76, Harmu Colony, Ranchi – 834002
-                            Email: info@mintaclub.com
+                            Address: Road No.- 1B Basant Vihar, Harmu Housing Colony, Ranchi- 834002, Jharkhand
                         </Text>
                     </View>
                 </View>
@@ -319,9 +504,11 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: COLORS.secondary,
     },
     // Header
     header: {
@@ -332,9 +519,10 @@ const styles = StyleSheet.create({
         zIndex: 20,
     },
     headerGradient: {
-        paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 10 : 50,
+        paddingTop: 16,
         paddingBottom: 16,
         paddingHorizontal: 16,
+        backgroundColor: COLORS.primary,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -374,6 +562,7 @@ const styles = StyleSheet.create({
     },
     progressFill: {
         height: "100%",
+        backgroundColor: COLORS.primary,
     },
     // Main
     main: {
@@ -434,4 +623,5 @@ const styles = StyleSheet.create({
         lineHeight: 28,
     },
 });
+
 export default TermsAndConditions;

@@ -1,32 +1,38 @@
-import React, { useRef, useState } from "react";
+import React, { useState, useRef } from "react";
 import {
-    Linking,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    ScrollView,
-    Platform,
-    StatusBar,
-    StyleSheet,
+    View,
     Text,
+    ScrollView,
     TouchableOpacity,
-    View
+    StyleSheet,
+    Dimensions,
+    NativeSyntheticEvent,
+    NativeScrollEvent,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../theme/color";
 import { AppNavigation } from "../../types/types";
+
+
+const { width: screenWidth } = Dimensions.get("window");
 
 const PRIMARY_COLOR = COLORS.primary;
 const ACCENT_COLOR = COLORS.accent;
 const BODY_TEXT = COLORS.textSecondary;
 const WHITE_30 = "rgba(255, 255, 255, 0.3)";
+const WHITE_80 = "rgba(255, 255, 255, 0.8)";
+const GRAY_200_80 = "rgba(229, 231, 235, 0.8)";
 const BODY_TEXT_80 = "rgba(74, 74, 74, 0.8)";
 const BODY_TEXT_60 = "rgba(74, 74, 74, 0.6)";
-
+const BODY_TEXT_50 = "rgba(74, 74, 74, 0.5)";
 
 const PrivacyPolicy = ({ navigation }: AppNavigation) => {
     const [headerHeight, setHeaderHeight] = useState(72);
     const [progress, setProgress] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
+    const insets = useSafeAreaInsets();
+
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
         const scrollY = contentOffset.y;
@@ -34,35 +40,20 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
         const calculatedProgress = height > 0 ? Math.min(scrollY / height, 1) : 1;
         setProgress(calculatedProgress);
     };
+
     const handleBackPress = () => {
         navigation.goBack();
     };
-    const handleDownloadPress = () => {
-        // Handle download
-    };
-    const handleAcceptPress = () => {
-        // Handle accept and continue
-    };
-    const handleEmailPress = () => {
-        Linking.openURL("mailto:customercare@mintaclub.com");
-    };
+
     return (
-        <View
-            style={[
-                styles.container,
-                { backgroundColor: COLORS.white }
-            ]}
-        >
+        <View style={styles.container}>
             {/* Header */}
             <View
                 style={styles.header}
                 onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
             >
                 <View
-                    style={[
-                        styles.headerGradient,
-                        { backgroundColor: COLORS.primary }
-                    ]}
+                    style={[styles.headerGradient, { paddingTop: insets.top + 16 }]}
                 >
                     <View style={styles.headerContent}>
                         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
@@ -73,6 +64,7 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
                     </View>
                 </View>
             </View>
+
             {/* Progress Bar */}
             <View
                 style={[
@@ -81,15 +73,10 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
                 ]}
             >
                 <View
-                    style={[
-                        styles.progressFill,
-                        {
-                            width: `${progress * 100}%`,
-                            backgroundColor: COLORS.primary
-                        }
-                    ]}
+                    style={[styles.progressFill, { width: `${progress * 100}%` }]}
                 />
             </View>
+
             {/* Main Content */}
             <ScrollView
                 ref={scrollRef}
@@ -101,158 +88,252 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
             >
                 {/* Sub-header */}
                 <View style={styles.subHeader}>
-                    <Text style={styles.subHeaderText}>This privacy policy sets out how mintaclub.com uses and protects any information that you give mintaclub.com when you use this website. mintaclub.com is committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this website, then you can be assured that it will only be used in accordance with this privacy statement. mintaclub.com may change this policy from time to time by updating this page. You should check this page from time to time to ensure that you are happy with any changes.</Text>
-                    <Text style={styles.lastUpdated}>Last Updated: November 09, 2025</Text>
+                    <Text style={styles.subHeaderText}>
+                        Minta Club Private Limited (Brand: Minta Fresh)
+                    </Text>
+                    <Text style={styles.lastUpdated}>Last Updated: 5/2/2026</Text>
                 </View>
+
                 {/* Content Card */}
                 <View style={styles.contentCard}>
-                    {/* Consent & terms of this Privacy Policy */}
+                    {/* Introduction */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionText}>
+                            Minta Club Private Limited (“Company”, “we”, “our”, or “us”) operates the brand Minta Fresh, an online platform that enables customers to order raw chicken, fish, and goat meat for home delivery (“Services”).
+                        </Text>
+                        <Text style={styles.sectionText}>
+                            We are committed to protecting your privacy and ensuring transparency in how your personal data is collected, used, stored, and shared in compliance with applicable Indian laws and Google Play policies.
+                        </Text>
+                    </View>
+
+                    {/* 1. Scope of This Policy */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="info" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>1. Consent & terms of this Privacy Policy</Text>
+                            <Text style={styles.sectionTitle}>1. Scope of This Policy</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            By using our platform (website, application or services), you have voluntarily agreed to consent & abide with this privacy policy. You have the option to disagree to abide by our privacy policy; if you choose disagree, you will not be able to access any portion of our platform or gain access to services provided on this platform.
+                            This Privacy Policy applies to:
+                        </Text>
+                        <Text style={styles.sectionText}>• The Minta Fresh mobile application</Text>
+                        <Text style={styles.sectionText}>• Our website and related services</Text>
+                        <Text style={styles.sectionText}>• Customers, delivery partners, and business partners</Text>
+                        <Text style={styles.sectionText}>
+                            By using our Services, you agree to the collection and use of information in accordance with this Policy.
                         </Text>
                     </View>
-                    {/* What we collect */}
+
+                    {/* 2. Information We Collect */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="storage" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>2. What we collect</Text>
+                            <Text style={styles.sectionTitle}>2. Information We Collect</Text>
+                        </View>
+
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 8 }]}>
+                            2.1 Personal Information
+                        </Text>
+                        <Text style={styles.sectionText}>We may collect:</Text>
+                        <Text style={styles.sectionText}>• Name</Text>
+                        <Text style={styles.sectionText}>• Mobile number</Text>
+                        <Text style={styles.sectionText}>• Email address</Text>
+                        <Text style={styles.sectionText}>• Delivery address</Text>
+                        <Text style={styles.sectionText}>• Order details (products, quantity, price)</Text>
+
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            2.2 Payment Information
+                        </Text>
+                        <Text style={styles.sectionText}>• We do not store credit/debit card details, UPI IDs, or net banking credentials.</Text>
+                        <Text style={styles.sectionText}>• All customer payments are processed through a third-party payment gateway.</Text>
+
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 16 }]}>
+                            2.3 Device & Usage Information
+                        </Text>
+                        <Text style={styles.sectionText}>• Device type</Text>
+                        <Text style={styles.sectionText}>• Operating system</Text>
+                        <Text style={styles.sectionText}>• App version</Text>
+                        <Text style={styles.sectionText}>• IP address (for security and fraud prevention)</Text>
+                        <Text style={styles.sectionText}>• Crash logs and performance data</Text>
+                    </View>
+
+                    {/* 3. Payment Gateway Disclosure */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="payment" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>3. Payment Gateway Disclosure</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            We may collect the following information:
-                            • name
-                            • contact information including email address
-                            • demographic information such as postcode, preferences and interests
-                            • other information relevant to customer surveys and/or offers
-                            For the exhaustive list of cookies we collect see the List of cookies we collect section.
+                            Payments for food orders placed on Minta Fresh are processed securely through PhonePe, a PCI-DSS compliant third-party payment gateway.
+                        </Text>
+                        <Text style={styles.sectionText}>• Minta Fresh does not hold, store, or control customer payment instruments</Text>
+                        <Text style={styles.sectionText}>• Payment data is handled directly by the payment gateway as per their privacy and security standards</Text>
+                        <Text style={styles.sectionText}>• Payments are accepted only for the purchase of food and delivery services</Text>
+                    </View>
+
+                    {/* 4. Wallet & Refund Clarification */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="account-balance-wallet" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>4. Wallet & Refund Clarification</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            Any wallet or balance shown within the app (if applicable) is:
+                        </Text>
+                        <Text style={styles.sectionText}>• A closed-system adjustment ledger</Text>
+                        <Text style={styles.sectionText}>• Used only for refunds, order adjustments, or promotional credits</Text>
+                        <Text style={styles.sectionText}>• Not withdrawable</Text>
+                        <Text style={styles.sectionText}>• Not transferable</Text>
+                        <Text style={styles.sectionText}>• Not a stored-value or financial product</Text>
+                    </View>
+
+                    {/* 5. Payout Processor Disclosure */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Icon name="people" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>5. Payout Processor Disclosure (Partners & Vendors)</Text>
+                        </View>
+                        <Text style={styles.sectionText}>
+                            Settlements to partner vendors and delivery partners are processed through Razor pay/unpay Api Payouts (or bank transfer mechanisms provided by regulated payment service providers).
+                        </Text>
+                        <Text style={styles.sectionText}>• Payouts represent service fees payable for completed deliveries or fulfilled orders</Text>
+                        <Text style={styles.sectionText}>• The Company does not offer any interest, investment, or earning schemes</Text>
+                        <Text style={styles.sectionText}>• Payouts are backend operational settlements and not a user-facing financial service</Text>
+                        <Text style={styles.sectionText}>
+                            • The app includes payment functionality for food orders only. Any wallet shown is used solely for internal order adjustments or refunds and is not withdrawable. Payouts to partners are backend operational settlements and are not user-facing features.
                         </Text>
                     </View>
-                    {/* What we do with the information we gather */}
+
+                    {/* 6. How We Use Information */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="settings" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>3. What we do with the information we gather</Text>
+                            <Text style={styles.sectionTitle}>6. How We Use Information</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            We require this information to understand your needs and provide you with a better service, and in particular for the following reasons:
-                            • Internal record keeping.
-                            • We may use the information to improve our products and services.
-                            • We may periodically send promotional emails about new products, special offers or other information which we think you may find interesting using the email address which you have provided.
-                            • From time to time, we may also use your information to contact you for market research purposes. We may contact you by email, phone, fax or mail. We may use the information to customise the website according to your interests.
-                            • Without identifying you personally we may use your information to provide updates on our service offerings and promotional schemes through third party advertising partners ('TPAP'). Our TPAP may use cookies on our website as well as third party websites and social media platforms to understand customer interests to provide updates on our latest service offerings and promotional schemes that are akin to your interests. Our TPAP provide you with complete control over ads experience and you can remove ads shown to you.
+                            We use collected information to:
                         </Text>
+                        <Text style={styles.sectionText}>• Process and deliver food orders</Text>
+                        <Text style={styles.sectionText}>• Facilitate payments and refunds</Text>
+                        <Text style={styles.sectionText}>• Settle partner payouts</Text>
+                        <Text style={styles.sectionText}>• Provide customer support</Text>
+                        <Text style={styles.sectionText}>• Improve app performance and user experience</Text>
+                        <Text style={styles.sectionText}>• Comply with legal and regulatory obligations</Text>
                     </View>
-                    {/* Security */}
+
+                    {/* 7. Data Sharing & Disclosure */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="security" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>4. Security</Text>
+                            <Icon name="share" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>7. Data Sharing & Disclosure (Limited)</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            We are committed to ensuring that your information is secure. In order to prevent unauthorised access or disclosure, we have put in place suitable physical, electronic and managerial procedures to safeguard and secure the information we collect online.
+                            We share user data only on a need-to-know basis, strictly limited to:
                         </Text>
-                    </View>
-                    {/* How we use cookies */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="cookies" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>5. How we use cookies</Text>
-                        </View>
+
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 12 }]}>
+                            7.1 Payment & Payout Partners
+                        </Text>
+                        <Text style={styles.sectionText}>• Order amount</Text>
+                        <Text style={styles.sectionText}>• Transaction reference</Text>
+                        <Text style={styles.sectionText}>• Contact details (where required for payment processing)</Text>
+
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 12 }]}>
+                            7.2 Delivery Partners
+                        </Text>
+                        <Text style={styles.sectionText}>• Customer name</Text>
+                        <Text style={styles.sectionText}>• Delivery address</Text>
+                        <Text style={styles.sectionText}>• Contact number (only for order fulfilment)</Text>
+
+                        <Text style={[styles.sectionText, { fontWeight: "700", marginTop: 12 }]}>
+                            7.3 Google Play Services
+                        </Text>
                         <Text style={styles.sectionText}>
-                            A cookie is a small file which asks permission to be placed on your computer's hard drive. Once you agree, the file is added and the cookie helps analyse web traffic or lets you know when you visit a particular site. Cookies allow web applications to respond to you as an individual. The web application can tailor its operations to your needs, likes and dislikes by gathering and remembering information about your preferences.
-                            We use traffic log cookies to identify which pages are being used. This helps us analyse data about web page traffic and improve our website in order to tailor it to customer needs. We only use this information for statistical analysis purposes and then the data is removed from the system.
-                            Overall, cookies help us provide you with a better website, by enabling us to monitor which pages you find useful and which you do not. A cookie in no way gives us access to your computer or any information about you, other than the data you choose to share with us. You can choose to accept or decline cookies. Most web browsers automatically accept cookies, but you can usually modify your browser setting to decline cookies if you prefer. This may prevent you from taking full advantage of the website.
+                            Limited technical and usage data may be shared with Google Play Console, including:
                         </Text>
-                    </View>
-                    {/* Links to other websites */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="link" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>6. Links to other websites</Text>
-                        </View>
+                        <Text style={styles.sectionText}>• App performance metrics</Text>
+                        <Text style={styles.sectionText}>• Crash reports</Text>
+                        <Text style={styles.sectionText}>• Device and OS information</Text>
                         <Text style={styles.sectionText}>
-                            Our website may contain links to other websites of interest. However, once you have used these links to leave our site, you should note that we do not have any control over that other website. Therefore, we cannot be responsible for the protection and privacy of any information which you provide whilst visiting such sites and such sites are not governed by this privacy statement. You should exercise caution and look at the privacy statement applicable to the website in question.
+                            This data is used solely for app stability, security, and policy compliance.
                         </Text>
                     </View>
-                    {/* Controlling your personal information */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Icon name="settings" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>7. Controlling your personal information</Text>
-                        </View>
-                        <Text style={styles.sectionText}>
-                            You may choose to restrict the collection or use of your personal information in the following ways:
-                            • whenever you are asked to fill in a form on the website, look for the box that you can click to indicate that you do not want the information to be used by anybody for direct marketing purposes
-                            • if you have previously agreed to us using your personal information for direct marketing purposes, you may change your mind at any time by writing to or emailing us at customercare@mintaclub.com
-                            We will not sell, distribute or lease your personal information to third parties unless we have your permission or are required by law to do so. We may use your personal information to send you promotional information about third parties which we think you may find interesting if you tell us that you wish this to happen.
-                            You may request details of personal information which we hold about you under the Data Protection Act 1998. A small fee will be payable. If you would like a copy of the information held on you please write to us at customercare@mintaclub.com. If you believe that any information we are holding on you is incorrect or incomplete, please write to or email us as soon as possible, at the above address. We will promptly correct any information found to be incorrect.
-                        </Text>
-                    </View>
-                    {/* How can a user opt not to disclose information with FTH? */}
+
+                    {/* 8. What We Do NOT Do */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Icon name="block" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>8. How can a user opt not to disclose information with FTH?</Text>
+                            <Text style={styles.sectionTitle}>8. What We Do NOT Do</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            You have the option of not disclosing Your Sensitive Personal Data or Information to Us. You can also ask us to remove your data from our database by sending a mail to us at customercare@mintaclub.com. In the event that You choose not to disclose Sensitive Personal Information, you may not be able to access multiple areas of the Platform or avail our e-commerce facility / services provided on the Platform.
+                            To avoid any ambiguity:
                         </Text>
+                        <Text style={styles.sectionText}>❌ We do not offer financial services</Text>
+                        <Text style={styles.sectionText}>❌ We do not provide gambling, betting, or gaming features</Text>
+                        <Text style={styles.sectionText}>❌ We do not offer earning, investment, or reward-based monetary programs</Text>
+                        <Text style={styles.sectionText}>❌ We do not sell personal data to third parties</Text>
                     </View>
-                    {/* Marketing & promotional activity */}
+
+                    {/* 9. Data Retention & Security */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="campaign" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>9. Marketing & promotional activity</Text>
+                            <Icon name="security" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>9. Data Retention & Security</Text>
                         </View>
-                        <Text style={styles.sectionText}>
-                            FTH may use your information to provide you with better platform user-experience, send information on products and services which may be of interest to you, send via Short Messaging Services (SMS) marketing promotions, and share such personal information to our business partners on a need-to-know basis to render effective services for better customer experience.
-                        </Text>
+                        <Text style={styles.sectionText}>• Data is retained only as long as necessary to provide services or comply with legal requirements</Text>
+                        <Text style={styles.sectionText}>• We implement reasonable technical and organizational safeguards to protect user data</Text>
+                        <Text style={styles.sectionText}>• Access to data is restricted to authorized personnel only</Text>
                     </View>
-                    {/* What is NDNC Policy? */}
+
+                    {/* 10. User Rights */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="call" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>10. What is NDNC Policy?</Text>
+                            <Icon name="person" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>10. User Rights</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            By using the Platform, you hereby authorize Us to contact You via email, phone, or SMS (Short Message Service), other applications (android or apple) linked to phone number on the contact details so provided, to furnish You with information about Our Products, Services, product delivery, marketing promotions, & other allied services offered by FTH on its platform. This authorization is licit for the mentioned purposes irrespective of whether You are registered with the NDNC (National Do Not Call) registry.
+                            Users may:
+                        </Text>
+                        <Text style={styles.sectionText}>• Request access to their personal data</Text>
+                        <Text style={styles.sectionText}>• Request correction or deletion (subject to legal obligations)</Text>
+                        <Text style={styles.sectionText}>• Withdraw consent for non-essential communications</Text>
+                        <Text style={styles.sectionText}>
+                            Requests can be sent to the contact details below.
                         </Text>
                     </View>
-                    {/* Indemnity */}
+
+                    {/* 11. Children’s Privacy */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="gavel" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>11. Indemnity</Text>
+                            <Icon name="child-care" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>11. Children’s Privacy</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            You agree to indemnify and hold FTH harmless from:(i) any actions, claims, demands, suits, damages, losses, penalties, interest and other charges and expenses (including legal fees and other dispute resolution costs) made by any third party due to or arising out of any violation of the terms of this Policy; (ii)any acts or deeds, including for any non-compliance or violation, of any applicable law, rules, regulations on Your part; or (iii) for violations committed by You.
+                            Our Services are not intended for individuals under the age of 18. We do not knowingly collect personal data from minors.
                         </Text>
                     </View>
-                    {/* Governing Law & Severability */}
+
+                    {/* 12. Changes to This Policy */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="gavel" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>12. Governing Law & Severability</Text>
+                            <Icon name="update" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>12. Changes to This Policy</Text>
                         </View>
                         <Text style={styles.sectionText}>
-                            The invalidity or unenforceability of any part of this Policy shall not prejudice or affect the validity or enforceability of the remainder of this Policy. This Policy has been prepared under the provisions of the Indian Information Technology Act, 2000 ("IT Act") and its corresponding rules as enshrined under the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011 ("IT Rules") to monitor information (including sensitive personal data or information) collected, received, possessed, stored, dealt with, or handled by FTH.
+                            We may update this Privacy Policy from time to time. Updates will be posted within the app or on our website with a revised “Last Updated” date.
                         </Text>
                     </View>
-                    {/* Grievances */}
+
+                    {/* 13. Contact Information */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Icon name="mail" size={20} color={ACCENT_COLOR} />
-                            <Text style={styles.sectionTitle}>13. Grievances</Text>
+                            <Icon name="contact-support" size={20} color={ACCENT_COLOR} />
+                            <Text style={styles.sectionTitle}>13. Contact Information</Text>
                         </View>
+                        <Text style={styles.sectionText}>Minta Club Private Limited</Text>
+                        <Text style={styles.sectionText}>Brand: Minta Fresh</Text>
+                        <Text style={styles.sectionText}>Email: support@mintafresh.com</Text>
                         <Text style={styles.sectionText}>
-                            Should you have any grievances about the processing of your personal information or the privacy policy, you may contact:
-                            Minta Club Private Limited
-                            HI-76, Harmu Colony, Ranchi - 834002
-                            Email: info@mintaclub.com
+                            Registered Office: Road No.- 1B Basant Vihar, Harmu Housing Colony, Ranchi- 834002, Jharkhand
                         </Text>
                     </View>
                 </View>
@@ -260,9 +341,11 @@ const PrivacyPolicy = ({ navigation }: AppNavigation) => {
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: COLORS.secondary,
     },
     // Header
     header: {
@@ -273,9 +356,10 @@ const styles = StyleSheet.create({
         zIndex: 20,
     },
     headerGradient: {
-        paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 10 : 50,
+        paddingTop: 16,
         paddingBottom: 16,
         paddingHorizontal: 16,
+        backgroundColor: COLORS.primary,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -315,6 +399,7 @@ const styles = StyleSheet.create({
     },
     progressFill: {
         height: "100%",
+        backgroundColor: COLORS.primary,
     },
     // Main
     main: {
@@ -374,9 +459,6 @@ const styles = StyleSheet.create({
         color: BODY_TEXT,
         lineHeight: 28,
     },
-    emailLink: {
-        color: PRIMARY_COLOR,
-        fontWeight: "bold",
-    },
 });
+
 export default PrivacyPolicy;
