@@ -87,7 +87,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
         navigation.reset({ index: 0, routes: [{ name: 'ShopDetails' }] });
         break;
       case 'SHOP_IMAGES_NOT_UPLOADED':
-        navigation.reset({ index: 0, routes: [{ name: 'ShopImage' }] });
+        navigation.navigate('ShopImage');
         break;
       case 'PRODUCT_SELECTION_NOT_DONE':
         navigation.reset({ index: 0, routes: [{ name: 'ProductSelection' }] });

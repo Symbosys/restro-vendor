@@ -428,8 +428,8 @@ function AddAddress() {
           style={styles.map}
           initialRegion={initialRegion}
           onRegionChangeComplete={onRegionChangeComplete}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
+          showsUserLocation={false}
+          showsMyLocationButton={false}
         />
         <View style={[styles.markerFixed, { top: mapHeight / 2 - 70 }]}>
           <Image

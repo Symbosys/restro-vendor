@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  PermissionsAndroid,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -38,10 +39,26 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
   }, [vendor]);
 
   const isImageFromApi = vendor?.images?.url === imageUri;
-  const isButtonDisabled = uploading || (isImageFromApi && !!imageUri);
+  const isButtonDisabled = uploading || !imageUri;
 
   const handleSelectImage = async () => {
     try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'Minta Fresh needs access to your camera to take a photo of your shop.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        ToastAndroid.show('Camera permission denied', ToastAndroid.SHORT);
+        return;
+      }
+
       const result = await launchCamera({
         mediaType: 'photo',
         quality: 1,
@@ -74,6 +91,15 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       return;
     }
 
+    if (isImageFromApi) {
+      if (vendor?.status === 'APPROVED') {
+        navigation.goBack();
+      } else {
+        navigation.navigate('ProductSelection');
+      }
+      return;
+    }
+
     setUploading(true);
     try {
       const formData = new FormData();
@@ -85,7 +111,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
 
 
       if (vendor?.status !== 'APPROVED') {
-        formData.append("status", "SIGNATURE_NOT_UPLOADED");
+        formData.append('status', 'PRODUCT_SELECTION_NOT_DONE');
       }
 
       // Use fetch to avoid Axios network errors with FormData
@@ -115,7 +141,11 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
       refetchVendor();
 
       ToastAndroid.show('Shop image updated!', ToastAndroid.SHORT);
-      navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+      if (vendor?.status === 'APPROVED') {
+        navigation.goBack();
+      } else {
+        navigation.navigate('ProductSelection');
+      }
     } catch (error: any) {
       console.error(error);
       ToastAndroid.show(error.message || 'Upload failed', ToastAndroid.LONG);
@@ -138,7 +168,16 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
 
       {/* --- Header --- */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity 
+          onPress={() => {
+            if (vendor?.status === 'APPROVED' && navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('ShopDetails');
+            }
+          }} 
+          style={styles.backButton}
+        >
           {/* Simple Arrow Icon representation */}
           <Image
             source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}

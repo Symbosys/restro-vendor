@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { z } from 'zod';
 import Loader from '../../components/ui/Loader';
 import { useAuth } from '../../context/AuthContext';
+import { useVendorById } from '../../hooks/useVendorQueries';
 import { createBankAccount } from '../../services/bank.service';
 import useAlertStore from '../../store/useAlertStore';
 import { COLORS } from '../../theme/color';
@@ -37,6 +38,7 @@ const BankAccountScreen = ({ navigation }: AppNavigation) => {
     const { vendorId } = useAuth();
     const [loading, setLoading] = useState(false);
     const { showAlert } = useAlertStore();
+    const { data: vendor } = useVendorById();
 
     const {
         control,
@@ -72,10 +74,15 @@ const BankAccountScreen = ({ navigation }: AppNavigation) => {
             });
 
             // Navigate back to Outlet to trigger status check and next flow
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Outlet' }],
-            });
+            // navigation.reset({
+            //     index: 0,
+            //     routes: [{ name: 'Outlet' }],
+            // });
+            if (vendor?.status === 'APPROVED') {
+                navigation.goBack();
+            } else {
+                navigation.navigate('SignatureUpload');
+            }
         } catch (error) {
             console.error(error);
         } finally {

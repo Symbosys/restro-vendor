@@ -19,6 +19,7 @@ import {
     HomeHeader,
     OfflineView,
     OrderCard,
+    OrderDetailModal,
     OrderTabs,
     StoreStatus,
     styles,

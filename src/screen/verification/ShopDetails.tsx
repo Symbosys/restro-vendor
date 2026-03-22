@@ -1,4 +1,5 @@
 import { AxiosError } from 'axios';
+import { City, ICity, IState, State } from 'country-state-city';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,21 +18,20 @@ import {
   View,
 } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
-import { State, City, IState, ICity } from 'country-state-city';
-import api from '../../api/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LoadingOverlay as Loader } from '../../components/loader/Loading';
+import { useAuth } from '../../context/AuthContext';
+import { useVendorById, useVerifyShopDetailsMutation } from '../../hooks/useVendorQueries';
+import { COLORS } from '../../theme/color';
+import { AppNavigation } from '../../types/types';
+import { useIsFocused } from '@react-navigation/native';
 import {
   checkLocationPermission,
   getCurrentLocation,
   requestLocationPermission,
   turnOnLocation,
 } from '../../utils/permissions/location';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../../theme/color';
-import { useAuth } from '../../context/AuthContext';
-import { useVerifyShopDetailsMutation, useVendorById } from '../../hooks/useVendorQueries';
-import { LoadingOverlay as Loader } from '../../components/loader/Loading';
 import { ErrorMessage } from '../../utils/utils';
-import { AppNavigation } from '../../types/types';
 
 const { height, width } = Dimensions.get('window');
 const OLA_API_KEY = 'AbLgb9uuCk5EsknyN9nd1hol4dk85ehUH7izgU1e';
@@ -59,8 +59,9 @@ interface PlaceDetails {
 function AddAddress({ navigation }: AppNavigation) {
   const { vendorId } = useAuth();
   const { data: vendor } = useVendorById();
+  const isFocused = useIsFocused();
   const { mutateAsync } = useVerifyShopDetailsMutation(vendorId!);
-  const isShopDetailsFixed = !!(vendor?.shopName && vendor?.completeAddress);
+  const isShopDetailsFixed = false; // Allow editing even if previously filled
 
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -423,21 +424,35 @@ function AddAddress({ navigation }: AppNavigation) {
       // Prefill state/city if available
       if (vendor.state) {
         const matchedState = allStates.find(
-          s => s.name.toLowerCase() === vendor.state?.toLowerCase()
+          s => s.name.toLowerCase() === vendor.state?.toLowerCase(),
         );
         if (matchedState) {
           setSelectedState(matchedState);
           if (vendor.city) {
             const cities = City.getCitiesOfState('IN', matchedState.isoCode);
             const matchedCity = cities.find(
-              c => c.name.toLowerCase() === vendor.city?.toLowerCase()
+              c => c.name.toLowerCase() === vendor.city?.toLowerCase(),
             );
             if (matchedCity) setSelectedCity(matchedCity);
           }
         }
       }
+
+      // Prefill coordinates if available
+      if (vendor.latitude && vendor.longitude && !selectedCoords) {
+        setSelectedCoords({
+          latitude: vendor.latitude,
+          longitude: vendor.longitude,
+        });
+      }
+      if (vendor.mainAddress) {
+        setCurrentAddress(vendor.mainAddress);
+      }
+      if (vendor.areaName) {
+        setAreaName(vendor.areaName);
+      }
     }
-  }, []);
+  }, [vendor]);
 
   // ── Filtered lists for picker search ────────────────────────────────
   const filteredStates = stateSearchText
@@ -500,15 +515,21 @@ function AddAddress({ navigation }: AppNavigation) {
       <View
         style={{ flex: 1, position: 'relative' }}
         onLayout={event => setMapHeight(event.nativeEvent.layout.height)}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={initialRegion}
-          onRegionChangeComplete={onRegionChangeComplete}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-        />
-        <View style={[styles.markerFixed, { top: mapHeight / 2 - 70 }]}>
+        {isFocused && (
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={selectedCoords ? {
+              ...selectedCoords,
+              latitudeDelta: initialRegion.latitudeDelta,
+              longitudeDelta: initialRegion.longitudeDelta,
+            } : initialRegion}
+            onRegionChangeComplete={onRegionChangeComplete}
+            showsUserLocation={false}
+            showsMyLocationButton={false}
+          />
+        )}
+        <View style={[styles.markerFixed, { top: mapHeight / 2 - (isFocused ? 70 : 0) }]}>
           <Image
             source={require('../../assets/map/marker.png')}
             style={{ height: 100, width: 40 }}
@@ -748,10 +769,6 @@ function AddAddress({ navigation }: AppNavigation) {
                 ]}
                 disabled={(!isFormValid && !isShopDetailsFixed) || formSubmitting}
                 onPress={async () => {
-                  if (isShopDetailsFixed) {
-                    closeBottomSheet();
-                    return;
-                  }
                   if (!isFormValid) return;
                   try {
                     setFormSubmitting(true);
@@ -771,7 +788,11 @@ function AddAddress({ navigation }: AppNavigation) {
                       longitude: selectedCoords?.longitude,
                       status: 'SHOP_IMAGES_NOT_UPLOADED',
                     });
-                    navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+                    if (vendor?.status === 'APPROVED') {
+                      navigation.goBack();
+                    } else {
+                      navigation.navigate('ShopImage');
+                    }
                   } catch (error) {
                     ErrorMessage(error as AxiosError | Error);
                   } finally {

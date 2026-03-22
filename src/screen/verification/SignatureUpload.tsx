@@ -62,7 +62,9 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
                 name: 'signature.png',
             } as any);
 
-            formData.append('status', 'PENDING');
+            if (vendor?.status !== 'APPROVED') {
+                formData.append('status', 'PENDING');
+            }
 
             const response = await api.put(`/vendor/${vendorId}`, formData, {
                 headers: {
@@ -73,7 +75,11 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
             if (response.data.success) {
                 await refetchVendor();
                 ToastAndroid.show('Signature submitted successfully!', ToastAndroid.SHORT);
-                navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+                if (vendor?.status === 'APPROVED') {
+                    navigation.goBack();
+                } else {
+                    navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+                }
             } else {
                 throw new Error(response.data.message || 'Submission failed');
             }
@@ -85,27 +91,18 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
         }
     };
 
-    const renderExistingSignature = () => (
-        <View style={styles.content}>
-            <Text style={styles.mainTitle}>Signature Verified</Text>
-            <Text style={styles.subTitle}>
-                Your signature has been uploaded and verified. You cannot change it at this stage.
-            </Text>
-
-            <View style={styles.padContainer}>
-                <View style={[styles.padWrapper, { justifyContent: 'center', alignItems: 'center' }]}>
-                    {existingSignatureUrl ? (
-                        <Image
-                            source={{ uri: existingSignatureUrl }}
-                            style={{ width: '90%', height: '80%', resizeMode: 'contain' }}
-                        />
-                    ) : (
-                        <ActivityIndicator size="large" color={COLORS.primary} />
-                    )}
-                </View>
-                <View style={styles.padFooter}>
-                    <Text style={styles.padFooterText}>This signature is on file for your account.</Text>
-                </View>
+    const renderExistingSignaturePreview = () => (
+        <View style={styles.previewContainer}>
+            <Text style={styles.previewTitle}>Existing Signature</Text>
+            <View style={styles.previewWrapper}>
+                {existingSignatureUrl ? (
+                    <Image
+                        source={{ uri: existingSignatureUrl }}
+                        style={styles.previewImage}
+                    />
+                ) : (
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                )}
             </View>
         </View>
     );
@@ -116,6 +113,8 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
             <Text style={styles.subTitle}>
                 Your signature is required to verify your business and complete the onboarding process.
             </Text>
+
+            {existingSignatureUrl && renderExistingSignaturePreview()}
 
             <View style={styles.padContainer}>
                 <View style={styles.padWrapper}>
@@ -186,35 +185,26 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
                 showsVerticalScrollIndicator={false}
                 scrollEnabled={scrollEnabled} // Controlled by drawing state
             >
-                {existingSignatureUrl ? renderExistingSignature() : renderSignaturePad()}
+                {renderSignaturePad()}
             </ScrollView>
 
             <View style={styles.footer}>
-                {existingSignatureUrl ? (
-                    <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={() => navigation.navigate('Outlet' as any)}
-                    >
-                        <Text style={styles.submitButtonText}>Continue</Text>
+                <View style={styles.buttonRow}>
+                    <TouchableOpacity style={styles.clearButton} onPress={handleClear} disabled={loading}>
+                        <Text style={styles.clearButtonText}>Clear Pad</Text>
                     </TouchableOpacity>
-                ) : (
-                    <View style={styles.buttonRow}>
-                        <TouchableOpacity style={styles.clearButton} onPress={handleClear} disabled={loading}>
-                            <Text style={styles.clearButtonText}>Clear Pad</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.submitButton, loading && styles.disabledBtn]}
-                            onPress={handleConfirm}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color="#FFF" size="small" />
-                            ) : (
-                                <Text style={styles.submitButtonText}>Submit Signature</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                )}
+                    <TouchableOpacity
+                        style={[styles.submitButton, loading && styles.disabledBtn]}
+                        onPress={handleConfirm}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="#FFF" size="small" />
+                        ) : (
+                            <Text style={styles.submitButtonText}>Proceed</Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
             </View>
         </SafeAreaView>
     );
@@ -390,6 +380,37 @@ const styles = StyleSheet.create({
         backgroundColor: '#94A3B8',
         shadowOpacity: 0,
         elevation: 0,
+    },
+    previewContainer: {
+        marginBottom: 20,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    previewTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#64748B',
+        marginBottom: 12,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    previewWrapper: {
+        width: '100%',
+        height: 100,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    previewImage: {
+        width: '80%',
+        height: '80%',
+        resizeMode: 'contain',
     },
 });
 

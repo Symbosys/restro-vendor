@@ -26,6 +26,7 @@ import { Category, Product } from '../../types/product.type';
 import { parseToDecimal } from '../../utils/utils';
 import { useUpdateInventory } from '../../hooks/useInventory';
 import Loader from '../../components/ui/Loader';
+import { useVendorById } from '../../hooks/useVendorQueries';
 
 
 if (
@@ -48,6 +49,7 @@ const VendorInventoryScreen = () => {
 
   const [activeTabId, setActiveTabId] = useState('1');
   const { updateInventory, isUpdating } = useUpdateInventory();
+  const { data: vendor } = useVendorById();
 
   // State for selections
   const [enabledCategories, setEnabledCategories] = useState<string[]>([]);
@@ -167,7 +169,12 @@ const VendorInventoryScreen = () => {
     setInitialEnabledCategories(enabledCategories);
     setInitialSelectedProductIds(selectedProductIds);
 
-    navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+    // navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
+    if (vendor?.status === 'APPROVED') {
+      navigation.goBack();
+    } else {
+      navigation.navigate('BankAccount');
+    }
   };
 
   const activeCategory = categories?.data.find(c => c.id === activeTabId);
