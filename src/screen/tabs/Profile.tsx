@@ -43,7 +43,7 @@ const restaurantInfo: LinkItem[] = [
 const operations: LinkItem[] = [
   { icon: 'analytics', title: 'Analytics', route: 'Analytics', subtext: 'Sales & performance' },
   { icon: 'inventory', title: 'Packing Items', route: 'PackingBegItems' },
-  { icon: 'shopping-cart', title: 'Packing Cart', route: 'Packingcart' },
+  // { icon: 'shopping-cart', title: 'Packing Cart', route: 'Packingcart' },
   { icon: 'receipt-long', title: 'Packing Orders', route: 'PackingOrderHistory' },
 ];
 

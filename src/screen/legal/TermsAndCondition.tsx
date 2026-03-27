@@ -495,6 +495,7 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
                         <Text style={styles.sectionText}>Minta Club Private Limited</Text>
                         <Text style={styles.sectionText}>Brand: Minta Fresh</Text>
                         <Text style={styles.sectionText}>Email: support@mintafresh.com</Text>
+                        <Text style={styles.sectionText}>Contact Us : 7050664577</Text>
                         <Text style={styles.sectionText}>
                             Address: Road No.- 1B Basant Vihar, Harmu Housing Colony, Ranchi- 834002, Jharkhand
                         </Text>

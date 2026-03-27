@@ -207,17 +207,7 @@ const MyWalletScreen = () => {
           <Text style={styles.balanceLabel}>Available Balance</Text>
         </View>
         <View style={styles.buttonsContainer}>
-          <LinearGradient
-            colors={[COLORS.accent, COLORS.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.addMoneyButton}
-          >
-            <TouchableOpacity style={styles.buttonContent}>
-              <Text style={styles.buttonText}>Add Money</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-          <TouchableOpacity style={styles.withdrawButton}>
+          <TouchableOpacity style={styles.withdrawButtonFull}>
             <Text style={styles.withdrawText}>Withdraw</Text>
           </TouchableOpacity>
         </View>
@@ -371,6 +361,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.015,
   },
   withdrawButton: {
+    flex: 1,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.5)',
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  withdrawButtonFull: {
     flex: 1,
     height: 56,
     borderRadius: 12,
