@@ -25,7 +25,6 @@ export type RootStackParamList = {
 
   OrderDetails: { orderId: number | string };
 
-
   Analytics: undefined;
 
   // Packing
@@ -38,6 +37,7 @@ export type RootStackParamList = {
   // Legal screen
   TermsAndConditions: undefined;
   PrivacyPolicy: undefined;
+  Docs: { type: string };
 
   // Support
   HelpSupport: undefined;

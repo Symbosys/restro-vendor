@@ -7,6 +7,7 @@ import LoginScreen from '../screen/auth/login';
 import OTP from '../screen/auth/Otp';
 import PrivacyPolicy from '../screen/legal/PrivacyPolicy';
 import TermsAndConditions from '../screen/legal/TermsAndCondition';
+import Docs from '../screen/legal/Docs';
 import OrderDetailsScreen from '../screen/orders/OrderDetails';
 import OutletScreen from '../screen/outlet/Outlet';
 import PackingScreen from '../screen/packing/PackingItem';
@@ -91,6 +92,7 @@ export default function StackNavigation() {
           component={TermsAndConditions}
         />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+        <Stack.Screen name="Docs" component={Docs} />
 
         <Stack.Screen name="Analytics" component={Analytics} />
 

@@ -28,6 +28,7 @@ interface LinkItem {
   subtext?: string;
   route: string;
   color?: string;
+  params?: any;
 }
 
 // --- Menu Data ---
@@ -49,8 +50,8 @@ const operations: LinkItem[] = [
 
 const support: LinkItem[] = [
   { icon: 'help-outline', title: 'Help & Support', route: 'mailto:support@mintafresh.com' },
-  { icon: 'gavel', title: 'Terms & Conditions', route: 'TermsAndConditions' },
-  { icon: 'verified-user', title: 'Privacy Policy', route: 'PrivacyPolicy' },
+  { icon: 'gavel', title: 'Terms & Conditions', route: 'Docs', params: { type: 'TERMS_AND_CONDITIONS' } },
+  { icon: 'verified-user', title: 'Privacy Policy', route: 'Docs', params: { type: 'PRIVACY_POLICY' } },
 ];
 
 const VendorProfileScreen = ({ navigation }: AppNavigation) => {
@@ -68,11 +69,11 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
   // Dynamic Header Padding for Status Bar
   const headerPaddingTop = insets.top > 0 ? insets.top + 10 : 30;
 
-  const handleLinkPress = (route: string) => {
-    if (route.startsWith('mailto:')) {
-      Linking.openURL(route);
+  const handleLinkPress = (item: LinkItem) => {
+    if (item.route.startsWith('mailto:')) {
+      Linking.openURL(item.route);
     } else {
-      navigation.navigate(route as never);
+      (navigation as any).navigate(item.route, item.params);
     }
   };
 
@@ -102,7 +103,7 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
             <View key={index}>
               <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => handleLinkPress(item.route)}
+                onPress={() => handleLinkPress(item)}
                 activeOpacity={0.7}
               >
                 <View style={[styles.iconBox, { backgroundColor: item.color || '#F3E8FF' }]}>
