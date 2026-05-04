@@ -7,15 +7,14 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
-  Modal,
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useQuery } from '@tanstack/react-query';
 import { COLORS } from '../../theme/color';
-import api from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import api from '../../api/api';
 
 const { width } = Dimensions.get('window');
 

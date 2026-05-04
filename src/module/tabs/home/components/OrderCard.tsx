@@ -1,18 +1,21 @@
 import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
 import { COLORS } from '../../../../theme/color';
 import { styles } from '../styles/homeStyles';
 import { parseToDecimal } from '../../../../utils/utils';
+import { RootStackParamList } from '../../../../types/types';
 
 interface OrderCardProps {
     item: VendorBroadcastItem;
-    onPress: (item: VendorBroadcastItem) => void;
+    onPress?: (item: VendorBroadcastItem) => void;
     onAction?: (action: 'accept' | 'reject' | 'markReady', orderId: string) => void;
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onAction }) => {
+    const navigation = useNavigation<NavigationProp<RootStackParamList>>();
     const { order } = broadcast;
     const isPending = broadcast.status === BroadcastStatus.PENDING;
     const itemsPreview = order.items.slice(0, 2);
@@ -47,7 +50,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
     return (
         <TouchableOpacity
             style={styles.orderCard}
-            onPress={() => onPress(broadcast)}
+            onPress={() => navigation.navigate('OrderDetails', { orderId: order.id })}
             activeOpacity={0.8}
         >
             {/* Header: Order ID and Status */}
