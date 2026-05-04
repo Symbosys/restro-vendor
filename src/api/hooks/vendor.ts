@@ -3,6 +3,19 @@ import { AxiosError } from "axios";
 import api from "../api"; // your Axios instance
 import { ToastAndroid } from "react-native";
 
+export type VendorWorkLocation = {
+  id: bigint | number;
+  city: {
+    id: bigint | number;
+    name: string;
+  };
+  area: {
+    id: bigint | number;
+    name: string;
+  };
+  vendorId: bigint | number;
+};
+
 export type Vendor = {
   id: bigint | number;
   ownerName?: string | null;
@@ -18,6 +31,7 @@ export type Vendor = {
   profileCompletion?: Record<string, boolean> | null;
   createdAt: string;
   updatedAt: string;
+  vendorWorkLocations: VendorWorkLocation;
 };
 
 type VendorStore = {

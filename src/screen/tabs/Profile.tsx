@@ -36,6 +36,7 @@ const restaurantInfo: LinkItem[] = [
   { icon: 'person', title: 'Personal Info', route: 'UpdateProfile', subtext: 'Update your personal details' },
   { icon: 'description', title: 'Documents', route: 'MyDocuments', subtext: 'Manage vendor documents' },
   { icon: 'store', title: 'Shop Details', route: 'MyShopDetails', subtext: 'Address & shop info' },
+  { icon: 'location-on', title: 'Work Location', route: 'WorkLocation', subtext: 'Update service area' },
   // { icon: 'image', title: 'Shop Image', route: 'ShopImage', subtext: 'Update storefront photo' },
   // { icon: 'gesture', title: 'Signature', route: 'SignatureUpload', subtext: 'Digital signature' },
   { icon: 'account-balance', title: 'Bank Details', route: 'BankList', subtext: 'Payout accounts' },

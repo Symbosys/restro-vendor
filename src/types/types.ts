@@ -1,4 +1,4 @@
-import { NavigationProp, RouteProp } from '@react-navigation/native';
+import { NavigationProp} from '@react-navigation/native';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -54,6 +54,7 @@ export type RootStackParamList = {
   // Business Details
   MyShopDetails: undefined;
   MyDocuments: undefined;
+  WorkLocation: undefined;
 };
 
 export type AppNavigation = {

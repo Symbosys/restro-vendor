@@ -38,6 +38,7 @@ import MyTicketsScreen from '../screen/supprot/Issues/MyTickets';
 import TicketDetailsScreen from '../screen/supprot/Issues/TicketDetails';
 import MyShopDetails from '../screen/business_details/shop_details/MyShopDetails';
 import TestLocation from '../screen/userAddress/TestLocation';
+import WorkLocationScreen from '../screen/business_details/worklocation/WorkLocationScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -79,6 +80,7 @@ export default function StackNavigation() {
         <Stack.Screen name="MyDocuments" component={MyDocuments} />
         <Stack.Screen name="MyShopDetails" component={MyShopDetails} />
         <Stack.Screen name="TestLocation" component={TestLocation} />
+        <Stack.Screen name="WorkLocation" component={WorkLocationScreen} />
 
         <Stack.Screen name="Notification" component={NotificationsScreen} />
 

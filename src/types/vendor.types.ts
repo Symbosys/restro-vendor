@@ -1,3 +1,5 @@
+import { VendorWorkLocation } from "../api/hooks/vendor";
+
 export type VendorStatus =
   | "NEW"
   | "PROFILE_COMPLETION_NOT_FILLED"
@@ -43,6 +45,7 @@ export interface Vendor {
   fcmToken?: string;
   createdAt: string;
   updatedAt: string;
+  vendorWorkLocations: VendorWorkLocation;
 }
 
 
