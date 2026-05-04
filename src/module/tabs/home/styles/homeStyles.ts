@@ -611,7 +611,11 @@ export const styles = StyleSheet.create({
         marginHorizontal: 20,
         marginBottom: 16,
         padding: 20,
-        ...THEME.cardShadow,
+        shadowColor: '#64748b',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 5,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.5)',
     },
@@ -633,14 +637,32 @@ export const styles = StyleSheet.create({
         borderRadius: 10,
     },
     orderIdText: {
-        fontSize: 15,
-        fontWeight: '800',
+        fontSize: 14,
+        fontWeight: '900',
         color: THEME.textMain,
+    },
+    timeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    timeText: {
+        fontSize: 13,
+        color: THEME.textDim,
+        fontWeight: '600',
     },
     statusBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    pulsingDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     statusBadgeText: {
         fontSize: 12,
@@ -649,11 +671,14 @@ export const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     
+    divider: {
+        height: 1,
+        backgroundColor: '#f1f5f9',
+        marginVertical: 16,
+    },
     itemsGrid: {
         gap: 12,
-        paddingBottom: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
+        paddingBottom: 4,
     },
     itemPreview: {
         flexDirection: 'row',
@@ -675,9 +700,31 @@ export const styles = StyleSheet.create({
         flex: 1,
     },
     itemQtyLabel: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
         color: THEME.textDim,
+        marginTop: 2,
+    },
+    itemPriceLabel: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: THEME.textMain,
+    },
+    moreItemsRow: {
+        flexDirection: 'row',
+        marginTop: 4,
+        marginLeft: 52,
+    },
+    moreItemsBadge: {
+        backgroundColor: THEME.primaryLight,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    moreItemsText: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: THEME.primary,
     },
 
     orderFooter: {
@@ -711,6 +758,31 @@ export const styles = StyleSheet.create({
     },
     detailsBtnText: {
         fontSize: 15,
+        fontWeight: '800',
+        color: THEME.surface,
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    acceptBtn: {
+        backgroundColor: THEME.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    rejectBtn: {
+        backgroundColor: '#ef4444',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    actionBtnText: {
+        fontSize: 14,
         fontWeight: '800',
         color: THEME.surface,
     },

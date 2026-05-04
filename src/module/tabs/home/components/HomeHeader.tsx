@@ -14,7 +14,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ navigation }) => {
         <View style={styles.topBar}>
             <View style={styles.logoContainer}>
                 <Text style={styles.greeting}>Good Morning,</Text>
-                <Text style={styles.storeName}>{vendor?.shopName}</Text>
+                <Text style={styles.storeName} numberOfLines={1}>{vendor?.shopName}</Text>
             </View>
             <View style={styles.headerButtons}>
                 <TouchableOpacity

@@ -4,6 +4,6 @@ import { VendorBroadcastApiResponse, VendorBroadcastFilter } from "../types/orde
 export const fetchVendorBroadcastedOrders = async (
   params: VendorBroadcastFilter
 ): Promise<VendorBroadcastApiResponse> => {
-  const res = await api.get("/vendor/order/all/", { params });
+  const res = await api.get("/order/vendor/broadcasted-orders", { params });
   return res.data;
 };

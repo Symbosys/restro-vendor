@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useEffect } from 'react';
-import { useVendorBroadcastedOrders } from '../../../../hooks/useOrder';
+import { useVendorBroadcastedOrders } from '../../../../api/hooks/order';
 import { useUpdateVendorMutation, useVendorById } from '../../../../hooks/useVendorQueries';
 import { useAuth } from '../../../../context/AuthContext';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';

@@ -20,8 +20,10 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import api from '../../api/api';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { VendorBroadcastItem, BroadcastStatus, OrderStatus } from '../../types/order.types';
+import { VendorBroadcastItem, BroadcastStatus, OrderStatus, VendorBroadcastFilter } from '../../types/order.types';
 import { useAuth } from '../../context/AuthContext';
+import { useVendorBroadcastedOrders } from '../../api/hooks/order';
+import { parseToDecimal } from '../../utils/utils';
 
 const { width } = Dimensions.get('window');
 
@@ -70,44 +72,6 @@ const getDisplayStatus = (broadcastStatus: BroadcastStatus, orderStatus?: OrderS
   }
 };
 
-interface OrderQueryParams {
-  broadcastStatus?: BroadcastStatus;
-  orderStatus?: OrderStatus;
-  startDate?: string;
-  endDate?: string;
-  page?: number;
-  limit?: number;
-}
-
-interface OrderApiResponse {
-  success: boolean;
-  message: string;
-  data: {
-    totalBroadcasts: number;
-    totalPage: number;
-    currentPage: number;
-    broadcasts: VendorBroadcastItem[];
-  };
-}
-
-const fetchOrders = async (params: OrderQueryParams): Promise<OrderApiResponse> => {
-  const { data } = await api.get('/vendor/order/all/', { params });
-  return data;
-};
-
-export const useOrders = (queryParams: Omit<OrderQueryParams, 'page'>, options?: { enabled?: boolean }) => {
-  return useInfiniteQuery({
-    queryKey: ['orders', queryParams],
-    initialPageParam: 1,
-    queryFn: ({ pageParam = 1 }) => fetchOrders({ ...queryParams, page: pageParam }),
-    getNextPageParam: (lastPage) =>
-      lastPage.data.currentPage < lastPage.data.totalPage
-        ? lastPage.data.currentPage + 1
-        : undefined,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: options?.enabled,
-  });
-};
 
 interface MappedOrder {
   id: string;
@@ -134,7 +98,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
   // Modal: Filter by Order Status
   const [selectedOrderStatus, setSelectedOrderStatus] = useState<OrderStatus | ''>('');
 
-  const [dateRange, setDateRange] = useState<'Today' | 'Last 7 Days' | 'All Time' | 'Custom'>('Today');
+  const [dateRange, setDateRange] = useState<'Today' | 'Last 7 Days' | 'All Time' | 'Custom'>('All Time');
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [startDateValue, setStartDateValue] = useState(new Date());
@@ -169,7 +133,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
       endDate = now.toISOString();
     }
 
-    const params: OrderQueryParams = { limit: 10 };
+    const params: VendorBroadcastFilter = { limit: 10 };
 
     if (selectedBroadcastStatus) {
       params.broadcastStatus = selectedBroadcastStatus;
@@ -201,7 +165,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
     hasNextPage,
     fetchNextPage,
     refetch,
-  } = useOrders(queryParams, { enabled: isAuthenticated });
+  } = useVendorBroadcastedOrders(queryParams);
 
   const ordersFromApi = useMemo(
     () =>
@@ -213,9 +177,9 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
             minute: '2-digit',
             hour12: true,
           }),
-          customer: 'Customer Name',
+          customer: broadcast.order.address?.receiverName || 'Guest Customer',
           items: broadcast.order.items.length,
-          amount: `₹${Number(broadcast.order.paidAmount || 0).toFixed(2)}`,
+          amount: `₹${(parseToDecimal(broadcast.order.paidAmount) || parseToDecimal(broadcast.order.subtotal)).toFixed(2)}`,
           status: getDisplayStatus(broadcast.status, broadcast.order.status),
           payment: broadcast.order.paymentMethod === 'COD' ? 'COD' : 'PREPAID',
           createdAt: broadcast.order.timestamps?.placedAt || broadcast.notifiedAt,
@@ -251,7 +215,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
 
   const handleClearAll = useCallback(() => {
     setSelectedOrderStatus('');
-    setDateRange('Today');
+    setDateRange('All Time');
   }, []);
 
   const handleApplyFilter = useCallback(() => {
@@ -265,7 +229,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
   const handleResetFilters = useCallback(() => {
     setSelectedBroadcastStatus('');
     setSelectedOrderStatus('');
-    setDateRange('Today');
+    setDateRange('All Time');
   }, []);
 
   const onRefresh = useCallback(() => refetch(), [refetch]);
@@ -324,33 +288,27 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
     []
   );
 
-  const getStatusBadgeStyle = useCallback((status: string) => {
+  const getStatusTheme = useCallback((status: string) => {
     switch (status) {
       case 'Pending':
-        return { backgroundColor: '#3b82f6' };
+        return { color: '#3b82f6', bgColor: '#eff6ff' };
       case 'Accepted':
-        return styles.acceptedBadge;
+        return { color: COLORS.primary, bgColor: '#f5eeff' };
       case 'Delivered':
       case 'Ready for Pickup':
-        return styles.deliveredBadge;
+        return { color: '#10b981', bgColor: '#ecfdf5' };
       case 'Rejected':
       case 'Missed':
       case 'Cancelled':
-        return styles.rejectedBadge;
+        return { color: '#ef4444', bgColor: '#fef2f2' };
       case 'Preparing':
-        return styles.preparingBadge;
-      case 'Out for Delivery':
-      case 'Delivery Pending':
-        return { backgroundColor: '#3b82f6' };
-      case 'Refunded':
-      case 'Disputed':
-        return { backgroundColor: '#ef4444' };
+        return { color: '#f59e0b', bgColor: '#fffbeb' };
       default:
-        return {};
+        return { color: '#64748b', bgColor: '#f1f5f9' };
     }
   }, []);
 
-  const isFiltered = selectedBroadcastStatus || selectedOrderStatus || dateRange !== 'Today';
+  const isFiltered = selectedBroadcastStatus || selectedOrderStatus || dateRange !== 'All Time';
   const emptyMessage = isFiltered ? 'No Orders Match Your Filters' : 'No Orders Yet';
   const emptySubtitle = isFiltered
     ? "Try adjusting your filters to find what you're looking for."
@@ -391,72 +349,111 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
   };
 
   const renderOrderItem = useCallback(
-    ({ item }: { item: MappedOrder }) => (
-      <View style={[styles.orderCard, isRejectedStatus(item.status) && styles.rejectedCard]}>
-        <View style={styles.orderHeader}>
-          <View style={styles.orderDetails}>
-            <Text style={styles.orderNumber}>Order #{item.id}</Text>
-            <Text style={styles.orderTime}>{item.time}</Text>
-            <Text style={styles.orderSummary}>
-              {item.customer} - {item.items} items - {item.amount}
-            </Text>
-          </View>
-          <View style={styles.orderActions}>
-            <View style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}>
-              <Text style={styles.statusText}>{item.status}</Text>
+    ({ item }: { item: MappedOrder }) => {
+      const itemsPreview = item.fullOrder.items.slice(0, 2);
+      const moreItems = item.fullOrder.items.length > 2 ? `+${item.fullOrder.items.length - 2}` : '';
+      const theme = getStatusTheme(item.status);
+
+      return (
+        <TouchableOpacity
+          style={styles.orderCard}
+          onPress={() => handleViewDetails(item.orderId)}
+          activeOpacity={0.8}
+        >
+          {/* Header: Order ID and Status */}
+          <View style={styles.orderHeader}>
+            <View style={styles.orderInfo}>
+              <View style={styles.orderIdBadge}>
+                <Text style={styles.orderIdText}>#{item.id.split('-').pop()}</Text>
+              </View>
+              <View style={styles.timeContainer}>
+                <MaterialIcons name="access-time" size={14} color="#64748b" />
+                <Text style={styles.timeText}>{item.time}</Text>
+              </View>
             </View>
-            <View style={styles.paymentTag}>
-              <Text style={styles.paymentText}>{item.payment}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: theme.bgColor }]}>
+              <View style={[styles.pulsingDot, { backgroundColor: theme.color }]} />
+              <Text style={[styles.statusBadgeText, { color: theme.color }]}>{item.status}</Text>
             </View>
           </View>
-        </View>
-        <View style={[styles.orderFooter, isRejectedStatus(item.status) && styles.rejectedFooter]}>
-          <View
-            style={[
-              styles.footerButtons,
-              {
-                flex: 1,
-                justifyContent: item.isPending
-                  ? 'space-between'
-                  : item.isMarkReady
-                    ? 'space-between'
-                    : 'flex-end',
-              },
-            ]}
-          >
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => handleViewDetails(item.orderId)}>
-              <Text style={styles.secondaryButtonText}>View Details</Text>
-            </TouchableOpacity>
-            {item.isPending && (
-              <>
+
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Customer & Payment Info */}
+          <View style={styles.customerPaymentRow}>
+            <View style={styles.customerSection}>
+              <MaterialIcons name="person-outline" size={18} color="#64748b" />
+              <Text style={styles.customerNameText} numberOfLines={1}>{item.customer}</Text>
+            </View>
+            <View style={[styles.paymentBadge, { backgroundColor: item.payment === 'COD' ? '#fef3c7' : '#ecfdf5' }]}>
+              <Text style={[styles.paymentBadgeText, { color: item.payment === 'COD' ? '#92400e' : '#065f46' }]}>
+                {item.payment}
+              </Text>
+            </View>
+          </View>
+
+          {/* Items Preview */}
+          <View style={styles.itemsGrid}>
+            {itemsPreview.map((orderItem, idx) => (
+              <View key={idx} style={styles.itemPreview}>
+                <View style={styles.itemThumb}>
+                  <MaterialIcons name="restaurant" size={18} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemNameLabel} numberOfLines={1}>{orderItem.product.name}</Text>
+                  <Text style={styles.itemQtyLabel}>Quantity: {orderItem.quantity}</Text>
+                </View>
+              </View>
+            ))}
+            {moreItems && (
+              <View style={styles.moreItemsRow}>
+                <View style={styles.moreItemsBadge}>
+                  <Text style={styles.moreItemsText}>{moreItems} more items</Text>
+                </View>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.orderFooter}>
+            <View style={styles.totalContainer}>
+              <Text style={styles.totalLabelSmall}>Payable Amount</Text>
+              <Text style={styles.totalValueLarge}>{item.amount}</Text>
+            </View>
+
+            {item.isPending ? (
+              <View style={styles.actionButtons}>
                 <TouchableOpacity
-                  style={[styles.primaryButton, styles.rejectButton]}
+                  style={styles.rejectBtn}
                   onPress={() => rejectOrder(item.orderId)}
                 >
-                  <Text style={[styles.primaryButtonText, styles.rejectButtonText]}>Reject</Text>
+                  <Text style={styles.actionBtnText}>Reject</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.primaryButton} onPress={() => acceptOrder(item.orderId)}>
-                  <Text style={styles.primaryButtonText}>Accept</Text>
+                <TouchableOpacity
+                  style={styles.acceptBtn}
+                  onPress={() => acceptOrder(item.orderId)}
+                >
+                  <Text style={styles.actionBtnText}>Accept</Text>
                 </TouchableOpacity>
-              </>
-            )}
-            {item.isMarkReady && (
-              <TouchableOpacity style={styles.primaryButton} onPress={() => markReady(item.orderId)}>
-                <Text style={styles.primaryButtonText}>Mark Ready</Text>
+              </View>
+            ) : item.isMarkReady ? (
+              <TouchableOpacity
+                style={styles.acceptBtn}
+                onPress={() => markReady(item.orderId)}
+              >
+                <Text style={styles.actionBtnText}>Mark Ready</Text>
               </TouchableOpacity>
+            ) : (
+              <View style={styles.detailsBtn}>
+                <Text style={styles.detailsBtnText}>View Details</Text>
+                <MaterialIcons name="arrow-forward" size={16} color="#fff" />
+              </View>
             )}
           </View>
-        </View>
-      </View>
-    ),
-    [
-      isRejectedStatus,
-      getStatusBadgeStyle,
-      handleViewDetails,
-      acceptOrder,
-      rejectOrder,
-      markReady,
-    ]
+        </TouchableOpacity>
+      );
+    },
+    [getStatusTheme, handleViewDetails, rejectOrder, acceptOrder, markReady]
   );
 
   const topTabs = [
@@ -602,7 +599,11 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
                             styles.radio,
                             orderStatusMap[status] === selectedOrderStatus && styles.selectedRadio,
                           ]}
-                        />
+                        >
+                          {orderStatusMap[status] === selectedOrderStatus && (
+                            <View style={styles.selectedRadioDot} />
+                          )}
+                        </View>
                         <Text style={styles.radioLabel}>{status}</Text>
                       </TouchableOpacity>
                     ))}
@@ -656,14 +657,15 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: COLORS.white,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
     shadowRadius: 8,
-    elevation: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingBottom: 16,
+    elevation: 4,
+    zIndex: 10,
   },
   headerTop: {
     flexDirection: 'row',
@@ -674,10 +676,10 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.015,
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#1e293b',
+    letterSpacing: -1,
     flex: 1,
   },
   headerButtons: {
@@ -712,6 +714,11 @@ const styles = StyleSheet.create({
   },
   activeChip: {
     backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   chipText: {
     fontSize: 14,
@@ -733,141 +740,201 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#64748b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 4,
-    gap: 16,
-  },
-  rejectedCard: {
-    backgroundColor: COLORS.secondary,
-    borderColor: COLORS.highlight,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   orderHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  orderDetails: {
+  orderInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  orderIdBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  orderIdText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#1e293b',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
-  orderNumber: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    lineHeight: 24,
-  },
-  orderTime: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-    lineHeight: 20,
-  },
-  orderSummary: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-    lineHeight: 24,
-    marginTop: 4,
-  },
-  orderActions: {
-    alignItems: 'flex-end',
-    gap: 8,
+  timeText: {
+    fontSize: 13,
+    color: '#64748b',
+    fontWeight: '600',
   },
   statusBadge: {
-    height: 28,
     paddingHorizontal: 12,
-    borderRadius: 9999,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 6,
+    borderRadius: 12,
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  acceptedBadge: {
-    backgroundColor: COLORS.primary,
+  pulsingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  deliveredBadge: {
-    backgroundColor: '#10b981',
-  },
-  rejectedBadge: {
-    backgroundColor: COLORS.danger,
-  },
-  preparingBadge: {
-    backgroundColor: '#f59e0b',
-  },
-  statusText: {
+  statusBadgeText: {
     fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.white,
+    fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
-  paymentTag: {
-    paddingHorizontal: 8,
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 16,
+  },
+  customerPaymentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  customerSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  customerNameText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  paymentBadge: {
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 9999,
-    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
   },
-  paymentText: {
+  paymentBadgeText: {
     fontSize: 12,
     fontWeight: '800',
-    color: COLORS.muted,
+    textTransform: 'uppercase',
+  },
+  itemsGrid: {
+    gap: 12,
+    paddingBottom: 4,
+  },
+  itemPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  itemThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemNameLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+    flex: 1,
+  },
+  itemQtyLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 2,
+  },
+  moreItemsRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+    marginLeft: 52,
+  },
+  moreItemsBadge: {
+    backgroundColor: '#f5eeff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  moreItemsText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
   orderFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingTop: 12,
+    justifyContent: 'space-between',
+    marginTop: 16,
   },
-  rejectedFooter: {
-    borderTopColor: `${COLORS.highlight}50`,
+  totalContainer: {
+    gap: 2,
   },
-  footerButtons: {
+  totalLabelSmall: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+  },
+  totalValueLarge: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#1e293b',
+  },
+  detailsBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  secondaryButton: {
-    minWidth: 84,
-    height: 36,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.textSecondary,
-    lineHeight: 20,
-  },
-  primaryButton: {
-    minWidth: 84,
-    height: 36,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontSize: 14,
+  detailsBtnText: {
+    fontSize: 15,
     fontWeight: '800',
     color: COLORS.white,
-    lineHeight: 20,
   },
-  rejectButton: {
-    backgroundColor: COLORS.danger,
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  rejectButtonText: {
+  acceptBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rejectBtn: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtnText: {
+    fontSize: 14,
+    fontWeight: '800',
     color: COLORS.white,
   },
   emptyContainer: {
@@ -885,11 +952,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   emptyTitle: {
     fontSize: 26,
@@ -939,13 +1001,19 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(20, 20, 20, 0.4)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 20,
   },
   dragHandleContainer: {
     height: 24,

@@ -57,6 +57,23 @@ export interface OrderTimestampsSnapshot {
   updatedAt: string;
 }
 
+export interface AddressSnapshot {
+  id: string;
+  userId: string;
+  type: string;
+  mainAddress: string;
+  completeAddress: string;
+  receiverName: string;
+  receiverContact: string;
+  landMark?: string;
+  floor?: string;
+  city?: string;
+  instructions?: string;
+  latitude?: number;
+  longitude?: number;
+  isDefault: boolean;
+}
+
 export interface OrderSnapshot {
   id: string;
   orderNumber: string;
@@ -89,6 +106,7 @@ export interface OrderSnapshot {
   updatedAt: string;
   items: OrderItemSnapshot[];
   timestamps: OrderTimestampsSnapshot;
+  address?: AddressSnapshot;
 }
 
 export interface VendorBroadcastItem {
@@ -121,5 +139,7 @@ interface VendorBroadcastData {
 }
 
 export interface VendorBroadcastApiResponse {
+  success: boolean;
+  message: string;
   data: VendorBroadcastData;
 }

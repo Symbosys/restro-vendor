@@ -272,7 +272,7 @@ export default function CartScreen({ navigation }: AppNavigation) {
                                 </View>
                                 <View style={styles.priceRow}>
                                     <Text style={styles.priceLabel}>Subtotal</Text>
-                                    <Text style={styles.priceValue}>₹{subtotal.toFixed(0)}</Text>
+                                    <Text style={styles.priceValue}>₹{parseToDecimal(subtotal as any).toFixed(0)}</Text>
                                 </View>
                                 <View style={styles.priceRow}>
                                     <Text style={styles.priceLabel}>Shipping</Text>
@@ -281,7 +281,7 @@ export default function CartScreen({ navigation }: AppNavigation) {
                                 <View style={styles.dashedBorder} />
                                 <View style={styles.totalRow}>
                                     <Text style={styles.totalLabel}>Total</Text>
-                                    <Text style={styles.totalValue}>₹{total.toFixed(0)}</Text>
+                                    <Text style={styles.totalValue}>₹{parseToDecimal(total as any).toFixed(0)}</Text>
                                 </View>
                             </View>
 
@@ -302,7 +302,7 @@ export default function CartScreen({ navigation }: AppNavigation) {
                                     </View>
                                     <View style={styles.paymentRow}>
                                         <Text style={styles.paymentText}>
-                                            Total amount of <Text style={styles.strongText}>₹{total.toFixed(0)}</Text> will be cut in{' '}
+                                            Total amount of <Text style={styles.strongText}>₹{parseToDecimal(total as any).toFixed(0)}</Text> will be cut in{' '}
                                             <Text style={styles.strongText}>3 installments</Text>.
                                         </Text>
                                     </View>

@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
 import { modalStyles } from '../styles/homeStyles';
 import { COLORS } from '../../../../theme/color';
+import { parseToDecimal } from '../../../../utils/utils';
 
 interface OrderModalProps {
     order: VendorBroadcastItem;
@@ -140,7 +141,7 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
                                             <Text style={modalStyles.itemName} numberOfLines={1}>{item.product.name}</Text>
                                             <Text style={modalStyles.itemMeta}>Quantity: {item.quantity}</Text>
                                         </View>
-                                        <Text style={modalStyles.itemPrice}>₹{item.totalPrice.toFixed(0)}</Text>
+                                        <Text style={modalStyles.itemPrice}>₹{parseToDecimal(item.totalPrice).toFixed(0)}</Text>
                                     </View>
                                 ))}
                             </View>
@@ -155,7 +156,7 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
                             <View style={modalStyles.cardBody}>
                                 <View style={modalStyles.summaryLine}>
                                     <Text style={modalStyles.summaryLabel}>Item Total</Text>
-                                    <Text style={modalStyles.summaryValue}>₹{order.subtotal.toFixed(0)}</Text>
+                                    <Text style={modalStyles.summaryValue}>₹{parseToDecimal(order.subtotal).toFixed(0)}</Text>
                                 </View>
                                 {/* <View style={modalStyles.summaryLine}>
                                     <Text style={modalStyles.summaryLabel}>Delivery Fee</Text>
@@ -164,7 +165,7 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible
                                 <View style={modalStyles.totalLine}>
                                     <Text style={modalStyles.totalLabel}>Grand Total</Text>
                                     <Text style={[modalStyles.totalAmount, { color: theme.color }]}>
-                                        ₹{order.paidAmount?.toFixed(0) || (order.subtotal + order.deliveryFee).toFixed(0)}
+                                        ₹{parseToDecimal(order.paidAmount || (order.subtotal + order.deliveryFee)).toFixed(0)}
                                     </Text>
                                 </View>
                             </View>

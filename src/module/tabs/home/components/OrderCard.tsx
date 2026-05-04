@@ -4,23 +4,33 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
 import { COLORS } from '../../../../theme/color';
 import { styles } from '../styles/homeStyles';
+import { parseToDecimal } from '../../../../utils/utils';
 
 interface OrderCardProps {
     item: VendorBroadcastItem;
     onPress: (item: VendorBroadcastItem) => void;
+    onAction?: (action: 'accept' | 'reject' | 'markReady', orderId: string) => void;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress }) => {
+const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onAction }) => {
     const { order } = broadcast;
     const isPending = broadcast.status === BroadcastStatus.PENDING;
     const itemsPreview = order.items.slice(0, 2);
     const moreItems = order.items.length > 2 ? `+${order.items.length - 2}` : '';
 
-    const getStatusTheme = useCallback((status: OrderStatus | BroadcastStatus) => {
-        switch (status) {
-            case OrderStatus.VENDOR_PENDING:
-            case BroadcastStatus.PENDING:
-                return { color: '#10b981', bgColor: '#ecfdf5', label: 'New' };
+    const getStatusTheme = useCallback((broadcastStatus: BroadcastStatus, orderStatus: OrderStatus) => {
+        if (broadcastStatus === BroadcastStatus.MISSED) {
+            return { color: '#ef4444', bgColor: '#fef2f2', label: 'Missed' };
+        }
+        if (broadcastStatus === BroadcastStatus.REJECTED) {
+            return { color: '#ef4444', bgColor: '#fef2f2', label: 'Rejected' };
+        }
+        if (broadcastStatus === BroadcastStatus.PENDING) {
+            return { color: '#10b981', bgColor: '#ecfdf5', label: 'New' };
+        }
+
+        // For ACCEPTED broadcast, use order status
+        switch (orderStatus) {
             case OrderStatus.PREPARING:
                 return { color: '#f59e0b', bgColor: '#fffbeb', label: 'Preparing' };
             case OrderStatus.READY_FOR_PICKUP:
@@ -28,63 +38,99 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress }) => {
             case OrderStatus.DELIVERED:
                 return { color: '#64748b', bgColor: '#f1f5f9', label: 'Delivered' };
             default:
-                return { color: '#64748b', bgColor: '#f1f5f9', label: 'Pending' };
+                return { color: COLORS.primary, bgColor: '#f5eeff', label: 'Accepted' };
         }
     }, []);
 
-    const theme = getStatusTheme(order.status);
+    const theme = getStatusTheme(broadcast.status, order.status);
 
     return (
         <TouchableOpacity
             style={styles.orderCard}
             onPress={() => onPress(broadcast)}
-            activeOpacity={0.9}
+            activeOpacity={0.8}
         >
+            {/* Header: Order ID and Status */}
             <View style={styles.orderHeader}>
                 <View style={styles.orderInfo}>
                     <View style={styles.orderIdBadge}>
-                        <Text style={styles.orderIdText}>#{order.orderNumber}</Text>
+                        <Text style={styles.orderIdText}>#{order.orderNumber.split('-').pop()}</Text>
                     </View>
-                    <Text style={{ fontSize: 13, color: '#64748b', fontWeight: '600' }}>
-                        {order.items.length} Items • 2.1 km
-                    </Text>
+                    <View style={styles.timeContainer}>
+                        <Icon name="access-time" size={14} color={THEME.textDim} />
+                        <Text style={styles.timeText}>
+                            {new Date(broadcast.notifiedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
                 </View>
-                <View style={[styles.statusBadge, { backgroundColor: theme.bgColor }]}>
+                <View style={[styles.statusBadge, { backgroundColor: theme.bgColor + 'CC' }]}>
+                    <View style={[styles.pulsingDot, { backgroundColor: theme.color }]} />
                     <Text style={[styles.statusBadgeText, { color: theme.color }]}>{theme.label}</Text>
                 </View>
             </View>
 
+            {/* Divider */}
+            <View style={styles.divider} />
+
+            {/* Items Preview */}
             <View style={styles.itemsGrid}>
                 {itemsPreview.map((item) => (
                     <View key={item.id} style={styles.itemPreview}>
                         <View style={styles.itemThumb}>
-                            <Icon name="restaurant" size={20} color="#94a3b8" />
+                            <Icon name="restaurant" size={18} color={THEME.primary} />
                         </View>
-                        <Text style={styles.itemNameLabel} numberOfLines={1}>{item.product.name}</Text>
-                        <Text style={styles.itemQtyLabel}>x{item.quantity}</Text>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.itemNameLabel} numberOfLines={1}>{item.product.name}</Text>
+                            <Text style={styles.itemQtyLabel}>Quantity: {item.quantity}</Text>
+                        </View>
+                        {/* <Text style={styles.itemPriceLabel}>₹{parseToDecimal(item.totalPrice).toFixed(0)}</Text> */}
                     </View>
                 ))}
                 {moreItems && (
-                    <Text style={{ fontSize: 13, color: COLORS.primary, fontWeight: '700', marginLeft: 52 }}>
-                        {moreItems} more items...
-                    </Text>
+                    <View style={styles.moreItemsRow}>
+                        <View style={styles.moreItemsBadge}>
+                            <Text style={styles.moreItemsText}>{moreItems} more items</Text>
+                        </View>
+                    </View>
                 )}
             </View>
 
             <View style={styles.orderFooter}>
                 <View style={styles.totalContainer}>
-                    <Text style={styles.totalLabelSmall}>Total Price</Text>
-                    <Text style={styles.totalValueLarge}>₹{order.subtotal.toFixed(0)}</Text>
+                    <Text style={styles.totalLabelSmall}>Payable Amount</Text>
+                    <Text style={styles.totalValueLarge}>₹{parseToDecimal(order.subtotal).toFixed(0)}</Text>
                 </View>
-                <View
-                    style={styles.detailsBtn}
-                >
-                    <Text style={styles.detailsBtnText}>Details</Text>
-                    <Icon name="chevron-right" size={20} color="#fff" />
-                </View>
+
+                {broadcast.status === BroadcastStatus.PENDING ? (
+                    <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                            style={styles.rejectBtn}
+                            onPress={() => onAction?.('reject', order.id)}
+                        >
+                            <Text style={styles.actionBtnText}>Reject</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.acceptBtn}
+                            onPress={() => onAction?.('accept', order.id)}
+                        >
+                            <Text style={styles.actionBtnText}>Accept</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <View style={styles.detailsBtn}>
+                        <Text style={styles.detailsBtnText}>View Details</Text>
+                        <Icon name="arrow-forward" size={16} color="#fff" />
+                    </View>
+                )}
             </View>
         </TouchableOpacity>
     );
+};
+
+const THEME = {
+    primary: '#8719C6',
+    textMain: '#1e293b',
+    textDim: '#64748b',
 };
 
 export default OrderCard;

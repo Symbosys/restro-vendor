@@ -100,7 +100,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                                         </View>
                                         <View style={styles.row}>
                                             <Text style={styles.rowLabel}>Total Order Amount</Text>
-                                            <Text style={styles.rowValue}>₹{orderDetails.totalAmount.toFixed(0)}</Text>
+                                            <Text style={styles.rowValue}>₹{parseToDecimal(orderDetails.totalAmount as any).toFixed(0)}</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -114,8 +114,8 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                                             Payment will be deducted from your Wallet.
                                         </Text>
                                         <Text style={styles.installmentText}>
-                                            Total amount of <Text style={styles.strongText}>₹{orderDetails.totalAmount.toFixed(0)}</Text> will be cut in{' '}
-                                            <Text style={styles.strongText}>3 weekly installments of ₹{orderDetails.installmentAmount.toFixed(0)}</Text>.
+                                            Total amount of <Text style={styles.strongText}>₹{parseToDecimal(orderDetails.totalAmount as any).toFixed(0)}</Text> will be cut in{' '}
+                                            <Text style={styles.strongText}>3 weekly installments of ₹{parseToDecimal(orderDetails.installmentAmount as any).toFixed(0)}</Text>.
                                         </Text>
                                     </View>
                                 </View>
@@ -181,7 +181,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                         <View style={styles.summaryDetails}>
                             <View style={styles.summaryRow}>
                                 <Text style={styles.summaryLabel}>Items ({cartItems.length})</Text>
-                                <Text style={styles.summaryValue}>₹{subtotal.toFixed(0)}</Text>
+                                <Text style={styles.summaryValue}>₹{parseToDecimal(subtotal as any).toFixed(0)}</Text>
                             </View>
                             <View style={styles.summaryRow}>
                                 <Text style={styles.summaryLabel}>Shipping</Text>
@@ -190,7 +190,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                             <View style={styles.summaryDivider} />
                             <View style={styles.summaryRow}>
                                 <Text style={styles.summaryTotalLabel}>Total</Text>
-                                <Text style={styles.summaryTotalValue}>₹{total.toFixed(0)}</Text>
+                                <Text style={styles.summaryTotalValue}>₹{parseToDecimal(total as any).toFixed(0)}</Text>
                             </View>
                         </View>
                     </View>
@@ -206,20 +206,20 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                                 <View style={styles.weekBadge}>
                                     <Text style={styles.weekBadgeText}>Week 1</Text>
                                 </View>
-                                <Text style={styles.installmentAmountText}>₹{installmentAmount} - Due Today</Text>
+                                <Text style={styles.installmentAmountText}>₹{parseToDecimal(installmentAmount as any).toFixed(0)} - Due Today</Text>
                             </View>
                             <View style={styles.installmentRow}>
                                 <View style={[styles.weekBadge, styles.weekBadgePending]}>
                                     <Text style={[styles.weekBadgeText, styles.weekBadgeTextPending]}>Week 2</Text>
                                 </View>
-                                <Text style={styles.installmentAmountText}>₹{installmentAmount} - In 7 days</Text>
+                                <Text style={styles.installmentAmountText}>₹{parseToDecimal(installmentAmount as any).toFixed(0)} - In 7 days</Text>
                             </View>
                             <View style={styles.installmentRow}>
                                 <View style={[styles.weekBadge, styles.weekBadgePending]}>
                                     <Text style={[styles.weekBadgeText, styles.weekBadgeTextPending]}>Week 3</Text>
                                 </View>
                                 <Text style={styles.installmentAmountText}>
-                                    ₹{(total - 2 * installmentAmount).toFixed(0)} - In 14 days
+                                    ₹{parseToDecimal((total - 2 * installmentAmount) as any).toFixed(0)} - In 14 days
                                 </Text>
                             </View>
                         </View>
@@ -257,7 +257,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                                 <ActivityIndicator size="small" color={COLORS.white} />
                             ) : (
                                 <View style={styles.confirmContent}>
-                                    <Text style={styles.confirmButtonText}>Place Order (₹{total.toFixed(0)})</Text>
+                                    <Text style={styles.confirmButtonText}>Place Order (₹{parseToDecimal(total as any).toFixed(0)})</Text>
                                     <MaterialIcons name="check" size={24} color={COLORS.white} />
                                 </View>
                             )}

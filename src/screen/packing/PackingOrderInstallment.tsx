@@ -102,7 +102,7 @@ export default function InstallmentDetailsScreen({ navigation }: AppNavigation) 
                             <Text style={styles.installmentLabel}>
                                 Installment {installment.installmentNumber} of 3
                             </Text>
-                            <Text style={styles.installmentAmount}>₹{Number(installment.amount).toFixed(0)}</Text>
+                            <Text style={styles.installmentAmount}>₹{parseToDecimal(installment.amount as any).toFixed(0)}</Text>
                         </View>
                         <View style={styles.cardFooter}>
                             <View style={[styles.statusBadge, { backgroundColor: config.bgColor }]}>
@@ -221,12 +221,12 @@ export default function InstallmentDetailsScreen({ navigation }: AppNavigation) 
                                 <View style={styles.planSummary}>
                                     <View style={styles.planRow}>
                                         <Text style={styles.planLabel}>Total Amount</Text>
-                                        <Text style={styles.planValue}>₹{Number(plan.totalAmount).toFixed(0)}</Text>
+                                        <Text style={styles.planValue}>₹{parseToDecimal(plan.totalAmount as any).toFixed(0)}</Text>
                                     </View>
                                     <View style={styles.planRow}>
                                         <Text style={styles.planLabel}>Remaining</Text>
                                         <Text style={[styles.planValue, styles.remainingValue]}>
-                                            ₹{Number(plan.remainingAmount).toFixed(0)}
+                                            ₹{parseToDecimal(plan.remainingAmount as any).toFixed(0)}
                                         </Text>
                                     </View>
                                 </View>

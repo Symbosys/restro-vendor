@@ -52,6 +52,8 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
         vendor
     } = useHome();
 
+    console.log("broadcasts", broadcasts);
+
     const renderEmptyComponent = useCallback(() => {
         if (isLoading) {
             return (
@@ -112,10 +114,14 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                         />
 
                         <FlatList
-                            scrollEnabled={false} // Since it's inside a ScrollView, we let ScrollView handle it or use FlatList's header
+                            scrollEnabled={false}
                             data={broadcasts}
                             renderItem={({ item }) => (
-                                <OrderCard item={item} onPress={handleOrderPress} />
+                                <OrderCard 
+                                    item={item} 
+                                    onPress={handleOrderPress} 
+                                    onAction={handleOrderAction}
+                                />
                             )}
                             keyExtractor={(item) => item.id}
                             onEndReached={handleEndReached}
