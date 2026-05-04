@@ -1,6 +1,6 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import api from "../api";
-import { VendorBroadcastApiResponse, VendorBroadcastFilter } from "../../types/order.types";
+import { FullOrderDetails, VendorBroadcastApiResponse, VendorBroadcastFilter } from "../../types/order.types";
 
 /**
  * Hook to fetch orders broadcasted to a vendor with infinite scrolling support.
@@ -31,4 +31,19 @@ export const useVendorBroadcastedOrders = (filters: VendorBroadcastFilter) => {
     initialPageParam: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+};
+
+
+/**
+ * Fetch a single order's full details by ID or Order Number
+ */
+export const useOrderDetails = (params: { id?: string; orderNumber?: string }) => {
+    return useQuery<FullOrderDetails>({
+        queryKey: ['order-details', params],
+        queryFn: async () => {
+            const { data } = await api.get('/order/details', { params });
+            return data.data;
+        },
+        enabled: !!(params.id || params.orderNumber),
+    });
 };

@@ -107,7 +107,85 @@ export interface OrderSnapshot {
   items: OrderItemSnapshot[];
   timestamps: OrderTimestampsSnapshot;
   address?: AddressSnapshot;
+  tracking?: OrderTrackingSnapshot[];
+  payments?: OrderPaymentSnapshot;
+  orderVendorAssignments?: OrderVendorAssignmentSnapshot;
+  orderDeliveryAssignment?: OrderDeliveryAssignmentSnapshot;
 }
+
+export interface OrderTrackingSnapshot {
+  id: string;
+  orderId: string;
+  eventType: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location?: string | null;
+  eta?: number | null;
+  notes?: string | null;
+  executedBy: string;
+  timestamp: string;
+}
+
+export interface OrderPaymentSnapshot {
+  id: string;
+  entityType: string;
+  entityId: string;
+  orderId: string;
+  userId: string;
+  vendorId?: string | null;
+  partnerId?: string | null;
+  direction: string;
+  amount: number | any;
+  currency: string;
+  method: string;
+  gateway: string;
+  gatewayOrderId: string;
+  gatewayPaymentId?: string | null;
+  referenceId: string;
+  description?: string | null;
+  metadata?: any;
+  status: string;
+  initiatedAt: string;
+  authorizedAt?: string | null;
+  capturedAt?: string | null;
+  failedAt?: string | null;
+  refundedAt?: string | null;
+  refundReference?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderVendorAssignmentSnapshot {
+  id: string;
+  orderId: string;
+  amount: number | any;
+  vendorId?: string | null;
+  assignedAt?: string | null;
+  acceptedAt?: string | null;
+  rejectedAt?: string | null;
+  status: string;
+  estimatedPrepTimeMinutes?: number | null;
+  actualPrepTimeMinutes?: number | null;
+  pickupOtp?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderDeliveryAssignmentSnapshot {
+  id: string;
+  orderId: string;
+  deliveryPartnerId?: string | null;
+  assignedAt?: string | null;
+  status: string;
+  deliveryPartner?: {
+    id: string;
+    name: string;
+    mobile: string;
+  };
+}
+
+export interface FullOrderDetails extends OrderSnapshot {}
 
 export interface VendorBroadcastItem {
   id: string;
