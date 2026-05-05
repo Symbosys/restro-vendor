@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { wsService } from "../services/websocket.service";
 import { useAuth } from "./AuthContext"; // if you have auth
+import { WS_BASE_URL } from "../constants/config";
 
 interface WebSocketContextValue {
     send: (data: any) => void;
@@ -18,7 +19,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     useEffect(() => {
         if (vendorId && token) {
-            const url = `ws://192.168.1.7:4000/ws?role=vendor&vendorId=${vendorId}&token=${token}`;
+            const url = `${WS_BASE_URL}?role=vendor&vendorId=${vendorId}&token=${token}`;
             wsService.connect(url);
 
             wsService.on("system", (msg) => {

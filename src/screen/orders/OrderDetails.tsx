@@ -9,6 +9,7 @@ import {
     Linking,
     ActivityIndicator,
     Alert,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -22,7 +23,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { orderId } = route.params || {};
-    const { data: order, isLoading, isError, refetch } = useOrderDetails({ id: orderId });
+    const { data: order, isLoading, isError, refetch, isFetching } = useOrderDetails({ id: orderId });
     const { vendorId } = useAuth();
 
     const isRejectedByMe = order?.vendorBroadcasts?.some(
@@ -116,7 +117,17 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                 <View style={styles.headerSpacer} />
             </View>
 
-            <ScrollView style={styles.main} contentContainerStyle={{ paddingBottom: 128 }}>
+            <ScrollView 
+                style={styles.main} 
+                contentContainerStyle={{ paddingBottom: 128 }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isFetching}
+                        onRefresh={refetch}
+                        colors={[COLORS.primary]}
+                    />
+                }
+            >
                 {/* Order Summary */}
                 <View style={styles.orderSummary}>
                     <Text style={styles.orderNumber}>Order #{order.orderNumber.split('-').pop()}</Text>
