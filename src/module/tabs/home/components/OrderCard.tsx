@@ -7,7 +7,7 @@ import { COLORS } from '../../../../theme/color';
 import { styles } from '../styles/homeStyles';
 import { parseToDecimal } from '../../../../utils/utils';
 import { RootStackParamList } from '../../../../types/types';
-import { AcceptOrderButton, RejectOrderButton } from '../../../../components/orers/order.action';
+import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../../../components/orers/order.action';
 
 interface OrderCardProps {
     item: VendorBroadcastItem;
@@ -109,6 +109,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
                     <View style={[styles.actionButtons, { gap: 10 }]}>
                         <RejectOrderButton orderId={order.id} />
                         <AcceptOrderButton orderId={order.id} />
+                    </View>
+                ) : order.status === OrderStatus.PREPARING && broadcast.status === BroadcastStatus.ACCEPTED ? (
+                    <View style={[styles.actionButtons, { gap: 10 }]}>
+                        <MarkReadyButton orderId={order.id} />
                     </View>
                 ) : (
                     <View style={styles.detailsBtn}>

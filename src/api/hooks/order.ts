@@ -115,3 +115,23 @@ export const useRejectOrder = () => {
     },
   });
 };
+/**
+ * Mutation to mark an order as ready
+ */
+export const useMarkOrderReady = () => {
+  const queryClient = useQueryClient();
+  return useMutation<any, Error, { orderId: string }>({
+    mutationFn: async ({ orderId }) => {
+      const { data } = await api.post(`/order/vendor/${orderId}/ready`);
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["vendorBroadcastedOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["order-details", { id: variables.orderId }] });
+      SuccessMessage("Order marked as ready");
+    },
+    onError: (error) => {
+      ErrorMessage(error);
+    },
+  });
+};

@@ -17,7 +17,7 @@ import { AppNavigation } from '../../types/types';
 import { useOrderDetails } from '../../api/hooks/order';
 import { parseToDecimal } from '../../utils/utils';
 import { format } from 'date-fns';
-import { AcceptOrderButton, RejectOrderButton } from '../../components/orers/order.action';
+import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../components/orers/order.action';
 import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
@@ -295,21 +295,9 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                 </View>
             )}
 
-            {order.status === 'VENDOR_ACCEPTED' && (
-                <View style={styles.actionButtons}>
-                    <View style={[styles.readyButton, { backgroundColor: 'rgba(148, 163, 184, 0.1)', flex: 1 }]}>
-                        <Text style={[styles.readyButtonText, { color: COLORS.textSecondary }]}>
-                            Assigning delivery partner soon...
-                        </Text>
-                    </View>
-                </View>
-            )}
-
             {order.status === 'PREPARING' && (
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity style={[styles.readyButton, { flex: 1 }]}>
-                        <Text style={styles.readyButtonText}>Mark as Ready</Text>
-                    </TouchableOpacity>
+                <View style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}>
+                    <MarkReadyButton orderId={order.id} />
                 </View>
             )}
         </SafeAreaView>

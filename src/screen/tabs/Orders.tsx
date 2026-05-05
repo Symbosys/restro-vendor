@@ -24,7 +24,7 @@ import { VendorBroadcastItem, BroadcastStatus, OrderStatus, VendorBroadcastFilte
 import { useAuth } from '../../context/AuthContext';
 import { useVendorBroadcastedOrders } from '../../api/hooks/order';
 import { parseToDecimal } from '../../utils/utils';
-import { AcceptOrderButton, RejectOrderButton } from '../../components/orers/order.action';
+import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../components/orers/order.action';
 
 const { width } = Dimensions.get('window');
 
@@ -189,7 +189,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
           isPending: broadcast.status === BroadcastStatus.PENDING,
           isMarkReady:
             broadcast.status === BroadcastStatus.ACCEPTED &&
-            broadcast.order.status === OrderStatus.VENDOR_ACCEPTED,
+            broadcast.order.status === OrderStatus.PREPARING,
           fullOrder: broadcast.order,
         }))
       ) || [],
@@ -428,12 +428,9 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
                 <AcceptOrderButton orderId={item.orderId} />
               </View>
             ) : item.isMarkReady ? (
-              <TouchableOpacity
-                style={styles.acceptBtn}
-                onPress={() => markReady(item.orderId)}
-              >
-                <Text style={styles.actionBtnText}>Mark Ready</Text>
-              </TouchableOpacity>
+              <View style={[styles.actionButtons, { gap: 10 }]}>
+                <MarkReadyButton orderId={item.orderId} />
+              </View>
             ) : (
               <View style={styles.detailsBtn}>
                 <Text style={styles.detailsBtnText}>View Details</Text>

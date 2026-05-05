@@ -5,7 +5,7 @@ import {
   ActivityIndicator, 
 } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useAcceptOrder, useRejectOrder } from "../../api/hooks/order";
+import { useAcceptOrder, useRejectOrder, useMarkOrderReady } from "../../api/hooks/order";
 import { COLORS } from "../../theme/color";
 
 /**
@@ -25,6 +25,28 @@ export const AcceptOrderButton = ({ orderId }: { orderId: string }) => {
                 <ActivityIndicator size="small" color={COLORS.white} />
             ) : (
                 <Icon name="check" size={26} color={COLORS.white} />
+            )}
+        </TouchableOpacity>
+    );
+}
+
+/**
+ * Professional Mark Ready Button (Icon Version)
+ */
+export const MarkReadyButton = ({ orderId }: { orderId: string }) => {
+    const { mutate: markReady, isPending } = useMarkOrderReady();
+    
+    return (
+        <TouchableOpacity 
+            style={[styles.button, styles.readyButton, isPending && styles.disabledButton]} 
+            onPress={() => markReady({ orderId })} 
+            disabled={isPending}
+            activeOpacity={0.7}
+        >
+            {isPending ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+                <Icon name="restaurant" size={26} color={COLORS.white} />
             )}
         </TouchableOpacity>
     );
@@ -69,6 +91,9 @@ const styles = StyleSheet.create({
     acceptButton: {
         backgroundColor: COLORS.primary,
     },
+    readyButton: {
+        backgroundColor: '#22C55E', // Green for "Ready"
+    },
     rejectButton: {
         backgroundColor: COLORS.white,
         borderWidth: 1.5,
@@ -78,5 +103,6 @@ const styles = StyleSheet.create({
         opacity: 0.5,
     }
 });
+
 
 
