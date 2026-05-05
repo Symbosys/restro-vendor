@@ -72,8 +72,6 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
 
     const pendingOrders = broadcasts.filter(b => b.status === BroadcastStatus.PENDING);
 
-    console.log("broadcasts", broadcasts);
-
     const renderEmptyComponent = useCallback(() => {
         if (isLoading) {
             return (
@@ -111,49 +109,47 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                 <>
                     <HomeHeader navigation={navigation} />
 
-                    <ScrollView
+                    <FlatList
+                        data={Array.from(new Map(broadcasts.map(b => [b.id, b])).values())}
+                        renderItem={({ item }) => (
+                            <OrderCard
+                                item={item}
+                                onPress={handleOrderPress}
+                                onAction={handleOrderAction}
+                            />
+                        )}
+                        keyExtractor={(item) => item.id}
+                        onEndReached={handleEndReached}
+                        onEndReachedThreshold={0.01}
+                        style={{ flex: 1 }}
                         contentContainerStyle={styles.content}
-                        showsVerticalScrollIndicator={false}
+                        ListHeaderComponent={
+                            <View>
+                                <StoreStatus storeOpen={storeOpen} onToggle={handleToggleStore} />
+                                <TodaySummary />
+                                <OrderTabs
+                                    tabs={tabs}
+                                    activeTab={activeTab}
+                                    onTabPress={setActiveTab}
+                                />
+                            </View>
+                        }
+                        ListEmptyComponent={renderEmptyComponent}
+                        ListFooterComponent={
+                            <View>
+                                {isFetchingNextPage && <ActivityIndicator size="small" color={COLORS.primary} style={{ padding: 20 }} />}
+                                <View style={{ height: 80 }} />
+                            </View>
+                        }
                         refreshControl={
                             <RefreshControl
-                                refreshing={isFetching}
+                                refreshing={isFetching && !isFetchingNextPage}
                                 onRefresh={handleRefresh}
                                 colors={[COLORS.primary]}
                                 tintColor={COLORS.primary}
                             />
                         }
-                    >
-                        <StoreStatus storeOpen={storeOpen} onToggle={handleToggleStore} />
-
-                        <TodaySummary />
-
-                        <OrderTabs
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onTabPress={setActiveTab}
-                        />
-
-                        <FlatList
-                            scrollEnabled={false}
-                            data={Array.from(new Map(broadcasts.map(b => [b.id, b])).values())}
-                            renderItem={({ item }) => (
-                                <OrderCard
-                                    item={item}
-                                    onPress={handleOrderPress}
-                                    onAction={handleOrderAction}
-                                />
-                            )}
-                            keyExtractor={(item) => item.id}
-                            onEndReached={handleEndReached}
-                            onEndReachedThreshold={0.1}
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={styles.mainContent}
-                            ListEmptyComponent={renderEmptyComponent}
-                            ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="small" color={COLORS.primary} style={{ padding: 20 }} /> : null}
-                        />
-
-                        <View style={{ height: 60 }} />
-                    </ScrollView>
+                    />
                 </>
             )}
 

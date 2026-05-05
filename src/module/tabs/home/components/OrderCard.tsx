@@ -85,7 +85,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.itemNameLabel} numberOfLines={1}>{item.product.name}</Text>
-                            <Text style={styles.itemQtyLabel}>Quantity: {item.quantity} {item.product.weight ? ` • ${item.product.weight}g` : ''} {item.product.pieces ? ` • ${item.product.pieces} pcs` : ''}</Text>
+                            <Text style={styles.itemQtyLabel}>Quantity: {item.quantity} {item.product.weight ? ` • ${item.product.weight}` : ''} {item.product.pieces ? ` • ${item.product.pieces} pcs` : ''}</Text>
                         </View>
                         {/* <Text style={styles.itemPriceLabel}>₹{parseToDecimal(item.totalPrice).toFixed(0)}</Text> */}
                     </View>

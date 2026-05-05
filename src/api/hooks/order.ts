@@ -85,7 +85,7 @@ export const useAcceptOrder = () => {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["vendorBroadcastedOrders"] });
+      queryClient.resetQueries({ queryKey: ["vendorBroadcastedOrders"] });
       queryClient.invalidateQueries({ queryKey: ["order-details", { id: variables.orderId }] });
       SuccessMessage("Order accepted successfully");
     },
@@ -106,7 +106,7 @@ export const useRejectOrder = () => {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["vendorBroadcastedOrders"] });
+      queryClient.resetQueries({ queryKey: ["vendorBroadcastedOrders"] });
       queryClient.invalidateQueries({ queryKey: ["order-details", { id: variables.orderId }] });
       SuccessMessage("Order rejected successfully");
     },
@@ -126,7 +126,7 @@ export const useMarkOrderReady = () => {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["vendorBroadcastedOrders"] });
+      queryClient.resetQueries({ queryKey: ["vendorBroadcastedOrders"] });
       queryClient.invalidateQueries({ queryKey: ["order-details", { id: variables.orderId }] });
       SuccessMessage("Order marked as ready");
     },

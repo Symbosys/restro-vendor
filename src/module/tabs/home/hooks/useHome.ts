@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useVendorBroadcastedOrders } from '../../../../api/hooks/order';
 import { useUpdateVendorMutation, useVendorById } from '../../../../hooks/useVendorQueries';
 import { useAuth } from '../../../../context/AuthContext';
@@ -117,10 +118,11 @@ export const useHome = () => {
     }, [setSelectedOrder, setModalVisible]);
 
     const handleEndReached = useCallback(() => {
-        if (hasNextPage && !isFetchingNextPage) {
+        // Only fetch next page if we aren't already fetching something and we have a next page
+        if (hasNextPage && !isFetchingNextPage && !isFetching && broadcasts.length > 0) {
             fetchNextPage();
         }
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    }, [hasNextPage, isFetchingNextPage, isFetching, fetchNextPage, broadcasts.length]);
 
     const handleOrderAction = useCallback((action: 'accept' | 'reject' | 'markReady', orderId: string) => {
         console.log(`Action: ${action} for order ${orderId}`);
@@ -133,9 +135,13 @@ export const useHome = () => {
         vendorUpdate({ isOpen: newStatusData });
     }, [storeOpen, vendorUpdate, setStoreOpen]);
 
+    const queryClient = useQueryClient();
     const handleRefresh = useCallback(async () => {
-        await Promise.all([refetchBroadcasts(), refetchVendor()]);
-    }, [refetchBroadcasts, refetchVendor]);
+        await Promise.all([
+            queryClient.resetQueries({ queryKey: ["vendorBroadcastedOrders"] }),
+            refetchVendor()
+        ]);
+    }, [queryClient, refetchVendor]);
 
     return {
         storeOpen,

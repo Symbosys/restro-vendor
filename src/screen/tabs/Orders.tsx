@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/api';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -233,10 +233,15 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
     setDateRange('All Time');
   }, []);
 
-  const onRefresh = useCallback(() => refetch(), [refetch]);
+  const queryClient = useQueryClient();
+  const onRefresh = useCallback(() => {
+    queryClient.resetQueries({ queryKey: ["vendorBroadcastedOrders"] });
+  }, [queryClient]);
   const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetching && mappedOrders.length > 0) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, isFetching, fetchNextPage, mappedOrders.length]);
 
   const acceptOrder = useCallback(
     async (orderId: string) => {
@@ -403,7 +408,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemNameLabel} numberOfLines={1}>{orderItem.product.name}</Text>
-                  <Text style={styles.itemQtyLabel}>Quantity: {orderItem.quantity} {orderItem.product.weight ? ` • ${orderItem.product.weight}g` : ''} {orderItem.product.pieces ? ` • ${orderItem.product.pieces} pcs` : ''}</Text>
+                  <Text style={styles.itemQtyLabel}>Quantity: {orderItem.quantity} {orderItem.product.weight ? ` • ${orderItem.product.weight}` : ''} {orderItem.product.pieces ? ` • ${orderItem.product.pieces} pcs` : ''}</Text>
                 </View>
               </View>
             ))}
@@ -511,11 +516,12 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
 
         {/* Orders List */}
         <FlatList
+          style={{ flex: 1 }}
           data={mappedOrders}
           renderItem={renderOrderItem}
           keyExtractor={(item) => item.broadcastId}
           onEndReached={loadMore}
-          onEndReachedThreshold={0.1}
+          onEndReachedThreshold={0.01}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.ordersContent}
           refreshControl={
