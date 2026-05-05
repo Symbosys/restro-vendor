@@ -225,7 +225,11 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                                     <View style={styles.itemLeft}>
                                         <Text style={styles.quantity}>{item.quantity}x</Text>
                                         <View style={styles.itemDetails}>
-                                            <Text style={styles.itemName}>{item.product.name}</Text>
+                                            <Text style={styles.itemName}>
+                                                {item.product.name}
+                                                {item.product.weight ? ` (${item.product.weight}g)` : ''}
+                                                {item.product.pieces ? ` (${item.product.pieces} pcs)` : ''}
+                                            </Text>
                                             {item.notes && <Text style={styles.itemNote}>{item.notes}</Text>}
                                         </View>
                                     </View>

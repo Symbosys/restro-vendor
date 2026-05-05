@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Error from '../../components/ui/error/Error';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Import from module
 import {
@@ -26,8 +27,13 @@ import {
     TodaySummary,
     useHome
 } from '../../module/tabs/home';
+import { wsService } from '../../socket/websocket.service';
+import { EVENT_TYPES } from '../../constants/event.constant';
+import { BroadcastStatus } from '../../types/order.types';
+import { handleNewOrder } from '../../socket/handlers/order.handler';
 
 const VendorDashboard = ({ navigation }: AppNavigation) => {
+    const queryClient = useQueryClient();
     const {
         storeOpen,
         activeTab,
@@ -51,6 +57,20 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
         refetchVendor,
         vendor
     } = useHome();
+
+    useEffect(() => {
+        const handler = (msg: any) => {
+            const newBroadcast = handleNewOrder(queryClient, msg);
+            if (newBroadcast) {
+                // Ensure we open the modal with the new state
+                setModalVisible(true);
+            }
+        };
+        wsService.on(EVENT_TYPES.NEW_ORDER, handler);
+        return () => wsService.off(EVENT_TYPES.NEW_ORDER, handler);
+    }, [queryClient, setModalVisible]);
+
+    const pendingOrders = broadcasts.filter(b => b.status === BroadcastStatus.PENDING);
 
     console.log("broadcasts", broadcasts);
 
@@ -115,11 +135,11 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
 
                         <FlatList
                             scrollEnabled={false}
-                            data={broadcasts}
+                            data={Array.from(new Map(broadcasts.map(b => [b.id, b])).values())}
                             renderItem={({ item }) => (
-                                <OrderCard 
-                                    item={item} 
-                                    onPress={handleOrderPress} 
+                                <OrderCard
+                                    item={item}
+                                    onPress={handleOrderPress}
                                     onAction={handleOrderAction}
                                 />
                             )}
@@ -137,17 +157,16 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                 </>
             )}
 
-            {/* {modalVisible && selectedOrder && (
+            {modalVisible && (pendingOrders.length > 0 || selectedOrder) && (
                 <OrderDetailModal
-                    order={selectedOrder}
+                    orders={pendingOrders.length > 0 ? pendingOrders : (selectedOrder ? [selectedOrder] : [])}
                     visible={modalVisible}
                     onClose={() => {
                         setModalVisible(false);
                         setSelectedOrder(null);
                     }}
-                    onAction={handleOrderAction}
                 />
-            )} */}
+            )}
         </SafeAreaView>
     );
 };

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { wsService } from "../services/websocket.service";
+import { wsService } from "../socket/websocket.service";
 import { useAuth } from "./AuthContext"; // if you have auth
 import { WS_BASE_URL } from "../constants/config";
 

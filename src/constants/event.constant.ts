@@ -1,0 +1,16 @@
+export const EVENT_TYPES = {
+    ORDER_PLACED: "order_placed",
+    NEW_ORDER: "new_order",
+    ORDER_ACCEPTED: "order_accepted",
+    ORDER_PREPARING: "order_preparing",
+    ORDER_READY_FOR_PICKUP: "order_ready_for_pickup",
+    ORDER_REJECTED: "order_rejected",
+    ORDER_CANCELLED: "order_cancelled",
+    ORDER_DELIVERED: "order_delivered",
+    ORDER_ASSIGNED: "order_assigned",
+    ORDER_COMPLETED: "order_completed",
+    ORDER_UNAVAILABLE: "order_unavailable",
+    DELIVERY_ACCEPTED: "delivery_accepted",
+    DELIVERY_REJECTED: "delivery_rejected",
+    ORDER_PICKED_UP: "order_picked_up",
+} as const;

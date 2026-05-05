@@ -403,7 +403,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemNameLabel} numberOfLines={1}>{orderItem.product.name}</Text>
-                  <Text style={styles.itemQtyLabel}>Quantity: {orderItem.quantity}</Text>
+                  <Text style={styles.itemQtyLabel}>Quantity: {orderItem.quantity} {orderItem.product.weight ? ` • ${orderItem.product.weight}g` : ''} {orderItem.product.pieces ? ` • ${orderItem.product.pieces} pcs` : ''}</Text>
                 </View>
               </View>
             ))}

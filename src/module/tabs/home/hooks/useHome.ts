@@ -107,16 +107,7 @@ export const useHome = () => {
         }
     }), [vendorId]);
 
-    useEffect(() => {
-        let timer: ReturnType<typeof setTimeout>;
-        if (!modalVisible) {
-            timer = setTimeout(() => {
-                setSelectedOrder(staticOrder as unknown as VendorBroadcastItem);
-                setModalVisible(true);
-            }, 5000);
-        }
-        return () => clearTimeout(timer);
-    }, [modalVisible, staticOrder, setSelectedOrder, setModalVisible]);
+    // Modal Logic is now purely event-driven via Home.tsx and WebSocket events.
 
     const broadcasts = useMemo(() => queryData?.pages.flatMap(page => page.data.broadcasts) || [], [queryData]);
 

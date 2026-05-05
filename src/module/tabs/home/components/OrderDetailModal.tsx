@@ -1,233 +1,429 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     View,
     Text,
     TouchableOpacity,
     Modal,
     ScrollView,
+    Dimensions,
+    StyleSheet,
+    Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import { formatDistanceToNow } from 'date-fns';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
-import { modalStyles } from '../styles/homeStyles';
 import { COLORS } from '../../../../theme/color';
 import { parseToDecimal } from '../../../../utils/utils';
+import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../../../components/orers/order.action';
+
+const { height } = Dimensions.get('window');
 
 interface OrderModalProps {
-    order: VendorBroadcastItem;
+    orders: VendorBroadcastItem[];
     visible: boolean;
     onClose: () => void;
-    onAction?: (action: 'accept' | 'reject' | 'markReady', orderId: string) => void;
 }
 
-const OrderDetailModal: React.FC<OrderModalProps> = ({ order: broadcast, visible, onClose, onAction }) => {
-    const { order } = broadcast;
-    const [countdown, setCountdown] = useState(15);
+const OrderDetailModal: React.FC<OrderModalProps> = ({ orders, visible, onClose }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
 
-    // 15-second countdown timer - auto close modal
     useEffect(() => {
-        if (!visible) {
-            setCountdown(15);
-            return;
-        }
+        if (visible) setCurrentIndex(0);
+    }, [visible, orders.length]);
 
-        const timer = setInterval(() => {
-            setCountdown((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    onClose();
-                    return 15;
-                }
-                return prev - 1;
-            });
-        }, 1000);
+    const broadcast = orders[currentIndex];
+    const order = broadcast?.order;
 
-        return () => clearInterval(timer);
-    }, [visible, onClose]);
-
-    const handleAction = (action: 'accept' | 'reject' | 'markReady') => {
-        onAction?.(action, order.id);
-        onClose();
-    };
-
-    if (!visible) return null;
-
-    const getStatusTheme = (status: OrderStatus) => {
-        switch (status) {
+    const theme = useMemo(() => {
+        if (!order) return { colors: ['#6366f1', '#4f46e5'], label: 'ORDER', secondary: '#eef2ff' };
+        switch (order.status) {
             case OrderStatus.VENDOR_PENDING:
-                return { color: '#10b981', label: 'NEW ORDER' };
+                return { colors: ['#10b981', '#059669'], label: 'NEW REQUEST', secondary: '#ecfdf5' };
             case OrderStatus.PREPARING:
-                return { color: '#f59e0b', label: 'PREPARING' };
+                return { colors: ['#f59e0b', '#d97706'], label: 'PREPARING', secondary: '#fffbeb' };
             case OrderStatus.READY_FOR_PICKUP:
-                return { color: COLORS.primary, label: 'READY' };
-            case OrderStatus.DELIVERED:
-                return { color: '#64748b', label: 'DELIVERED' };
+                return { colors: [COLORS.primary, '#6d28d9'], label: 'READY', secondary: '#f5eeff' };
             default:
-                return { color: '#64748b', label: status };
+                return { colors: ['#64748b', '#475569'], label: 'ORDER', secondary: '#f8fafc' };
         }
-    };
+    }, [order?.status]);
 
-    const theme = getStatusTheme(order.status);
-    const isNewOrder = broadcast.status === BroadcastStatus.PENDING;
+    if (!visible || !order) return null;
+
+    const handleNext = () => currentIndex < orders.length - 1 && setCurrentIndex(currentIndex + 1);
+    const handlePrev = () => currentIndex > 0 && setCurrentIndex(currentIndex - 1);
 
     return (
-        <Modal
-            visible={visible}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={onClose}
-        >
-            <View style={modalStyles.overlay}>
-                <View style={modalStyles.container}>
-                    {/* Premium Header */}
-                    <View style={[modalStyles.header, { borderLeftColor: theme.color }]}>
-                        <View style={modalStyles.headerTop}>
-                            <View style={modalStyles.handleBar} />
-                        </View>
-                        <View style={modalStyles.headerMain}>
-                            <View style={modalStyles.headerInfo}>
-                                <View style={modalStyles.orderIdRow}>
-                                    <Text style={modalStyles.orderLabel}>Order</Text>
-                                    <Text style={modalStyles.orderId}>#{order.orderNumber}</Text>
-                                </View>
-                                <Text style={modalStyles.orderTimestamp}>
-                                    {formatDistanceToNow(new Date(order.timestamps.placedAt), { addSuffix: true })}
-                                </Text>
+        <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+            <View style={styles.overlay}>
+                <View style={styles.container}>
+                    {/* Compact Premium Header */}
+                    <LinearGradient colors={theme.colors} start={{x:0, y:0}} end={{x:1, y:0}} style={styles.header}>
+                        <View style={styles.dragHandle} />
+                        
+                        <View style={styles.headerMain}>
+                            <View style={styles.orderIdent}>
+                                <Text style={styles.orderLabel}>{theme.label}</Text>
+                                <Text style={styles.orderId}>#{order.orderNumber.split('-').pop()}</Text>
                             </View>
-                            <View style={modalStyles.headerActions}>
-                                {/* Countdown Timer */}
-                                <View style={[modalStyles.countdownCircle, { borderColor: theme.color }]}>
-                                    <Text style={[modalStyles.countdownText, { color: theme.color }]}>{countdown}</Text>
-                                </View>
-                                <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn}>
-                                    <Icon name="close" size={24} color="#1e293b" />
+
+                            <View style={styles.headerRight}>
+                                {orders.length > 1 && (
+                                    <View style={styles.navPill}>
+                                        <TouchableOpacity onPress={handlePrev} disabled={currentIndex === 0}>
+                                            <Icon name="chevron-left" size={20} color={currentIndex === 0 ? "rgba(255,255,255,0.3)" : "#fff"} />
+                                        </TouchableOpacity>
+                                        <Text style={styles.navText}>{currentIndex + 1}/{orders.length}</Text>
+                                        <TouchableOpacity onPress={handleNext} disabled={currentIndex === orders.length - 1}>
+                                            <Icon name="chevron-right" size={20} color={currentIndex === orders.length - 1 ? "rgba(255,255,255,0.3)" : "#fff"} />
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                                <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                                    <Icon name="close" size={20} color="#fff" />
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        {/* Status Stripe */}
-                        <View style={[modalStyles.statusStrip, { backgroundColor: theme.color }]}>
-                            {isNewOrder && <View style={modalStyles.pulsingDot} />}
-                            <Text style={modalStyles.statusText}>{theme.label}</Text>
-                        </View>
-                    </View>
-
-                    <ScrollView
-                        style={modalStyles.body}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={modalStyles.bodyContent}
-                    >
-                        {/* Order Items Section */}
-                        <View style={modalStyles.card}>
-                            <View style={modalStyles.cardHeader}>
-                                <Icon name="shopping-basket" size={22} color="#1e293b" />
-                                <Text style={modalStyles.cardTitle}>Order Items</Text>
-                                <View style={modalStyles.badge}>
-                                    <Text style={modalStyles.badgeText}>{order.items.length}</Text>
-                                </View>
+                        
+                        <View style={styles.headerMeta}>
+                            <View style={styles.metaItem}>
+                                <Icon name="schedule" size={12} color="rgba(255,255,255,0.9)" />
+                                <Text style={styles.metaText}>{formatDistanceToNow(new Date(order.timestamps?.placedAt || new Date()), { addSuffix: true })}</Text>
                             </View>
-                            <View style={modalStyles.cardBody}>
-                                {order.items.map((item, index) => (
-                                    <View
-                                        key={item.id}
-                                        style={[
-                                            modalStyles.itemRow,
-                                            index !== order.items.length - 1 && modalStyles.itemRowBorder
-                                        ]}
-                                    >
-                                        <View style={[modalStyles.itemIcon, { backgroundColor: theme.color + '15' }]}>
-                                            <Icon name="restaurant" size={20} color={theme.color} />
-                                        </View>
-                                        <View style={modalStyles.itemDetails}>
-                                            <Text style={modalStyles.itemName} numberOfLines={1}>{item.product.name}</Text>
-                                            <Text style={modalStyles.itemMeta}>Quantity: {item.quantity}</Text>
-                                        </View>
-                                        <Text style={modalStyles.itemPrice}>₹{parseToDecimal(item.totalPrice).toFixed(0)}</Text>
+                            <View style={styles.metaItem}>
+                                <Icon name="payments" size={12} color="rgba(255,255,255,0.9)" />
+                                <Text style={styles.metaText}>{order.paymentMethod}</Text>
+                            </View>
+                        </View>
+                    </LinearGradient>
+
+                    <ScrollView showsVerticalScrollIndicator={false} style={styles.body}>
+                        {/* Summary Bar */}
+                        <View style={styles.summaryBar}>
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryLabel}>ITEMS</Text>
+                                <Text style={styles.summaryValue}>{order.items.length}</Text>
+                            </View>
+                            <View style={styles.summaryDivider} />
+                            <View style={styles.summaryItem}>
+                                <Text style={styles.summaryLabel}>SUBTOTAL</Text>
+                                <Text style={styles.summaryValue}>₹{parseToDecimal(order.subtotal).toFixed(0)}</Text>
+                            </View>
+                        </View>
+
+                        {/* Minimalist Items List */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Order Items</Text>
+                            {order.items.map((item, idx) => (
+                                <View key={item.id} style={[styles.itemRow, idx === order.items.length - 1 && { borderBottomWidth: 0 }]}>
+                                    <View style={styles.itemQtyBadge}>
+                                        <Text style={styles.itemQtyText}>{item.quantity} X</Text>
                                     </View>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/* Order Summary Section */}
-                        <View style={modalStyles.card}>
-                            <View style={modalStyles.cardHeader}>
-                                <Icon name="payments" size={22} color="#1e293b" />
-                                <Text style={modalStyles.cardTitle}>Bill Summary</Text>
-                            </View>
-                            <View style={modalStyles.cardBody}>
-                                <View style={modalStyles.summaryLine}>
-                                    <Text style={modalStyles.summaryLabel}>Item Total</Text>
-                                    <Text style={modalStyles.summaryValue}>₹{parseToDecimal(order.subtotal).toFixed(0)}</Text>
-                                </View>
-                                {/* <View style={modalStyles.summaryLine}>
-                                    <Text style={modalStyles.summaryLabel}>Delivery Fee</Text>
-                                    <Text style={modalStyles.summaryValue}>₹{order.deliveryFee.toFixed(0)}</Text>
-                                </View> */}
-                                <View style={modalStyles.totalLine}>
-                                    <Text style={modalStyles.totalLabel}>Grand Total</Text>
-                                    <Text style={[modalStyles.totalAmount, { color: theme.color }]}>
-                                        ₹{parseToDecimal(order.paidAmount || (order.subtotal + order.deliveryFee)).toFixed(0)}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-
-                        {/* Customer Info Placeholder - to make card look fuller */}
-                        <View style={modalStyles.card}>
-                            {/* <View style={modalStyles.cardHeader}>
-                                <Icon name="person" size={22} color="#1e293b" />
-                                <Text style={modalStyles.cardTitle}>Customer Information</Text>
-                            </View>
-                            <View style={modalStyles.cardBody}>
-                                <View style={modalStyles.summaryLine}>
-                                    <Text style={modalStyles.summaryLabel}>Name</Text>
-                                    <Text style={modalStyles.summaryValue}>John Doe</Text>
-                                </View>
-                                <View style={modalStyles.summaryLine}>
-                                    <Text style={modalStyles.summaryLabel}>Delivery at</Text>
-                                    <Text style={modalStyles.summaryValue} numberOfLines={1}>24, Greens Park, Mumbai</Text>
-                                </View>
-                            </View> */}
-                        </View>
-
-                        {/* Action Buttons */}
-                        {(isNewOrder || order.status === OrderStatus.PREPARING) && (
-                            <View style={modalStyles.actionsCard}>
-                                {isNewOrder ? (
-                                    <View style={modalStyles.actionRow}>
-                                        <TouchableOpacity
-                                            style={modalStyles.declineBtn}
-                                            onPress={() => handleAction('reject')}
-                                            activeOpacity={0.8}
-                                        >
-                                            <Icon name="close" size={22} color="#e11d48" />
-                                            <Text style={modalStyles.declineBtnText}>Decline</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={[modalStyles.acceptBtn, { backgroundColor: theme.color }]}
-                                            onPress={() => handleAction('accept')}
-                                            activeOpacity={0.8}
-                                        >
-                                            <Icon name="check" size={22} color="#fff" />
-                                            <Text style={modalStyles.acceptBtnText}>Accept Order</Text>
-                                        </TouchableOpacity>
+                                    <View style={styles.itemDetails}>
+                                        <Text style={styles.itemName} numberOfLines={1}>{item.product.name}</Text>
+                                        <Text style={styles.itemPriceDetail}>
+                                            ₹{parseToDecimal(item.unitPrice).toFixed(0)}
+                                            {item.product.weight ? ` • ${item.product.weight}` : ''}
+                                            {item.product.pieces ? ` • ${item.product.pieces} pcs` : ''}
+                                        </Text>
                                     </View>
+                                    <Text style={styles.itemTotal}>₹{parseToDecimal(item.totalPrice).toFixed(0)}</Text>
+                                </View>
+                            ))}
+                        </View>
+
+                        {/* Compact Bill Card */}
+                        <View style={styles.billCard}>
+                            <View style={styles.billRow}>
+                                <Text style={styles.billLabel}>Item Total</Text>
+                                <Text style={styles.billValue}>₹{parseToDecimal(order.itemTotal).toFixed(0)}</Text>
+                            </View>
+                            <View style={styles.billRow}>
+                                <Text style={styles.billLabel}>Delivery Fee</Text>
+                                <Text style={styles.billValue}>₹{parseToDecimal(order.deliveryFee).toFixed(0)}</Text>
+                            </View>
+                            <View style={styles.grandTotalRow}>
+                                <Text style={styles.grandTotalLabel}>Grand Total</Text>
+                                <Text style={[styles.grandTotalValue, { color: theme.colors[0] }]}>
+                                    ₹{parseToDecimal(order.paidAmount || (parseToDecimal(order.subtotal) + parseToDecimal(order.deliveryFee))).toFixed(0)}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={{ height: 100 }} />
+                    </ScrollView>
+
+                    {/* Optimized Footer Action Bar */}
+                    <View style={styles.footer}>
+                        {(broadcast.status === BroadcastStatus.PENDING || order.status === OrderStatus.PREPARING) && (
+                            <View style={styles.actionWrapper}>
+                                {broadcast.status === BroadcastStatus.PENDING ? (
+                                    <>
+                                        <View style={styles.rejectContainer}>
+                                            <RejectOrderButton orderId={order.id} />
+                                        </View>
+                                        <View style={styles.acceptContainer}>
+                                            <AcceptOrderButton orderId={order.id} />
+                                        </View>
+                                    </>
                                 ) : (
-                                    <TouchableOpacity
-                                        style={[modalStyles.fullBtn, { backgroundColor: theme.color }]}
-                                        onPress={() => handleAction('markReady')}
-                                        activeOpacity={0.8}
-                                    >
-                                        <Icon name="check-circle" size={24} color="#fff" />
-                                        <Text style={modalStyles.fullBtnText}>Mark Ready for Pickup</Text>
-                                    </TouchableOpacity>
+                                    <View style={styles.fullActionContainer}>
+                                        <MarkReadyButton orderId={order.id} />
+                                    </View>
                                 )}
                             </View>
                         )}
-                    </ScrollView>
+                    </View>
                 </View>
             </View>
         </Modal>
     );
 };
+
+const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 23, 42, 0.7)',
+        justifyContent: 'flex-end',
+    },
+    container: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        height: height * 0.85,
+        overflow: 'hidden',
+    },
+    header: {
+        paddingTop: 8,
+        paddingBottom: 20,
+        paddingHorizontal: 24,
+    },
+    dragHandle: {
+        width: 32,
+        height: 4,
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginBottom: 16,
+    },
+    headerMain: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    orderIdent: {
+        gap: 2,
+    },
+    orderLabel: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 1,
+        textTransform: 'uppercase',
+    },
+    orderId: {
+        color: '#fff',
+        fontSize: 26,
+        fontWeight: '900',
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    navPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        gap: 8,
+    },
+    navText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    closeBtn: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerMeta: {
+        flexDirection: 'row',
+        gap: 16,
+        marginTop: 14,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    metaText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    body: {
+        flex: 1,
+    },
+    summaryBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8fafc',
+        marginHorizontal: 24,
+        marginTop: 20,
+        paddingVertical: 14,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+    },
+    summaryItem: {
+        flex: 1,
+        alignItems: 'center',
+        gap: 4,
+    },
+    summaryLabel: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#94a3b8',
+        letterSpacing: 0.5,
+    },
+    summaryValue: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#1e293b',
+    },
+    summaryDivider: {
+        width: 1,
+        height: 24,
+        backgroundColor: '#e2e8f0',
+    },
+    section: {
+        paddingHorizontal: 24,
+        marginTop: 24,
+    },
+    sectionTitle: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: '#64748b',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        marginBottom: 16,
+    },
+    itemRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8fafc',
+    },
+    itemQtyBadge: {
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        backgroundColor: '#f1f5f9',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 14,
+    },
+    itemQtyText: {
+        fontSize: 13,
+        fontWeight: '800',
+        color: '#475569',
+    },
+    itemDetails: {
+        flex: 1,
+    },
+    itemName: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#1e293b',
+    },
+    itemPriceDetail: {
+        fontSize: 12,
+        color: '#94a3b8',
+        fontWeight: '500',
+        marginTop: 1,
+    },
+    itemTotal: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: '#1e293b',
+    },
+    billCard: {
+        marginHorizontal: 24,
+        marginTop: 24,
+        backgroundColor: '#fff',
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: '#f1f5f9',
+    },
+    billRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 18,
+        paddingVertical: 10,
+    },
+    billLabel: {
+        fontSize: 14,
+        color: '#64748b',
+        fontWeight: '600',
+    },
+    billValue: {
+        fontSize: 14,
+        color: '#1e293b',
+        fontWeight: '700',
+    },
+    grandTotalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 18,
+        paddingVertical: 16,
+        backgroundColor: '#f8fafc',
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+    },
+    grandTotalLabel: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#1e293b',
+    },
+    grandTotalValue: {
+        fontSize: 24,
+        fontWeight: '900',
+    },
+    footer: {
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: '#f1f5f9',
+    },
+    actionWrapper: {
+        flexDirection: 'row',
+        gap: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    rejectContainer: {
+        // Removed flex to allow centering
+    },
+    acceptContainer: {
+        // Removed flex to allow centering
+    },
+    fullActionContainer: {
+        // Removed flex to allow centering
+    }
+});
 
 export default OrderDetailModal;

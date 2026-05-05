@@ -4,14 +4,15 @@ import { ToastAndroid } from "react-native";
 type DecimalObj = {s: number; e: number; d: number[]};
 
 export function parseToDecimal(
-  price: number | DecimalObj | null | undefined,
+  price: number | string | DecimalObj | null | undefined,
 ): number {
   if (!price) return 0;
   if (typeof price === 'number') return price;
+  if (typeof price === 'string') return parseFloat(price);
 
-  const high = price.d?.[0] ?? 0;
-  const low = price.d?.[1] ?? 0;
-  return (high + low / 1e7) * (price.s ?? 1);
+  const high = (price as DecimalObj).d?.[0] ?? 0;
+  const low = (price as DecimalObj).d?.[1] ?? 0;
+  return (high + low / 1e7) * ((price as DecimalObj).s ?? 1);
 }
 
 /**
