@@ -111,6 +111,7 @@ export interface OrderSnapshot {
   payments?: OrderPaymentSnapshot;
   orderVendorAssignments?: OrderVendorAssignmentSnapshot;
   orderDeliveryAssignment?: OrderDeliveryAssignmentSnapshot;
+  vendorBroadcasts?: VendorBroadcastItem[];
 }
 
 export interface OrderTrackingSnapshot {

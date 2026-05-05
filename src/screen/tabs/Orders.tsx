@@ -24,6 +24,7 @@ import { VendorBroadcastItem, BroadcastStatus, OrderStatus, VendorBroadcastFilte
 import { useAuth } from '../../context/AuthContext';
 import { useVendorBroadcastedOrders } from '../../api/hooks/order';
 import { parseToDecimal } from '../../utils/utils';
+import { AcceptOrderButton, RejectOrderButton } from '../../components/orers/order.action';
 
 const { width } = Dimensions.get('window');
 
@@ -422,19 +423,9 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
             </View>
 
             {item.isPending ? (
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.rejectBtn}
-                  onPress={() => rejectOrder(item.orderId)}
-                >
-                  <Text style={styles.actionBtnText}>Reject</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.acceptBtn}
-                  onPress={() => acceptOrder(item.orderId)}
-                >
-                  <Text style={styles.actionBtnText}>Accept</Text>
-                </TouchableOpacity>
+              <View style={[styles.actionButtons, { gap: 10 }]}>
+                <RejectOrderButton orderId={item.orderId} />
+                <AcceptOrderButton orderId={item.orderId} />
               </View>
             ) : item.isMarkReady ? (
               <TouchableOpacity

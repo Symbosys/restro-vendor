@@ -7,6 +7,7 @@ import { COLORS } from '../../../../theme/color';
 import { styles } from '../styles/homeStyles';
 import { parseToDecimal } from '../../../../utils/utils';
 import { RootStackParamList } from '../../../../types/types';
+import { AcceptOrderButton, RejectOrderButton } from '../../../../components/orers/order.action';
 
 interface OrderCardProps {
     item: VendorBroadcastItem;
@@ -105,19 +106,9 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
                 </View>
 
                 {broadcast.status === BroadcastStatus.PENDING ? (
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity
-                            style={styles.rejectBtn}
-                            onPress={() => onAction?.('reject', order.id)}
-                        >
-                            <Text style={styles.actionBtnText}>Reject</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.acceptBtn}
-                            onPress={() => onAction?.('accept', order.id)}
-                        >
-                            <Text style={styles.actionBtnText}>Accept</Text>
-                        </TouchableOpacity>
+                    <View style={[styles.actionButtons, { gap: 10 }]}>
+                        <RejectOrderButton orderId={order.id} />
+                        <AcceptOrderButton orderId={order.id} />
                     </View>
                 ) : (
                     <View style={styles.detailsBtn}>

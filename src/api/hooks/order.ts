@@ -1,6 +1,7 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import { FullOrderDetails, VendorBroadcastApiResponse, VendorBroadcastFilter } from "../../types/order.types";
+import { ErrorMessage, SuccessMessage } from "../../utils/utils";
 
 /**
  * Hook to fetch orders broadcasted to a vendor with infinite scrolling support.
@@ -46,4 +47,71 @@ export const useOrderDetails = (params: { id?: string; orderNumber?: string }) =
         },
         enabled: !!(params.id || params.orderNumber),
     });
+};
+
+export interface AcceptOrderPayload {
+  orderId: string;
+  notes?: string;
+}
+
+export interface AcceptOrderResponse {
+  success: boolean;
+  message: string;
+  data: {
+    orderId: string;
+    status: string;
+  };
+}
+
+export interface RejectOrderPayload {
+  orderId: string;
+  reason?: string;
+}
+
+export interface RejectOrderResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
+/**
+ * Mutation to accept a broadcasted order
+ */
+export const useAcceptOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation<AcceptOrderResponse, Error, AcceptOrderPayload>({
+    mutationFn: async ({ orderId, notes }) => {
+      const { data } = await api.post(`/order/vendor/${orderId}/accept`, { notes });
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["vendorBroadcastedOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["order-details", { id: variables.orderId }] });
+      SuccessMessage("Order accepted successfully");
+    },
+    onError: (error) => {
+      ErrorMessage(error);
+    },
+  });
+};
+
+/**
+ * Mutation to reject a broadcasted order
+ */
+export const useRejectOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation<RejectOrderResponse, Error, RejectOrderPayload>({
+    mutationFn: async ({ orderId, reason }) => {
+      const { data } = await api.post(`/order/vendor/${orderId}/reject`, { reason });
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["vendorBroadcastedOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["order-details", { id: variables.orderId }] });
+      SuccessMessage("Order rejected successfully");
+    },
+    onError: (error) => {
+      ErrorMessage(error);
+    },
+  });
 };

@@ -17,12 +17,17 @@ import { AppNavigation } from '../../types/types';
 import { useOrderDetails } from '../../api/hooks/order';
 import { parseToDecimal } from '../../utils/utils';
 import { format } from 'date-fns';
-
-
+import { AcceptOrderButton, RejectOrderButton } from '../../components/orers/order.action';
+import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { orderId } = route.params || {};
     const { data: order, isLoading, isError, refetch } = useOrderDetails({ id: orderId });
+    const { vendorId } = useAuth();
+
+    const isRejectedByMe = order?.vendorBroadcasts?.some(
+        (b) => String(b.vendorId) === String(vendorId) && b.status === 'REJECTED'
+    );
 
     if (isLoading) {
         return (
@@ -283,14 +288,10 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
             </ScrollView>
 
             {/* Action Buttons */}
-            {(order.status === 'VENDOR_PENDING') && (
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.cancelButton}>
-                        <Text style={styles.cancelButtonText}>Reject Order</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.readyButton}>
-                        <Text style={styles.readyButtonText}>Accept Order</Text>
-                    </TouchableOpacity>
+            {(order.status === 'VENDOR_PENDING' && !isRejectedByMe) && (
+                <View style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}>
+                    <RejectOrderButton orderId={order.id} />
+                    <AcceptOrderButton orderId={order.id} />
                 </View>
             )}
 
