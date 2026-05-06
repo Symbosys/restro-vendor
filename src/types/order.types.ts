@@ -179,10 +179,15 @@ export interface OrderDeliveryAssignmentSnapshot {
   deliveryPartnerId?: string | null;
   assignedAt?: string | null;
   status: string;
+  pickupOtp?: string | null;
   deliveryPartner?: {
     id: string;
     name: string;
     mobile: string;
+    image?: {
+      url: string;
+      public_id: string;
+    }
   };
 }
 

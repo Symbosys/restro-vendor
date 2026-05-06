@@ -9,6 +9,8 @@ import {
     Linking,
     ActivityIndicator,
     Alert,
+    Modal,
+    Image,
     RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +27,8 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { orderId } = route.params || {};
     const { data: order, isLoading, isError, refetch, isFetching } = useOrderDetails({ id: orderId });
     const { vendorId } = useAuth();
+
+    console.log('order', order);
 
     const isRejectedByMe = order?.vendorBroadcasts?.some(
         (b) => String(b.vendorId) === String(vendorId) && b.status === 'REJECTED'
@@ -192,25 +196,47 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
 
                 {/* Delivery Partner Information (if assigned) */}
                 {order.orderDeliveryAssignment && (
-                    <View style={styles.customerSection}>
+                    <View style={styles.deliverySection}>
                         <Text style={styles.sectionTitle}>Delivery Partner</Text>
-                        <View style={styles.customerCard}>
-                            <View style={styles.infoRow}>
-                                <View style={styles.infoLeft}>
-                                    <View style={styles.iconContainer}>
-                                        <Icon name="delivery-dining" size={24} color={COLORS.textSecondary} />
+                        <View style={styles.deliveryCard}>
+                            <View style={styles.deliveryInfoRow}>
+                                <View style={styles.partnerProfile}>
+                                    {order.orderDeliveryAssignment.deliveryPartner?.image?.url ? (
+                                        <Image 
+                                            source={{ uri: order.orderDeliveryAssignment.deliveryPartner.image.url }} 
+                                            style={styles.partnerAvatar}
+                                        />
+                                    ) : (
+                                        <View style={styles.partnerAvatarPlaceholder}>
+                                            <Icon name="person" size={24} color={COLORS.muted} />
+                                        </View>
+                                    )}
+                                    <View style={styles.partnerDetails}>
+                                        <Text style={styles.partnerName} numberOfLines={1}>
+                                            {order.orderDeliveryAssignment.deliveryPartner?.name || 'Assigned'}
+                                        </Text>
+                                        <Text style={styles.partnerRole}>Delivery Executive</Text>
                                     </View>
-                                    <Text style={styles.infoText} numberOfLines={1}>
-                                        {order.orderDeliveryAssignment.deliveryPartner?.name || 'Assigned'}
-                                    </Text>
                                 </View>
                                 <TouchableOpacity 
-                                    style={styles.actionButton}
+                                    style={styles.callCircle}
                                     onPress={() => handleCall(order.orderDeliveryAssignment?.deliveryPartner?.mobile || '')}
                                 >
                                     <Icon name="phone" size={20} color={COLORS.primary} />
                                 </TouchableOpacity>
                             </View>
+
+                            {order.orderDeliveryAssignment.pickupOtp && (
+                                <View style={styles.otpContainer}>
+                                    <View style={styles.otpInfo}>
+                                        <Icon name="vpn-key" size={18} color={COLORS.muted} />
+                                        <Text style={styles.otpLabel}>Pickup Code</Text>
+                                    </View>
+                                    <View style={styles.otpBadge}>
+                                        <Text style={styles.otpValue}>{order.orderDeliveryAssignment.pickupOtp}</Text>
+                                    </View>
+                                </View>
+                            )}
                         </View>
                     </View>
                 )}
@@ -685,6 +711,104 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '800',
         color: COLORS.textPrimary,
+    },
+    deliverySection: {
+        paddingHorizontal: 16,
+        paddingTop: 24,
+    },
+    deliveryCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 20,
+        padding: 16,
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(148, 163, 184, 0.1)',
+    },
+    deliveryInfoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    partnerProfile: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    partnerAvatar: {
+        width: 54,
+        height: 54,
+        borderRadius: 27,
+        backgroundColor: '#F1F5F9',
+    },
+    partnerAvatarPlaceholder: {
+        width: 54,
+        height: 54,
+        borderRadius: 27,
+        backgroundColor: '#F1F5F9',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    partnerDetails: {
+        marginLeft: 14,
+        flex: 1,
+    },
+    partnerName: {
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: COLORS.textPrimary,
+    },
+    partnerRole: {
+        fontSize: 13,
+        color: COLORS.muted,
+        marginTop: 2,
+    },
+    callCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: `${COLORS.primary}15`,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    otpContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F8FAFC',
+        padding: 12,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: '#E2E8F0',
+    },
+    otpInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    otpLabel: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: COLORS.muted,
+    },
+    otpBadge: {
+        backgroundColor: COLORS.white,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    otpValue: {
+        fontSize: 16,
+        fontWeight: '900',
+        color: COLORS.primary,
+        letterSpacing: 1,
     },
 });
 
