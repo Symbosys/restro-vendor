@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
 
-
 export type NotificationType =
   | "NEW_ORDER"
   | "ORDER_STATUS_UPDATE"
