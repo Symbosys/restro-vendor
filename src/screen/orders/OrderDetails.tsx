@@ -1,27 +1,25 @@
+import { format } from 'date-fns';
 import React from 'react';
 import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    StyleSheet,
-    Dimensions,
-    Linking,
     ActivityIndicator,
     Alert,
-    Modal,
     Image,
+    Linking,
     RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useOrderDetails } from '../../api/hooks/order';
+import { AcceptOrderButton, MarkReadyButton, RejectOrderButton } from '../../components/orers/order.action';
+import { useAuth } from '../../context/AuthContext';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { useOrderDetails } from '../../api/hooks/order';
 import { parseToDecimal } from '../../utils/utils';
-import { format } from 'date-fns';
-import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../components/orers/order.action';
-import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { orderId } = route.params || {};
