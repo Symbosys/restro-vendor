@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchVendorsAPI, fetchVendorByIdAPI, updateVendorAPI, verifyShopDetailsAPI, FetchVendorsParams } from "../services/vendor.service";
+import { fetchVendorsAPI, fetchVendorByIdAPI, updateVendorAPI, verifyShopDetailsAPI, FetchVendorsParams, toggleStoreStatusAPI } from "../services/vendor.service";
 import { ErrorMessage } from "../utils/utils";
 import { AxiosError } from "axios";
 import { Vendor } from "../types/vendor.types";
@@ -81,3 +81,36 @@ export const useVerifyShopDetailsMutation = (id: string | number) => {
     }, // error message is handled in service
   });
 };
+
+export const useToggleStoreStatusMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (isOpen: boolean) => {
+      try {
+        const response = await toggleStoreStatusAPI(isOpen);
+        return response;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    },
+    onSuccess: (updatedVendor) => {
+      queryClient.setQueryData(["me"], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            isOpen: updatedVendor.isOpen
+          }
+        };
+      });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: (error) => {
+      console.error(error);
+      ErrorMessage(error as AxiosError | Error);
+    },
+  });
+};

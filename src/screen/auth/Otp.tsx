@@ -15,11 +15,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../api/api';
-import { RootStackParamList } from '../../types/types';
 import { useAuth } from '../../context/AuthContext';
-import { getVendorById } from '../../services/vendor.service';
-import { Vendor } from '../../api/query/vendor';
-import { ErrorMessage } from '../../utils/utils';
+import { RootStackParamList } from '../../types/types';
 
 const { width } = Dimensions.get('window');
 

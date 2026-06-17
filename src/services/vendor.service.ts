@@ -117,3 +117,17 @@ export const verifyShopDetailsAPI = async (data: Partial<Vendor>, id: string | n
     throw error;
   }
 };
+
+export const toggleStoreStatusAPI = async (isOpen: boolean) => {
+  try {
+    const res = await api.patch("/vendor/toggle-status", { isOpen });
+    if (res.data.success) {
+      SuccessMessage(res.data.message || `Vendor is now ${isOpen ? "online" : "offline"}`);
+    }
+    return res.data.data;
+  } catch (error) {
+    ErrorMessage(error as AxiosError | Error);
+    throw error;
+  }
+};
+

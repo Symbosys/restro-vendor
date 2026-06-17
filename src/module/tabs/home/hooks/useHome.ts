@@ -2,7 +2,7 @@ import { useMemo, useCallback, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useVendorBroadcastedOrders } from '../../../../api/hooks/order';
 import {
-  useUpdateVendorMutation,
+  useToggleStoreStatusMutation,
   useVendorById,
 } from '../../../../hooks/useVendorQueries';
 import { useAuth } from '../../../../context/AuthContext';
@@ -95,7 +95,7 @@ export const useHome = () => {
   const { data: vendor, refetch: refetchVendor } = useVendorById({
     enabled: isAuthenticated,
   });
-  const { mutate: vendorUpdate } = useUpdateVendorMutation(vendorId || '');
+  const { mutate: toggleStoreStatus } = useToggleStoreStatusMutation();
 
   // Sync storeOpen with vendor data from query
   useEffect(() => {
@@ -184,9 +184,12 @@ export const useHome = () => {
   const handleToggleStore = useCallback(async () => {
     const newStatus = !storeOpen;
     setStoreOpen(newStatus);
-    const newStatusData = String(newStatus);
-    vendorUpdate({ isOpen: newStatusData });
-  }, [storeOpen, vendorUpdate, setStoreOpen]);
+    toggleStoreStatus(newStatus, {
+      onError: () => {
+        setStoreOpen(storeOpen);
+      }
+    });
+  }, [storeOpen, toggleStoreStatus, setStoreOpen]);
 
   const queryClient = useQueryClient();
   const handleRefresh = useCallback(async () => {

@@ -1,21 +1,21 @@
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect } from 'react';
 import {
     ActivityIndicator,
     FlatList,
     RefreshControl,
-    ScrollView,
     StatusBar,
     Text,
-    View,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Error from '../../components/ui/error/Error';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { useQueryClient } from '@tanstack/react-query';
 
 // Import from module
+import { EVENT_TYPES } from '../../constants/event.constant';
 import {
     HomeHeader,
     OfflineView,
@@ -27,10 +27,9 @@ import {
     TodaySummary,
     useHome
 } from '../../module/tabs/home';
-import { wsService } from '../../socket/websocket.service';
-import { EVENT_TYPES } from '../../constants/event.constant';
-import { BroadcastStatus } from '../../types/order.types';
 import { handleNewOrder } from '../../socket/handlers/order.handler';
+import { wsService } from '../../socket/websocket.service';
+import { BroadcastStatus } from '../../types/order.types';
 
 const VendorDashboard = ({ navigation }: AppNavigation) => {
     const queryClient = useQueryClient();
