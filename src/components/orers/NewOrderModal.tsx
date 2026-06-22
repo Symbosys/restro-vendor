@@ -10,7 +10,8 @@ import {
     View,
 } from 'react-native';
 import { COLORS } from '../../theme/color';
-import { parseToDecimal } from '../../utils/utils';
+import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../utils/utils';
+import { useVendorById } from '../../hooks/useVendorQueries';
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 const maxWidth = Math.min(screenWidth, 375);
 interface NewOrderModalProps {
@@ -30,11 +31,26 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({
     const slideAnim = new Animated.Value(screenHeight);
     const translateX = new Animated.Value(0);
     const scale = new Animated.Value(1);
+    const { data: vendor } = useVendorById();
+    
     // Dynamic values from currentOrder
     const customer = currentOrder ? `${currentOrder.address.receiverName}, ${currentOrder.address.mainAddress}` : 'Alex Doe, Downtown';
-    const orderValue = parseToDecimal(currentOrder?.totalAmount);
+
+    const addressCoords = currentOrder?.address
+        ? { latitude: currentOrder.address.latitude, longitude: currentOrder.address.longitude }
+        : null;
+    const vendorCoords = vendor
+        ? { latitude: vendor.latitude, longitude: vendor.longitude }
+        : null;
+    const distance = (vendorCoords && addressCoords)
+        ? CalculateDistance(vendorCoords, addressCoords)
+        : undefined;
+
+    const orderValue = getVendorOrderTotal(currentOrder);
     const pickupTime = 'In 15 minutes'; // Hardcoded for now; can be dynamic if ETA available
-    const subtitle = 'Incoming Order'; // Since vendor not assigned yet
+    const subtitle = distance !== undefined && distance > 0 
+        ? `Incoming Order • ${distance.toFixed(2)} km`
+        : 'Incoming Order';
     useEffect(() => {
         if (visible) {
             Animated.spring(slideAnim, {
@@ -117,7 +133,7 @@ const NewOrderModal: React.FC<NewOrderModalProps> = ({
                         </View>
                         <View style={[styles.descriptionItem, styles.plItem]}>
                             <Text style={styles.label}>Order Value</Text>
-                            <Text style={styles.value}>{parseToDecimal(orderValue)}</Text>
+                            <Text style={styles.value}>₹{orderValue.toFixed(2)}</Text>
                         </View>
                         <View style={[styles.descriptionItem, styles.prItem]}>
                             <Text style={styles.label}>Items</Text>

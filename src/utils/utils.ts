@@ -15,6 +15,14 @@ export function parseToDecimal(
   return (high + low / 1e7) * ((price as DecimalObj).s ?? 1);
 }
 
+export function getVendorOrderTotal(order: any): number {
+  if (!order || !order.items) return 0;
+  return order.items.reduce((sum: number, item: any) => {
+    const price = parseToDecimal(item.product?.vendorPrice) || parseToDecimal(item.unitPrice) || 0;
+    return sum + price * Number(item.quantity || 0);
+  }, 0);
+}
+
 /**
  * Calculates discount percentage based on market and selling price
  * @param marketPrice - Market price (number or DecimalObj)
@@ -46,4 +54,29 @@ export const ErrorMessage = (error: AxiosError | Error) => {
 
 export const SuccessMessage = (message: string) => {
   ToastAndroid.show(message, ToastAndroid.LONG);
+}
+
+interface Coordinates {
+  latitude: any;
+  longitude: any;
+}
+
+export const CalculateDistance = (from: Coordinates, to: Coordinates): number => {
+  const lat1 = parseToDecimal(from?.latitude);
+  const lon1 = parseToDecimal(from?.longitude);
+  const lat2 = parseToDecimal(to?.latitude);
+  const lon2 = parseToDecimal(to?.longitude);
+
+  if (lat1 === 0 && lon1 === 0) return 0;
+  if (lat2 === 0 && lon2 === 0) return 0;
+
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * (Math.PI / 180); 
+  const dLon = (lon2 - lon1) * (Math.PI / 180); 
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // in km 
+  return distance;
 }

@@ -14,7 +14,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { formatDistanceToNow } from 'date-fns';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
 import { COLORS } from '../../../../theme/color';
-import { parseToDecimal } from '../../../../utils/utils';
+import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../../../utils/utils';
+import { useVendorById } from '../../../../hooks/useVendorQueries';
 import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../../../components/orers/order.action';
 
 const { height } = Dimensions.get('window');
@@ -25,8 +26,11 @@ interface OrderModalProps {
     onClose: () => void;
 }
 
+
+
 const OrderDetailModal: React.FC<OrderModalProps> = ({ orders, visible, onClose }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const { data: vendor } = useVendorById();
 
     useEffect(() => {
         if (visible) setCurrentIndex(0);
@@ -34,6 +38,16 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ orders, visible, onClose 
 
     const broadcast = orders[currentIndex];
     const order = broadcast?.order;
+
+    const addressCoords = order?.address
+        ? { latitude: order.address.latitude, longitude: order.address.longitude }
+        : null;
+    const vendorCoords = vendor
+        ? { latitude: vendor.latitude, longitude: vendor.longitude }
+        : null;
+    const distance = (vendorCoords && addressCoords)
+        ? CalculateDistance(vendorCoords, addressCoords)
+        : undefined;
 
     const theme = useMemo(() => {
         if (!order) return { colors: ['#6366f1', '#4f46e5'], label: 'ORDER', secondary: '#eef2ff' };
@@ -95,6 +109,12 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ orders, visible, onClose 
                                 <Icon name="payments" size={12} color="rgba(255,255,255,0.9)" />
                                 <Text style={styles.metaText}>{order.paymentMethod}</Text>
                             </View>
+                            {distance !== undefined && distance > 0 ? (
+                                <View style={styles.metaItem}>
+                                    <Icon name="location-on" size={12} color="rgba(255,255,255,0.9)" />
+                                    <Text style={styles.metaText}>{distance.toFixed(2)} km</Text>
+                                </View>
+                            ) : null}
                         </View>
                     </LinearGradient>
 
@@ -107,46 +127,45 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ orders, visible, onClose 
                             </View>
                             <View style={styles.summaryDivider} />
                             <View style={styles.summaryItem}>
-                                <Text style={styles.summaryLabel}>SUBTOTAL</Text>
-                                <Text style={styles.summaryValue}>₹{parseToDecimal(order.subtotal).toFixed(0)}</Text>
+                                <Text style={styles.summaryLabel}>TOTAL EARNINGS</Text>
+                                <Text style={styles.summaryValue}>₹{getVendorOrderTotal(order).toFixed(2)}</Text>
                             </View>
                         </View>
 
                         {/* Minimalist Items List */}
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Order Items</Text>
-                            {order.items.map((item, idx) => (
-                                <View key={item.id} style={[styles.itemRow, idx === order.items.length - 1 && { borderBottomWidth: 0 }]}>
-                                    <View style={styles.itemQtyBadge}>
-                                        <Text style={styles.itemQtyText}>{item.quantity} X</Text>
-                                    </View>
-                                    <View style={styles.itemDetails}>
-                                        <Text style={styles.itemName} numberOfLines={1}>{item.product.name}</Text>
-                                        <Text style={styles.itemPriceDetail}>
-                                            ₹{parseToDecimal(item.unitPrice).toFixed(0)}
-                                            {item.product.weight ? ` • ${item.product.weight}` : ''}
-                                            {item.product.pieces ? ` • ${item.product.pieces} pcs` : ''}
-                                        </Text>
-                                    </View>
-                                    <Text style={styles.itemTotal}>₹{parseToDecimal(item.totalPrice).toFixed(0)}</Text>
-                                </View>
-                            ))}
+                             {order.items.map((item, idx) => {
+                                 const itemVendorPrice = parseToDecimal(item.product?.vendorPrice) || parseToDecimal(item.unitPrice);
+                                 return (
+                                     <View key={item.id} style={[styles.itemRow, idx === order.items.length - 1 && { borderBottomWidth: 0 }]}>
+                                         <View style={styles.itemQtyBadge}>
+                                             <Text style={styles.itemQtyText}>{item.quantity} X</Text>
+                                         </View>
+                                         <View style={styles.itemDetails}>
+                                             <Text style={styles.itemName} numberOfLines={1}>{item.product.name}</Text>
+                                             <Text style={styles.itemPriceDetail}>
+                                                 ₹{itemVendorPrice.toFixed(2)}
+                                                 {item.product.weight ? ` • ${item.product.weight}` : ''}
+                                                 {item.product.pieces ? ` • ${item.product.pieces} pcs` : ''}
+                                             </Text>
+                                         </View>
+                                         <Text style={styles.itemTotal}>₹{(itemVendorPrice * Number(item.quantity || 0)).toFixed(2)}</Text>
+                                     </View>
+                                 );
+                             })}
                         </View>
 
                         {/* Compact Bill Card */}
                         <View style={styles.billCard}>
                             <View style={styles.billRow}>
                                 <Text style={styles.billLabel}>Item Total</Text>
-                                <Text style={styles.billValue}>₹{parseToDecimal(order.itemTotal).toFixed(0)}</Text>
-                            </View>
-                            <View style={styles.billRow}>
-                                <Text style={styles.billLabel}>Delivery Fee</Text>
-                                <Text style={styles.billValue}>₹{parseToDecimal(order.deliveryFee).toFixed(0)}</Text>
+                                <Text style={styles.billValue}>₹{getVendorOrderTotal(order).toFixed(2)}</Text>
                             </View>
                             <View style={styles.grandTotalRow}>
-                                <Text style={styles.grandTotalLabel}>Grand Total</Text>
+                                <Text style={styles.grandTotalLabel}>Total Earnings</Text>
                                 <Text style={[styles.grandTotalValue, { color: theme.colors[0] }]}>
-                                    ₹{parseToDecimal(order.paidAmount || (parseToDecimal(order.subtotal) + parseToDecimal(order.deliveryFee))).toFixed(0)}
+                                    ₹{getVendorOrderTotal(order).toFixed(2)}
                                 </Text>
                             </View>
                         </View>

@@ -20,10 +20,11 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/api';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { VendorBroadcastItem, BroadcastStatus, OrderStatus, VendorBroadcastFilter } from '../../types/order.types';
+import { VendorBroadcastItem, BroadcastStatus, OrderStatus, VendorBroadcastFilter, OrderSnapshot } from '../../types/order.types';
 import { useAuth } from '../../context/AuthContext';
 import { useVendorBroadcastedOrders } from '../../api/hooks/order';
-import { parseToDecimal } from '../../utils/utils';
+import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../utils/utils';
+import { useVendorById } from '../../hooks/useVendorQueries';
 import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../components/orers/order.action';
 
 const { width } = Dimensions.get('window');
@@ -90,8 +91,12 @@ interface MappedOrder {
   fullOrder: VendorBroadcastItem['order'];
 }
 
+
+
+
 const MyOrdersScreen = ({ navigation }: AppNavigation) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { data: vendor } = useVendorById();
 
   // Top header: Filter by Broadcast Status
   const [selectedBroadcastStatus, setSelectedBroadcastStatus] = useState<BroadcastStatus | ''>('');
@@ -180,7 +185,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
           }),
           customer: broadcast.order.address?.receiverName || 'Guest Customer',
           items: broadcast.order.items.length,
-          amount: `₹${(parseToDecimal(broadcast.order.paidAmount) || parseToDecimal(broadcast.order.subtotal)).toFixed(2)}`,
+          amount: `₹${getVendorOrderTotal(broadcast.order).toFixed(2)}`,
           status: getDisplayStatus(broadcast.status, broadcast.order.status),
           payment: broadcast.order.paymentMethod === 'COD' ? 'COD' : 'PREPAID',
           createdAt: broadcast.order.timestamps?.placedAt || broadcast.notifiedAt,
@@ -360,6 +365,16 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
       const moreItems = item.fullOrder.items.length > 2 ? `+${item.fullOrder.items.length - 2}` : '';
       const theme = getStatusTheme(item.status);
 
+      const addressCoords = item.fullOrder.address
+        ? { latitude: item.fullOrder.address.latitude, longitude: item.fullOrder.address.longitude }
+        : null;
+      const vendorCoords = vendor
+        ? { latitude: vendor.latitude, longitude: vendor.longitude }
+        : null;
+      const distance = (vendorCoords && addressCoords)
+        ? CalculateDistance(vendorCoords, addressCoords)
+        : undefined;
+
       return (
         <TouchableOpacity
           style={styles.orderCard}
@@ -376,6 +391,12 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
                 <MaterialIcons name="access-time" size={14} color="#64748b" />
                 <Text style={styles.timeText}>{item.time}</Text>
               </View>
+              {distance !== undefined && distance > 0 ? (
+                <View style={styles.timeContainer}>
+                  <MaterialIcons name="location-on" size={14} color="#64748b" />
+                  <Text style={styles.timeText}>{distance.toFixed(2)} km</Text>
+                </View>
+              ) : null}
             </View>
             <View style={[styles.statusBadge, { backgroundColor: theme.bgColor }]}>
               <View style={[styles.pulsingDot, { backgroundColor: theme.color }]} />
@@ -423,7 +444,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
 
           <View style={styles.orderFooter}>
             <View style={styles.totalContainer}>
-              <Text style={styles.totalLabelSmall}>Payable Amount</Text>
+              <Text style={styles.totalLabelSmall}>Total Earnings</Text>
               <Text style={styles.totalValueLarge}>{item.amount}</Text>
             </View>
 
@@ -446,7 +467,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
         </TouchableOpacity>
       );
     },
-    [getStatusTheme, handleViewDetails, rejectOrder, acceptOrder, markReady]
+    [getStatusTheme, handleViewDetails, rejectOrder, acceptOrder, markReady, vendor]
   );
 
   const topTabs = [

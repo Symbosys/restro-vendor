@@ -30,6 +30,7 @@ import {
 import { handleNewOrder } from '../../socket/handlers/order.handler';
 import { wsService } from '../../socket/websocket.service';
 import { BroadcastStatus } from '../../types/order.types';
+import { CalculateDistance } from '../../utils/utils';
 
 const VendorDashboard = ({ navigation }: AppNavigation) => {
     const queryClient = useQueryClient();
@@ -56,6 +57,8 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
         refetchVendor,
         vendor
     } = useHome();
+    console.log("vendor", vendor)
+    console.log("broadcasts", broadcasts)
 
     useEffect(() => {
         const handler = (msg: any) => {
@@ -110,13 +113,26 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
 
                     <FlatList
                         data={Array.from(new Map(broadcasts.map(b => [b.id, b])).values())}
-                        renderItem={({ item }) => (
-                            <OrderCard
-                                item={item}
-                                onPress={handleOrderPress}
-                                onAction={handleOrderAction}
-                            />
-                        )}
+                        renderItem={({ item }) => {
+                            const addressCoords = item.order.address
+                                ? { latitude: item.order.address.latitude, longitude: item.order.address.longitude }
+                                : null;
+                            const vendorCoords = vendor
+                                ? { latitude: vendor.latitude, longitude: vendor.longitude }
+                                : null;
+                            const distance = (vendorCoords && addressCoords)
+                                ? CalculateDistance(vendorCoords, addressCoords)
+                                : undefined;
+
+                            return (
+                                <OrderCard
+                                    item={item}
+                                    onPress={handleOrderPress}
+                                    onAction={handleOrderAction}
+                                    distance={distance}
+                                />
+                            );
+                        }}
                         keyExtractor={(item) => item.id}
                         onEndReached={handleEndReached}
                         onEndReachedThreshold={0.01}

@@ -19,12 +19,26 @@ import { AcceptOrderButton, MarkReadyButton, RejectOrderButton } from '../../com
 import { useAuth } from '../../context/AuthContext';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { parseToDecimal } from '../../utils/utils';
+import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../utils/utils';
+import { useVendorById } from '../../hooks/useVendorQueries';
+
+
 
 const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { orderId } = route.params || {};
     const { data: order, isLoading, isError, refetch, isFetching } = useOrderDetails({ id: orderId });
     const { vendorId } = useAuth();
+    const { data: vendor } = useVendorById();
+
+    const addressCoords = order?.address
+        ? { latitude: order.address.latitude, longitude: order.address.longitude }
+        : null;
+    const vendorCoords = vendor
+        ? { latitude: vendor.latitude, longitude: vendor.longitude }
+        : null;
+    const distance = (vendorCoords && addressCoords)
+        ? CalculateDistance(vendorCoords, addressCoords)
+        : undefined;
 
     console.log('order', order);
 
@@ -147,6 +161,14 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                                 </Text>
                             </View>
                         )}
+                        {distance !== undefined && distance > 0 ? (
+                            <View style={[styles.deliveryChip, { flexDirection: 'row', alignItems: 'center' }]}>
+                                <Icon name="location-on" size={14} color={COLORS.textSecondary} style={{ marginRight: 4 }} />
+                                <Text style={styles.deliveryText}>
+                                    {distance.toFixed(2)} km away
+                                </Text>
+                            </View>
+                        ) : null}
                     </View>
                 </View>
 
@@ -244,48 +266,35 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                     <Text style={styles.sectionTitle}>Ordered Items</Text>
                     <View style={styles.itemsCard}>
                         <View style={styles.itemsList}>
-                            {order.items.map((item, index) => (
-                                <View key={item.id} style={styles.itemRow}>
-                                    <View style={styles.itemLeft}>
-                                        <Text style={styles.quantity}>{item.quantity}x</Text>
-                                        <View style={styles.itemDetails}>
-                                            <Text style={styles.itemName}>
-                                                {item.product.name}
-                                                {item.product.weight ? ` (${item.product.weight})` : ''}
-                                                {item.product.pieces ? ` (${item.product.pieces} pcs)` : ''}
-                                            </Text>
-                                            {item.notes && <Text style={styles.itemNote}>{item.notes}</Text>}
+                            {order.items.map((item, index) => {
+                                const itemVendorPrice = parseToDecimal(item.product?.vendorPrice) || parseToDecimal(item.unitPrice);
+                                return (
+                                    <View key={item.id} style={styles.itemRow}>
+                                        <View style={styles.itemLeft}>
+                                            <Text style={styles.quantity}>{item.quantity}x</Text>
+                                            <View style={styles.itemDetails}>
+                                                <Text style={styles.itemName}>
+                                                    {item.product.name}
+                                                    {item.product.weight ? ` (${item.product.weight})` : ''}
+                                                    {item.product.pieces ? ` (${item.product.pieces} pcs)` : ''}
+                                                </Text>
+                                                {item.notes && <Text style={styles.itemNote}>{item.notes}</Text>}
+                                            </View>
                                         </View>
+                                        <Text style={styles.itemPrice}>₹{(itemVendorPrice * Number(item.quantity || 0)).toFixed(2)}</Text>
                                     </View>
-                                    <Text style={styles.itemPrice}>₹{parseToDecimal(item.totalPrice).toFixed(2)}</Text>
-                                </View>
-                            ))}
+                                );
+                            })}
                         </View>
                         <View style={styles.subtotalDivider} />
                         <View style={styles.pricingList}>
                             <View style={styles.priceRow}>
                                 <Text style={styles.priceLabel}>Item Total</Text>
-                                <Text style={styles.priceValue}>₹{parseToDecimal(order.itemTotal).toFixed(2)}</Text>
+                                <Text style={styles.priceValue}>₹{getVendorOrderTotal(order).toFixed(2)}</Text>
                             </View>
-                            {parseToDecimal(order.gstOnItemTotal) > 0 && (
-                                <View style={styles.priceRow}>
-                                    <Text style={styles.priceLabel}>GST</Text>
-                                    <Text style={styles.priceValue}>₹{parseToDecimal(order.gstOnItemTotal).toFixed(2)}</Text>
-                                </View>
-                            )}
-                            <View style={styles.priceRow}>
-                                <Text style={styles.priceLabel}>Delivery Fee</Text>
-                                <Text style={styles.priceValue}>₹{parseToDecimal(order.deliveryFee).toFixed(2)}</Text>
-                            </View>
-                            {parseToDecimal(order.packingFee) > 0 && (
-                                <View style={styles.priceRow}>
-                                    <Text style={styles.priceLabel}>Packing Fee</Text>
-                                    <Text style={styles.priceValue}>₹{parseToDecimal(order.packingFee).toFixed(2)}</Text>
-                                </View>
-                            )}
                             <View style={styles.totalRow}>
-                                <Text style={styles.totalLabel}>Total Payable</Text>
-                                <Text style={styles.totalValue}>₹{(parseToDecimal(order.paidAmount) || parseToDecimal(order.subtotal)).toFixed(2)}</Text>
+                                <Text style={styles.totalLabel}>Total Earnings</Text>
+                                <Text style={styles.totalValue}>₹{getVendorOrderTotal(order).toFixed(2)}</Text>
                             </View>
                         </View>
                     </View>

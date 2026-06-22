@@ -5,7 +5,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
 import { COLORS } from '../../../../theme/color';
 import { styles } from '../styles/homeStyles';
-import { parseToDecimal } from '../../../../utils/utils';
+import { parseToDecimal, getVendorOrderTotal } from '../../../../utils/utils';
 import { RootStackParamList } from '../../../../types/types';
 import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../../../components/orers/order.action';
 
@@ -13,9 +13,12 @@ interface OrderCardProps {
     item: VendorBroadcastItem;
     onPress?: (item: VendorBroadcastItem) => void;
     onAction?: (action: 'accept' | 'reject' | 'markReady', orderId: string) => void;
+    distance?: number;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onAction }) => {
+
+
+const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onAction, distance }) => {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
     const { order } = broadcast;
     const isPending = broadcast.status === BroadcastStatus.PENDING;
@@ -66,6 +69,14 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
                             {new Date(broadcast.notifiedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                     </View>
+                    {distance !== undefined && distance > 0 ? (
+                        <View style={styles.timeContainer}>
+                            <Icon name="location-on" size={14} color={THEME.textDim} />
+                            <Text style={styles.timeText}>
+                                {distance.toFixed(2)} km
+                            </Text>
+                        </View>
+                    ) : null}
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: theme.bgColor + 'CC' }]}>
                     <View style={[styles.pulsingDot, { backgroundColor: theme.color }]} />
@@ -101,8 +112,8 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
 
             <View style={styles.orderFooter}>
                 <View style={styles.totalContainer}>
-                    <Text style={styles.totalLabelSmall}>Payable Amount</Text>
-                    <Text style={styles.totalValueLarge}>₹{parseToDecimal(order.subtotal).toFixed(0)}</Text>
+                    <Text style={styles.totalLabelSmall}>Total Earnings</Text>
+                    <Text style={styles.totalValueLarge}>₹{getVendorOrderTotal(order).toFixed(2)}</Text>
                 </View>
 
                 {broadcast.status === BroadcastStatus.PENDING ? (

@@ -187,7 +187,7 @@ export const useHome = () => {
     toggleStoreStatus(newStatus, {
       onError: () => {
         setStoreOpen(storeOpen);
-      }
+      },
     });
   }, [storeOpen, toggleStoreStatus, setStoreOpen]);
 

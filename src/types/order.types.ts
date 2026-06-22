@@ -24,6 +24,7 @@ export interface ProductSnapshot {
   name: string;
   description?: string;
   sellingPrice: number;
+  vendorPrice?: number | any;
   weight?: number;
   pieces?: number;
   images: {id: string; url: string, public_id: string}[]; // Assuming array of image URLs from Json
