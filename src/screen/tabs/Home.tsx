@@ -57,8 +57,6 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
         refetchVendor,
         vendor
     } = useHome();
-    console.log("vendor", vendor)
-    console.log("broadcasts", broadcasts)
 
     useEffect(() => {
         const handler = (msg: any) => {

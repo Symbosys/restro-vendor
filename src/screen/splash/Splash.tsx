@@ -4,6 +4,7 @@ import {
   getMessaging,
   getToken,
   onMessage,
+  onTokenRefresh,
   requestPermission,
   setBackgroundMessageHandler,
 } from '@react-native-firebase/messaging';
@@ -21,6 +22,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../context/AuthContext';
 import { updateVendor } from '../../services/vendor.service';
 import { RootStackParamList } from '../../types/types';
@@ -29,7 +31,7 @@ type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
 const Splash = () => {
   const navigation = useNavigation<NavigationProps>();
-  const { isAuthenticated, vendorId, token } = useAuth();
+  const { isAuthenticated, vendorId, token, setFcmToken } = useAuth();
 
   const [showPermissionPopup, setShowPermissionPopup] = useState(false);
 
@@ -181,7 +183,34 @@ const Splash = () => {
         importance: AndroidImportance.HIGH,
       });
 
-      if (vendorId) await updateVendor(vendorId, { fcmToken });
+      const storedToken = await AsyncStorage.getItem('vendorFcmToken');
+      if (fcmToken && fcmToken !== storedToken) {
+        if (vendorId) {
+          try {
+            await updateVendor(vendorId, { fcmToken });
+            await setFcmToken(fcmToken);
+            console.log('✅ New FCM token saved to DB and AsyncStorage');
+          } catch (err) {
+            console.error('❌ Failed to save initial FCM token to DB:', err);
+          }
+        }
+      }
+
+      onTokenRefresh(messagingInstance, async (refreshedToken) => {
+        console.log('🔄 FCM Token Refreshed:', refreshedToken);
+        const latestStoredToken = await AsyncStorage.getItem('vendorFcmToken');
+        if (refreshedToken && refreshedToken !== latestStoredToken) {
+          if (vendorId) {
+            try {
+              await updateVendor(vendorId, { fcmToken: refreshedToken });
+              await setFcmToken(refreshedToken);
+              console.log('✅ Refreshed FCM token saved to DB and AsyncStorage');
+            } catch (err) {
+              console.error('❌ Failed to save refreshed FCM token to DB:', err);
+            }
+          }
+        }
+      });
 
       onMessage(messagingInstance, async (remoteMessage) => {
         await notifee.displayNotification({
