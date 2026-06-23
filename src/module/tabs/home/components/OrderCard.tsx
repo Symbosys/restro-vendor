@@ -5,7 +5,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { VendorBroadcastItem, OrderStatus, BroadcastStatus } from '../../../../types/order.types';
 import { COLORS } from '../../../../theme/color';
 import { styles } from '../styles/homeStyles';
-import { parseToDecimal, getVendorOrderTotal } from '../../../../utils/utils';
+import { getVendorOrderTotal } from '../../../../utils/utils';
 import { RootStackParamList } from '../../../../types/types';
 import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../../../components/orers/order.action';
 
