@@ -3,6 +3,7 @@ export const EVENT_TYPES = {
     NEW_ORDER: "new_order",
     ORDER_ACCEPTED: "order_accepted",
     ORDER_PREPARING: "order_preparing",
+    NEW_DELIVERY_ORDER: "new_delivery_order",
     ORDER_READY_FOR_PICKUP: "order_ready_for_pickup",
     ORDER_REJECTED: "order_rejected",
     ORDER_CANCELLED: "order_cancelled",

@@ -21,6 +21,9 @@ import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
 import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../utils/utils';
 import { useVendorById } from '../../hooks/useVendorQueries';
+import { useQueryClient } from '@tanstack/react-query';
+import { wsService } from '../../socket/websocket.service';
+import { EVENT_TYPES } from '../../constants/event.constant';
 
 
 
@@ -29,6 +32,42 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { data: order, isLoading, isError, refetch, isFetching } = useOrderDetails({ id: orderId });
     const { vendorId } = useAuth();
     const { data: vendor } = useVendorById();
+    const queryClient = useQueryClient();
+
+    React.useEffect(() => {
+        const handleWsEvent = (event: any) => {
+            console.log('📬 WebSocket event received on vendor OrderDetails screen:', event);
+            const eventOrderId = event?.data?.orderId;
+            const eventOrderNumber = event?.data?.orderNumber;
+
+            // Invalidate if the event refers to the current order being viewed
+            const isMatchingId = orderId && String(eventOrderId) === String(orderId);
+            const isMatchingFetchedId = order?.id && String(eventOrderId) === String(order.id);
+            const isMatchingFetchedNumber = order?.orderNumber && String(eventOrderNumber) === String(order.orderNumber);
+
+            if (isMatchingId || isMatchingFetchedId || isMatchingFetchedNumber) {
+                console.log('🔄 Match found, invalidating order details query cache');
+                queryClient.invalidateQueries({ queryKey: ['order-details'] });
+                queryClient.invalidateQueries({ queryKey: ['vendorBroadcastedOrders'] });
+            }
+        };
+
+        const eventsToListen = [
+            EVENT_TYPES.DELIVERY_ACCEPTED,
+            EVENT_TYPES.ORDER_PICKED_UP,
+            EVENT_TYPES.ORDER_DELIVERED,
+        ];
+
+        eventsToListen.forEach((eventType) => {
+            wsService.on(eventType, handleWsEvent);
+        });
+
+        return () => {
+            eventsToListen.forEach((eventType) => {
+                wsService.off(eventType, handleWsEvent);
+            });
+        };
+    }, [orderId, order?.id, order?.orderNumber, queryClient]);
 
     const addressCoords = order?.address
         ? { latitude: order.address.latitude, longitude: order.address.longitude }
