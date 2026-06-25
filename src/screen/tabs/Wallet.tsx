@@ -54,7 +54,7 @@ const MyWalletScreen = () => {
 
   const balance = useMemo(
     () =>
-      parseToDecimal(Number(walletData?.pages?.[0]?.totalBalance || '0')),
+      parseToDecimal(walletData?.pages?.[0]?.totalBalance).toFixed(2),
     [walletData]
   );
 
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   header: {
     paddingTop: 24,
