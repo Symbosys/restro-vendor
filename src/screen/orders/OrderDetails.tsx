@@ -34,6 +34,8 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { data: vendor } = useVendorById();
     const queryClient = useQueryClient();
 
+    const isAssigned = !!(order?.orderVendorAssignments?.vendorId && String(order.orderVendorAssignments.vendorId) === String(vendorId));
+
     React.useEffect(() => {
         const handleWsEvent = (event: any) => {
             console.log('📬 WebSocket event received on vendor OrderDetails screen:', event);
@@ -221,10 +223,10 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                                     <Icon name="person" size={24} color={COLORS.textSecondary} />
                                 </View>
                                 <Text style={styles.infoText} numberOfLines={1}>
-                                    {order.address?.receiverName || 'Guest User'}
+                                    {isAssigned ? (order.address?.receiverName || 'Guest User') : 'Customer (Accept order to view)'}
                                 </Text>
                             </View>
-                            {order.address?.receiverContact && (
+                            {isAssigned && order.address?.receiverContact && (
                                 <TouchableOpacity 
                                     style={styles.actionButton}
                                     onPress={() => handleCall(order.address?.receiverContact || '')}
@@ -240,21 +242,23 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                                     <Icon name="location-on" size={24} color={COLORS.textSecondary} />
                                 </View>
                                 <Text style={styles.infoText} numberOfLines={2}>
-                                    {order.address?.completeAddress || order.address?.mainAddress || 'No address provided'}
+                                    {isAssigned ? (order.address?.completeAddress || order.address?.mainAddress || 'No address provided') : `${order.address?.mainAddress || 'Customer Location'} (Accept order to view full address)`}
                                 </Text>
                             </View>
-                            <TouchableOpacity 
-                                style={styles.actionButton}
-                                onPress={() => handleOpenMap(order.address?.latitude, order.address?.longitude)}
-                            >
-                                <Icon name="map" size={20} color={COLORS.primary} />
-                            </TouchableOpacity>
+                            {isAssigned && (
+                                <TouchableOpacity 
+                                    style={styles.actionButton}
+                                    onPress={() => handleOpenMap(order.address?.latitude, order.address?.longitude)}
+                                >
+                                    <Icon name="map" size={20} color={COLORS.primary} />
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
                 </View>
 
                 {/* Delivery Partner Information (if assigned) */}
-                {order.orderDeliveryAssignment && (
+                {isAssigned && order.orderDeliveryAssignment && (
                     <View style={styles.deliverySection}>
                         <Text style={styles.sectionTitle}>Delivery Partner</Text>
                         <View style={styles.deliveryCard}>

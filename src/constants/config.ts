@@ -8,7 +8,7 @@
 
 const IS_PRODUCTION = false; // 👈 Toggle this for Production/Local
 
-const LOCAL_IP = "192.168.1.5";
+const LOCAL_IP = "192.168.1.4";
 const PROD_DOMAIN = "api.mintafresh.com";
 
 // 🚀 API BASE URL
