@@ -49,6 +49,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
     try {
       setLoading(true);
       const response = await getVendorById(vendorId || '');
+      console.log("Vendor Details", JSON.stringify(response, null, 2))
       setVendorDetails(response);
     } catch (error) {
       ErrorMessage(error as AxiosError | Error);
