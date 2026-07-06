@@ -19,6 +19,7 @@ export type RootStackParamList = {
   UpdateBankAccount: { bankId: string | number; bankDetails: any };
 
   Notification: undefined;
+  Payout: undefined;
 
   BottomTab: undefined;
   MyProducts: undefined;

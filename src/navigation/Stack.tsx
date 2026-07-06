@@ -39,6 +39,7 @@ import TicketDetailsScreen from '../screen/supprot/Issues/TicketDetails';
 import MyShopDetails from '../screen/business_details/shop_details/MyShopDetails';
 import TestLocation from '../screen/userAddress/TestLocation';
 import WorkLocationScreen from '../screen/business_details/worklocation/WorkLocationScreen';
+import PayoutScreen from '../screen/payout/PayoutScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -73,6 +74,7 @@ export default function StackNavigation() {
 
         {/* Business Details */}
         <Stack.Screen name="BankList" component={BankListScreen} />
+        <Stack.Screen name="Payout" component={PayoutScreen} />
         <Stack.Screen
           name="UpdateBankAccount"
           component={UpdateBankAccountScreen}

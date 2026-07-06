@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -17,12 +18,16 @@ import { useVendorWalletTransactions } from '../../hooks/wallet';
 import { useAuth } from '../../context/AuthContext';
 import { parseToDecimal } from '../../utils/utils';
 import { TransactionType } from '../../types/wallet.type';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types/types';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 type FilterType = 'All' | 'Credits' | 'Debits' | 'Refunds' | 'Payouts';
 
 const MyWalletScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('All');
 
   const filters: FilterType[] = ['All', 'Credits', 'Debits', 'Refunds', 'Payouts'];
@@ -41,6 +46,7 @@ const MyWalletScreen = () => {
   const {
     data: walletData,
     isLoading,
+    isFetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -207,7 +213,7 @@ const MyWalletScreen = () => {
           <Text style={styles.balanceLabel}>Available Balance</Text>
         </View>
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.withdrawButtonFull}>
+          <TouchableOpacity style={styles.withdrawButtonFull} onPress={() => navigation.navigate('Payout')}>
             <Text style={styles.withdrawText}>Withdraw</Text>
           </TouchableOpacity>
         </View>
@@ -248,7 +254,7 @@ const MyWalletScreen = () => {
         </ScrollView>
       </View>
     </>
-  ), [balance, currency, selectedFilter, handleFilterPress]);
+  ), [balance, currency, selectedFilter, handleFilterPress, navigation]);
 
   if (isLoading && !walletData) {
     return (
@@ -274,6 +280,14 @@ const MyWalletScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         removeClippedSubviews={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !isFetchingNextPage}
+            onRefresh={refetch}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       />
     </SafeAreaView>
   );
