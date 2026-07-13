@@ -1,8 +1,11 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  FlatList,
   Modal,
   Platform,
   RefreshControl,
@@ -11,21 +14,18 @@ import {
   Text,
   TouchableOpacity,
   View,
-  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../api/api';
-import { COLORS } from '../../theme/color';
-import { AppNavigation } from '../../types/types';
-import { VendorBroadcastItem, BroadcastStatus, OrderStatus, VendorBroadcastFilter, OrderSnapshot } from '../../types/order.types';
-import { useAuth } from '../../context/AuthContext';
 import { useVendorBroadcastedOrders } from '../../api/hooks/order';
-import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../utils/utils';
+import { AcceptOrderButton, MarkReadyButton, RejectOrderButton } from '../../components/orers/order.action';
+import { useAuth } from '../../context/AuthContext';
 import { useVendorById } from '../../hooks/useVendorQueries';
-import { AcceptOrderButton, RejectOrderButton, MarkReadyButton } from '../../components/orers/order.action';
+import { COLORS } from '../../theme/color';
+import { BroadcastStatus, OrderStatus, VendorBroadcastFilter, VendorBroadcastItem } from '../../types/order.types';
+import { AppNavigation } from '../../types/types';
+import { CalculateDistance, getVendorOrderTotal } from '../../utils/utils';
 
 const { width } = Dimensions.get('window');
 
@@ -765,16 +765,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.5)',
   },
-  orderHeader: {
+    orderHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
+    gap: 8,
   },
   orderInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   orderIdBadge: {
     backgroundColor: '#f1f5f9',

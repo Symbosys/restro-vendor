@@ -624,11 +624,14 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 20,
+        gap: 8,
     },
     orderInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 8,
+        flexShrink: 1,
+        flexWrap: 'wrap',
     },
     orderIdBadge: {
         backgroundColor: '#f1f5f9',

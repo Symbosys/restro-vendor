@@ -293,7 +293,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                 <View style={styles.historySection}>
                     <Text style={styles.sectionTitle}>Order Timeline</Text>
                     <View style={styles.historyCard}>
-                        <View style={styles.paymentRow}>
+                        {/* <View style={styles.paymentRow}>
                             <View style={styles.paymentLeft}>
                                 <Icon name="payments" size={24} color={COLORS.textSecondary} />
                                 <Text style={styles.paymentText}>{order.paymentMethod}</Text>
@@ -303,7 +303,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                                     {order.paymentStatus}
                                 </Text>
                             </View>
-                        </View>
+                        </View> */}
                         <View style={styles.timelineDivider} />
                         <View style={styles.timelineList}>
                             {order.tracking?.map((track, index) => (
@@ -327,14 +327,14 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
             {/* Action Buttons */}
             {(order.status === 'VENDOR_PENDING' && !isRejectedByMe) && (
                 <View style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}>
-                    <RejectOrderButton orderId={order.id} />
-                    <AcceptOrderButton orderId={order.id} />
+                    <RejectOrderButton orderId={order.id} label="Reject" />
+                    <AcceptOrderButton orderId={order.id} label="Accept" />
                 </View>
             )}
 
             {order.status === 'PREPARING' && (
                 <View style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}>
-                    <MarkReadyButton orderId={order.id} />
+                    <MarkReadyButton orderId={order.id} label="Mark As Ready" />
                 </View>
             )}
         </SafeAreaView>
