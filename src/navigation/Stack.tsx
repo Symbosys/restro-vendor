@@ -8,7 +8,7 @@ import OTP from '../screen/auth/Otp';
 import PrivacyPolicy from '../screen/legal/PrivacyPolicy';
 import TermsAndConditions from '../screen/legal/TermsAndCondition';
 import Docs from '../screen/legal/Docs';
-import OrderDetailsScreen from '../screen/orders/OrderDetails';
+import OrderDetailsScreen from '../screen/orders';
 import OutletScreen from '../screen/outlet/Outlet';
 import PackingScreen from '../screen/packing/PackingItem';
 import PackingItemCart from '../screen/packing/PackingItemCart';

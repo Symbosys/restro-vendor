@@ -1,8 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import React from 'react';
 import {
     ActivityIndicator,
-    Alert,
     Image,
     Linking,
     RefreshControl,
@@ -16,14 +16,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useOrderDetails } from '../../api/hooks/order';
 import { AcceptOrderButton, MarkReadyButton, RejectOrderButton } from '../../components/orers/order.action';
+import { EVENT_TYPES } from '../../constants/event.constant';
 import { useAuth } from '../../context/AuthContext';
+import { useVendorById } from '../../hooks/useVendorQueries';
+import { wsService } from '../../socket/websocket.service';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
-import { parseToDecimal, getVendorOrderTotal, CalculateDistance } from '../../utils/utils';
-import { useVendorById } from '../../hooks/useVendorQueries';
-import { useQueryClient } from '@tanstack/react-query';
-import { wsService } from '../../socket/websocket.service';
-import { EVENT_TYPES } from '../../constants/event.constant';
+import { CalculateDistance, getVendorOrderTotal, parseToDecimal } from '../../utils/utils';
 
 
 
@@ -141,17 +140,6 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
         Linking.openURL(`tel:${phoneNumber}`);
     };
 
-    const handleOpenMap = (latitude?: number | null, longitude?: number | null) => {
-        if (!latitude || !longitude) {
-            Alert.alert('Error', 'Location coordinates not available for this order.');
-            return;
-        }
-        const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-        Linking.openURL(url).catch(() => {
-            Alert.alert('Error', 'Failed to open map application.');
-        });
-    };
-
     const safeFormat = (dateStr: string | null | undefined, formatStr: string) => {
         if (!dateStr) return '';
         try {
@@ -213,52 +201,10 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                     </View>
                 </View>
 
-                {/* Customer Information */}
-                <View style={styles.customerSection}>
-                    <Text style={styles.sectionTitle}>Customer Information</Text>
-                    <View style={styles.customerCard}>
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoLeft}>
-                                <View style={styles.iconContainer}>
-                                    <Icon name="person" size={24} color={COLORS.textSecondary} />
-                                </View>
-                                <Text style={styles.infoText} numberOfLines={1}>
-                                    {isAssigned ? (order.address?.receiverName || 'Guest User') : 'Customer (Accept order to view)'}
-                                </Text>
-                            </View>
-                            {isAssigned && order.address?.receiverContact && (
-                                <TouchableOpacity 
-                                    style={styles.actionButton}
-                                    onPress={() => handleCall(order.address?.receiverContact || '')}
-                                >
-                                    <Icon name="phone" size={20} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                        <View style={styles.divider} />
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoLeft}>
-                                <View style={styles.iconContainer}>
-                                    <Icon name="location-on" size={24} color={COLORS.textSecondary} />
-                                </View>
-                                <Text style={styles.infoText} numberOfLines={2}>
-                                    {isAssigned ? (order.address?.completeAddress || order.address?.mainAddress || 'No address provided') : `${order.address?.mainAddress || 'Customer Location'} (Accept order to view full address)`}
-                                </Text>
-                            </View>
-                            {isAssigned && (
-                                <TouchableOpacity 
-                                    style={styles.actionButton}
-                                    onPress={() => handleOpenMap(order.address?.latitude, order.address?.longitude)}
-                                >
-                                    <Icon name="map" size={20} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </View>
-                </View>
+
 
                 {/* Delivery Partner Information (if assigned) */}
-                {isAssigned && order.orderDeliveryAssignment && (
+                {order.status !== 'DELIVERED' && isAssigned && order.orderDeliveryAssignment && (
                     <View style={styles.deliverySection}>
                         <Text style={styles.sectionTitle}>Delivery Partner</Text>
                         <View style={styles.deliveryCard}>
