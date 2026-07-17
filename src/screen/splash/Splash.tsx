@@ -31,7 +31,7 @@ type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
 const Splash = () => {
   const navigation = useNavigation<NavigationProps>();
-  const { isAuthenticated, vendorId, token, setFcmToken } = useAuth();
+  const { isAuthenticated, vendorId, token, setFcmToken, fcmToken } = useAuth();
 
   const [showPermissionPopup, setShowPermissionPopup] = useState(false);
 
@@ -174,8 +174,8 @@ const Splash = () => {
       const authStatus = await requestPermission(messagingInstance);
       console.log('🔐 FCM permission:', authStatus);
 
-      const fcmToken = await getToken(messagingInstance);
-      console.log('🔔 FCM Token:', fcmToken);
+      const freshFcmToken = await getToken(messagingInstance);
+      console.log('🔔 FCM Token:', freshFcmToken);
 
       await notifee.createChannel({
         id: 'default',
@@ -183,13 +183,12 @@ const Splash = () => {
         importance: AndroidImportance.HIGH,
       });
 
-      const storedToken = await AsyncStorage.getItem('vendorFcmToken');
-      if (fcmToken && fcmToken !== storedToken) {
+      if (freshFcmToken && (!fcmToken || fcmToken !== freshFcmToken)) {
         if (vendorId) {
           try {
-            await updateVendor(vendorId, { fcmToken });
-            await setFcmToken(fcmToken);
-            console.log('✅ New FCM token saved to DB and AsyncStorage');
+            await updateVendor(vendorId, { fcmToken: freshFcmToken });
+            await setFcmToken(freshFcmToken);
+            console.log('✅ New FCM token saved to DB and AuthContext');
           } catch (err) {
             console.error('❌ Failed to save initial FCM token to DB:', err);
           }
@@ -198,13 +197,12 @@ const Splash = () => {
 
       onTokenRefresh(messagingInstance, async (refreshedToken) => {
         console.log('🔄 FCM Token Refreshed:', refreshedToken);
-        const latestStoredToken = await AsyncStorage.getItem('vendorFcmToken');
-        if (refreshedToken && refreshedToken !== latestStoredToken) {
+        if (refreshedToken && (!fcmToken || fcmToken !== refreshedToken)) {
           if (vendorId) {
             try {
               await updateVendor(vendorId, { fcmToken: refreshedToken });
               await setFcmToken(refreshedToken);
-              console.log('✅ Refreshed FCM token saved to DB and AsyncStorage');
+              console.log('✅ Refreshed FCM token saved to DB and AuthContext');
             } catch (err) {
               console.error('❌ Failed to save refreshed FCM token to DB:', err);
             }
