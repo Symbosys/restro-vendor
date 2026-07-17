@@ -21,6 +21,8 @@ export type Vendor = {
   ownerName?: string | null;
   companyName?: string | null;
   email?: string | null;
+  ownerEmail?: string | null;
+  ownerMobile?: string | null;
   mobile: string;
   isActive: boolean;
   status: string;

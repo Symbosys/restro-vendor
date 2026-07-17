@@ -15,7 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../../context/AuthContext';
-import { useUpdateVendorMutation, useVendorById } from '../../hooks/useVendorQueries';
+import { useVendorById } from '../../hooks/useVendorQueries';
+import { useUpdateProfileMutation } from '../../api/hooks/verification';
 import useAlertStore from '../../store/useAlertStore';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -24,13 +25,15 @@ import { Vendor, VendorStatus } from '../../types/vendor.types';
 const UpdateProfile = ({ navigation }: AppNavigation) => {
   const { vendorId } = useAuth();
   const { data: vendor, isLoading: isFetching } = useVendorById();
-  const { mutateAsync, isPending: isUpdating } = useUpdateVendorMutation(vendorId!);
+  const { mutateAsync, isPending: isUpdating } = useUpdateProfileMutation(vendorId!);
   const showAlert = useAlertStore((state) => state.showAlert);
 
   const [formData, setFormData] = useState({
     ownerName: '',
     companyName: '',
     email: '',
+    ownerEmail: '',
+    ownerMobile: '',
   });
 
   useEffect(() => {
@@ -39,6 +42,8 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
         ownerName: vendor.ownerName || '',
         companyName: vendor.companyName || '',
         email: vendor.email || '',
+        ownerEmail: vendor.ownerEmail || '',
+        ownerMobile: vendor.ownerMobile || '',
       });
     }
   }, [vendor]);
@@ -48,14 +53,14 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
   };
 
   const handleUpdate = async () => {
-    if (!formData.ownerName || !formData.companyName || !formData.email) {
+    if (!formData.ownerName || !formData.companyName || !formData.email || !formData.ownerEmail || !formData.ownerMobile) {
       showAlert("Missing Fields", "Please fill in all details.", "error");
       return;
     }
 
     try {
-      const payload: Partial<Vendor> = vendor?.status === 'NEW'
-        ? { ...formData, status: "DOCUMENTS_NOT_VERIFIED" as VendorStatus }
+      const payload = vendor?.status === 'NEW'
+        ? { ...formData, status: "DOCUMENTS_NOT_VERIFIED" }
         : { ...formData };
       await mutateAsync(payload);
       showAlert("Success", "Profile updated successfully!", "success", "Outlet");
@@ -67,7 +72,9 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
   const hasChanges = vendor ? (
     formData.ownerName !== (vendor.ownerName || '') ||
     formData.companyName !== (vendor.companyName || '') ||
-    formData.email !== (vendor.email || '')
+    formData.email !== (vendor.email || '') ||
+    formData.ownerEmail !== (vendor.ownerEmail || '') ||
+    formData.ownerMobile !== (vendor.ownerMobile || '')
   ) : false;
 
   const getInitials = () => {
@@ -174,6 +181,33 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
                 placeholderTextColor="#9CA3AF"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLocked}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Owner Email Address</Text>
+              <TextInput
+                style={[styles.input, isLocked && styles.disabledInput]}
+                value={formData.ownerEmail}
+                onChangeText={(text) => handleInputChange('ownerEmail', text)}
+                placeholder="Enter owner email address"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!isLocked}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Owner Phone Number</Text>
+              <TextInput
+                style={[styles.input, isLocked && styles.disabledInput]}
+                value={formData.ownerMobile}
+                onChangeText={(text) => handleInputChange('ownerMobile', text)}
+                placeholder="Enter owner phone number"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="phone-pad"
                 editable={!isLocked}
               />
             </View>

@@ -19,6 +19,8 @@ export interface Vendor {
   ownerName?: string;
   companyName?: string;
   email?: string;
+  ownerEmail?: string;
+  ownerMobile?: string;
   signature?: { public_id: string; url: string };
   mobile: string;
   isActive: boolean;
