@@ -1,36 +1,36 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    StyleSheet,
-    StatusBar,
     ActivityIndicator,
-    TextInput,
-    Image,
-    Modal,
-    KeyboardAvoidingView,
-    Platform,
     Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS } from '../../../theme/color';
-import { AppNavigation } from '../../../types/types';
 import {
-    useGetTicketById,
+    TicketMessage,
+    UpdateTicketData,
     useAddMessage,
     useCloseTicket,
+    useGetTicketById,
     useGetTicketMessages,
-    useUpdateTicket,
     useReopenTicket,
     useSubmitFeedback,
-    TicketMessage,
-    UpdateTicketData
+    useUpdateTicket
 } from '../../../api/hooks/useSupportTickets';
-import LinearGradient from 'react-native-linear-gradient';
 import { useAlertStore } from '../../../store/alert.store';
+import { COLORS } from '../../../theme/color';
+import { AppNavigation } from '../../../types/types';
 
 const { width, height } = Dimensions.get('window');
 

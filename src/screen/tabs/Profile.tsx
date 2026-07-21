@@ -50,7 +50,7 @@ const operations: LinkItem[] = [
 ];
 
 const support: LinkItem[] = [
-  { icon: 'help-outline', title: 'Help & Support', route: 'mailto:support@mintafresh.com' },
+  { icon: 'help-outline', title: 'Help & Support', route: 'AiAssistant', subtext: 'AI Partner Support Assistant' },
   { icon: 'gavel', title: 'Terms & Conditions', route: 'Docs', params: { type: 'TERMS_AND_CONDITIONS' } },
   { icon: 'verified-user', title: 'Privacy Policy', route: 'Docs', params: { type: 'PRIVACY_POLICY' } },
 ];

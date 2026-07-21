@@ -1,28 +1,27 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-    View,
+    ActivityIndicator,
+    FlatList,
+    Image,
+    Modal,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
     Text,
     TextInput,
-    ScrollView,
     TouchableOpacity,
-    StyleSheet,
-    StatusBar,
-    Image,
-    ActivityIndicator,
-    Modal,
-    Dimensions,
-    FlatList,
+    View
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import RNFS from 'react-native-fs';
+import ImageResizer from 'react-native-image-resizer';
 import LinearGradient from 'react-native-linear-gradient';
-import { COLORS } from '../../../theme/color';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppNavigation } from '../../../types/types';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { useCreateTicket } from '../../../api/hooks/useSupportTickets';
-import ImageResizer from 'react-native-image-resizer';
-import RNFS from 'react-native-fs';
 import { useAlertStore } from '../../../store/alert.store';
+import { COLORS } from '../../../theme/color';
+import { AppNavigation } from '../../../types/types';
 
 
 // Map frontend categories to backend enum values
