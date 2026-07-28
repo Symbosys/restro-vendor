@@ -1,13 +1,3 @@
-import notifee, { AndroidImportance } from '@notifee/react-native';
-import { getApp } from '@react-native-firebase/app';
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  onTokenRefresh,
-  requestPermission,
-  setBackgroundMessageHandler,
-} from '@react-native-firebase/messaging';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
@@ -22,10 +12,14 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../context/AuthContext';
 import { updateVendor } from '../../services/vendor.service';
 import { RootStackParamList } from '../../types/types';
+import {
+  initNotificationListeners,
+  isNotificationRedirectHandled,
+  setupFirebaseMessaging,
+} from './notification';
 
 type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
@@ -36,6 +30,12 @@ const Splash = () => {
   const [showPermissionPopup, setShowPermissionPopup] = useState(false);
 
   console.log({ isAuthenticated, vendorId, token });
+
+  // Initialize notification click listeners (Foreground, Background, Cold Start)
+  useEffect(() => {
+    const cleanup = initNotificationListeners();
+    return cleanup;
+  }, []);
 
   // ------------------------------------------------------------
   // PERMISSION HANDLING
@@ -109,12 +109,17 @@ const Splash = () => {
   // ------------------------------------------------------------
 
   const handleNavigationFlow = async () => {
+    if (isNotificationRedirectHandled) {
+      console.log('🔔 Skipping splash navigation reset because notification redirection occurred.');
+      return;
+    }
+
     const allowed = await checkPermissions();
     if (!allowed) return;
 
-    // -----------------------------------
-    // PERMISSIONS GRANTED → Now authenticate
-    // -----------------------------------
+    if (isNotificationRedirectHandled) {
+      return;
+    }
 
     if (isAuthenticated) {
       navigation.reset({ index: 0, routes: [{ name: 'BottomTab' }] });
@@ -131,18 +136,11 @@ const Splash = () => {
 
   useEffect(() => {
     const timeout = setTimeout(async () => {
-      await setupFirebaseMessaging();
+      await setupFirebaseMessaging(vendorId, fcmToken, setFcmToken, updateVendor);
       await handleNavigationFlow();
     }, 2000);
 
-    const app = getApp();
-    const messagingInstance = getMessaging(app);
-
-    const unsubscribe = onMessage(messagingInstance, async (remoteMessage) => {
-      console.log('📩 Foreground FCM:', remoteMessage);
-    });
-
-    return unsubscribe;
+    return () => clearTimeout(timeout);
   }, [isAuthenticated, vendorId, token]);
 
   // ------------------------------------------------------------
@@ -159,75 +157,6 @@ const Splash = () => {
     } else {
       await Linking.openSettings();
       setShowPermissionPopup(true);
-    }
-  };
-
-  // ------------------------------------------------------------
-  // FIREBASE FCM SETUP
-  // ------------------------------------------------------------
-
-  const setupFirebaseMessaging = async () => {
-    try {
-      const app = getApp();
-      const messagingInstance = getMessaging(app);
-
-      const authStatus = await requestPermission(messagingInstance);
-      console.log('🔐 FCM permission:', authStatus);
-
-      const freshFcmToken = await getToken(messagingInstance);
-      console.log('🔔 FCM Token:', freshFcmToken);
-
-      await notifee.createChannel({
-        id: 'default',
-        name: 'Default',
-        importance: AndroidImportance.HIGH,
-      });
-
-      if (freshFcmToken && (!fcmToken || fcmToken !== freshFcmToken)) {
-        if (vendorId) {
-          try {
-            await updateVendor(vendorId, { fcmToken: freshFcmToken });
-            await setFcmToken(freshFcmToken);
-            console.log('✅ New FCM token saved to DB and AuthContext');
-          } catch (err) {
-            console.error('❌ Failed to save initial FCM token to DB:', err);
-          }
-        }
-      }
-
-      onTokenRefresh(messagingInstance, async (refreshedToken) => {
-        console.log('🔄 FCM Token Refreshed:', refreshedToken);
-        if (refreshedToken && (!fcmToken || fcmToken !== refreshedToken)) {
-          if (vendorId) {
-            try {
-              await updateVendor(vendorId, { fcmToken: refreshedToken });
-              await setFcmToken(refreshedToken);
-              console.log('✅ Refreshed FCM token saved to DB and AuthContext');
-            } catch (err) {
-              console.error('❌ Failed to save refreshed FCM token to DB:', err);
-            }
-          }
-        }
-      });
-
-      onMessage(messagingInstance, async (remoteMessage) => {
-        await notifee.displayNotification({
-          title: remoteMessage.notification?.title || 'New Notification',
-          body: remoteMessage.notification?.body || '',
-          android: { channelId: 'default', pressAction: { id: 'default' } },
-        });
-      });
-
-      setBackgroundMessageHandler(messagingInstance, async (remoteMessage) => {
-        await notifee.displayNotification({
-          title: remoteMessage.notification?.title || 'New Notification',
-          body: remoteMessage.notification?.body || '',
-          android: { channelId: 'default', pressAction: { id: 'default' } },
-        });
-      });
-
-    } catch (err) {
-      console.error('🔥 FCM setup failed:', err);
     }
   };
 

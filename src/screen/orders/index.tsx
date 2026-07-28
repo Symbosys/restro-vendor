@@ -28,6 +28,7 @@ import { CalculateDistance, getVendorOrderTotal, parseToDecimal } from '../../ut
 
 const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     const { orderId } = route.params || {};
+    console.log("order id : => ", orderId)
     const { data: order, isLoading, isError, refetch, isFetching } = useOrderDetails({ id: orderId });
     const { vendorId } = useAuth();
     const { data: vendor } = useVendorById();

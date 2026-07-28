@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import GlobalAlert from '../components/alert/GlobalAlert';
 import CustomAlert from '../components/ui/custom/CustomAlert';
 import { navigationRef } from '../helpers/navigationService';
+import { deeplink } from './deeplink';
 import LoginScreen from '../screen/auth/login';
 import OTP from '../screen/auth/Otp';
 import PrivacyPolicy from '../screen/legal/PrivacyPolicy';
@@ -45,7 +46,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function StackNavigation() {
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={deeplink}>
       <Stack.Navigator
         // initialRouteName='ShopImage'
 

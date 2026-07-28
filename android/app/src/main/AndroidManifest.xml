@@ -30,6 +30,40 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+
+        <!-- 🔥 DEEP LINK: mintafresh-vendor:// and mintafreshvendor:// -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="mintafresh-vendor" />
+        </intent-filter>
+
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="mintafreshvendor" />
+        </intent-filter>
+
+        <!-- 🔥 UNIVERSAL LINK: vendor.mintafresh.com and mintafresh-vendor.com -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" android:host="vendor.mintafresh.com" />
+            <data android:scheme="http" android:host="vendor.mintafresh.com" />
+        </intent-filter>
+
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" android:host="mintafresh.com" android:pathPrefix="/vendor" />
+            <data android:scheme="http" android:host="mintafresh.com" android:pathPrefix="/vendor" />
+        </intent-filter>
+
+
       </activity>
       <meta-data
   android:name="com.google.android.geo.API_KEY"

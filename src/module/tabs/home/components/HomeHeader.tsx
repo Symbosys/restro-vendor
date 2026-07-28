@@ -13,7 +13,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({ navigation }) => {
     return (
         <View style={styles.topBar}>
             <View style={styles.logoContainer}>
-                <Text style={styles.greeting}>Good Morning,</Text>
+                <Text style={styles.greeting}>Good Mornings,</Text>
                 <Text style={styles.storeName} numberOfLines={1}>{vendor?.shopName}</Text>
             </View>
             <View style={styles.headerButtons}>
