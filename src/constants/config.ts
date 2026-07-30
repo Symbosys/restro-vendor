@@ -6,9 +6,9 @@
  * and WebSocket endpoints.
  */
 
-const IS_PRODUCTION = true; // 👈 Toggle this for Production/Local
+const IS_PRODUCTION = false; // 👈 Toggle this for Production/Local
 
-const LOCAL_IP = "192.168.1.6";
+const LOCAL_IP = "192.168.1.12";
 const PROD_DOMAIN = "api.mintafresh.com";
 
 // 🚀 API BASE URL
