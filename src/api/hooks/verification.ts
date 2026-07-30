@@ -6,8 +6,9 @@ export interface UpdateProfileRequest {
   ownerName: string;
   companyName: string;
   email: string;
-  ownerEmail: string;
-  ownerMobile: string;
+  ownerEmail?: string;
+  ownerMobile?: string;
+  vendorOwnerId?: string | number | null;
   status?: string;
 }
 

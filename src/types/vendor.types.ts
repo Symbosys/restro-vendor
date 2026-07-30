@@ -45,6 +45,14 @@ export interface Vendor {
   isOpen: boolean | string;
   images?: { public_id: string; url: string };
   fcmToken?: string;
+  vendorOwnerId?: string | number | null;
+  vendorOwner?: {
+    id: string | number;
+    name: string;
+    email?: string;
+    mobile?: string;
+    fssaiLicenceNumber?: string | null;
+  };
   createdAt: string;
   updatedAt: string;
   vendorWorkLocations: VendorWorkLocation;
