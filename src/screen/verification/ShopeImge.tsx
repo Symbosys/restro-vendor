@@ -61,7 +61,9 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
 
       const result = await launchCamera({
         mediaType: 'photo',
-        quality: 1,
+        quality: 0.7,
+        maxWidth: 1280,
+        maxHeight: 1280,
         includeBase64: false,
       });
 
@@ -71,11 +73,6 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         ToastAndroid.show(result.errorMessage || 'Error selecting image', ToastAndroid.SHORT);
       } else if (result.assets && result.assets[0]) {
         const asset = result.assets[0];
-        // 5MB = 5 * 1024 * 1024 bytes
-        if (asset.fileSize && asset.fileSize > 5242880) {
-          ToastAndroid.show('Image size must be under 5MB', ToastAndroid.LONG);
-          return;
-        }
         if (asset.uri) {
           setImageUri(asset.uri);
         }

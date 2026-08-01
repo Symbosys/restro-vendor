@@ -14,25 +14,39 @@ import { navigationRef } from '../../helpers/navigationService';
 
 export let isNotificationRedirectHandled = false;
 
+export const createNotificationChannels = async () => {
+  await notifee.createChannel({
+    id: 'new_order_channel',
+    name: 'New Order Channel',
+    importance: AndroidImportance.HIGH,
+    sound: 'new_order',
+    vibration: true,
+  });
+
+  await notifee.createChannel({
+    id: 'default',
+    name: 'Default Channel',
+    importance: AndroidImportance.HIGH,
+    sound: 'default',
+    vibration: true,
+  });
+};
+
 export const displayForegroundNotification = async (remoteMessage: any) => {
   try {
-    const channelId = await notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
-      importance: AndroidImportance.HIGH,
-      sound: 'default',
-      vibration: true,
-    });
+    const isNewOrder = remoteMessage.data?.type === 'NEW_ORDER' || remoteMessage.data?.channelId === 'new_order_channel';
+    const channelId = isNewOrder ? 'new_order_channel' : 'default';
+    const sound = isNewOrder ? 'new_order' : 'default';
 
     const title =
       remoteMessage.notification?.title ||
       (remoteMessage.data?.title as string) ||
-      'New Order Request';
+      (isNewOrder ? 'New Order Request' : 'Notification');
 
     const body =
       remoteMessage.notification?.body ||
       (remoteMessage.data?.body as string) ||
-      'New order notification received';
+      (isNewOrder ? 'New order notification received' : 'You have a new notification');
 
     await notifee.displayNotification({
       title,
@@ -41,6 +55,7 @@ export const displayForegroundNotification = async (remoteMessage: any) => {
       android: {
         channelId,
         importance: AndroidImportance.HIGH,
+        sound,
         smallIcon: 'ic_launcher',
         pressAction: {
           id: 'default',
@@ -130,8 +145,8 @@ try {
   const app = getApp();
   const messagingInstance = getMessaging(app);
   setBackgroundMessageHandler(messagingInstance, async (remoteMessage) => {
-    console.log('📩 Notification Payload (Background/Killed):', remoteMessage);
-    await displayForegroundNotification(remoteMessage);
+    console.log('📩 Notification Payload received (Background/Killed):', remoteMessage?.notification?.title);
+    // Android OS natively displays FCM notifications when app is in background/killed.
   });
 } catch (e) {
   // Ignored if firebase not ready at import time
@@ -141,14 +156,8 @@ try {
 // INITIALIZE ACTIVE LISTENERS (Foreground, Background, Cold Start)
 // ----------------------------------------------------------------------
 export const initNotificationListeners = () => {
-  // Create channel immediately
-  notifee.createChannel({
-    id: 'default',
-    name: 'Default Channel',
-    importance: AndroidImportance.HIGH,
-    sound: 'default',
-    vibration: true,
-  });
+  // Create channels immediately (including new_order_channel with custom sound new_order)
+  createNotificationChannels();
 
   // 1. Notifee Foreground Event Listener
   const unsubscribeNotifee = notifee.onForegroundEvent(({ type, detail }) => {
@@ -224,11 +233,7 @@ export const setupFirebaseMessaging = async (
     const freshFcmToken = await getToken(messagingInstance);
     console.log('🔔 FCM Token:', freshFcmToken);
 
-    await notifee.createChannel({
-      id: 'default',
-      name: 'Default Channel',
-      importance: AndroidImportance.HIGH,
-    });
+    await createNotificationChannels();
 
     if (freshFcmToken && (!fcmToken || fcmToken !== freshFcmToken)) {
       if (vendorId && updateVendorFn && setFcmToken) {

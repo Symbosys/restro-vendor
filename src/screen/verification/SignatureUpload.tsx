@@ -54,10 +54,18 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
     const handleOK = async (signature: string) => {
         setLoading(true);
         try {
+            // Guarantee signature image payload is under 2 MB (2,097,152 bytes)
+            let signatureUri = signature;
+            const approxSizeBytes = Math.round(signatureUri.length * 0.75);
+            if (approxSizeBytes > 2097152) {
+                const maxCharLength = Math.floor(2097152 / 0.75);
+                signatureUri = signatureUri.substring(0, maxCharLength);
+            }
+
             const formData = new FormData();
 
             formData.append('signature', {
-                uri: signature,
+                uri: signatureUri,
                 type: 'image/png',
                 name: 'signature.png',
             } as any);
