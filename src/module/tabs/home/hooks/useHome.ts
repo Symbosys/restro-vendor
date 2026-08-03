@@ -195,6 +195,7 @@ export const useHome = () => {
   const handleRefresh = useCallback(async () => {
     await Promise.all([
       queryClient.resetQueries({ queryKey: ['vendorBroadcastedOrders'] }),
+      queryClient.resetQueries({ queryKey: ['analytics'] }),
       refetchVendor(),
     ]);
   }, [queryClient, refetchVendor]);

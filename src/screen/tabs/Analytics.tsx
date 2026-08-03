@@ -22,8 +22,13 @@ const AnalyticsScreen = () => {
   const [selectedRange, setSelectedRange] = useState('today');
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  const [startDate, setStartDate] = useState(new Date('2025-10-19')); // Default: 30 days ago
-  const [endDate, setEndDate] = useState(new Date('2025-11-18')); // Default: today (Nov 18, 2025)
+
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d;
+  });
+  const [endDate, setEndDate] = useState(() => new Date());
 
   const formatDate = (date: Date): string => {
     return date.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -51,14 +56,12 @@ const AnalyticsScreen = () => {
 
   const kpiData = analytics?.kpis || [];
 
-  console.log({ analytics })
-
-  const busiestTimesData = analytics?.busiestTimes.data.map((item: any) => ({
+  const busiestTimesData = analytics?.busiestTimes?.data?.map((item: any) => ({
     day: item.day,
     height: item.height,
   })) || [];
 
-  const topSellers = analytics?.topSellers.data || [];
+  const topSellers = analytics?.topSellers?.data || [];
 
   const detailedReports = analytics?.detailedReports || [
     'Sales by Item Report',
@@ -216,15 +219,15 @@ const AnalyticsScreen = () => {
             <Text style={styles.chartTitle}>Busiest Times</Text>
             <View style={styles.chartHeader}>
               <Text style={styles.chartValue}>
-                {analytics?.busiestTimes.totalOrders.toLocaleString()} Orders
+                {(analytics?.busiestTimes?.totalOrders ?? 0).toLocaleString()} Orders
               </Text>
               <Text
                 style={[
                   styles.chartChange,
-                  analytics?.busiestTimes.isPositive ? styles.positive : styles.negative,
+                  analytics?.busiestTimes?.isPositive ? styles.positive : styles.negative,
                 ]}
               >
-                {analytics?.busiestTimes.change}
+                {analytics?.busiestTimes?.change ?? '0%'}
               </Text>
             </View>
             <Text style={styles.chartSubtitle}>{getSubtitle()}</Text>
@@ -260,14 +263,14 @@ const AnalyticsScreen = () => {
           <View style={styles.chartCard}>
             <Text style={styles.chartTitle}>Top Sellers</Text>
             <View style={styles.chartHeader}>
-              <Text style={styles.chartValue}>{analytics?.topSellers.totalItems} Items</Text>
+              <Text style={styles.chartValue}>{analytics?.topSellers?.totalItems ?? 0} Items</Text>
               <Text
                 style={[
                   styles.chartChange,
-                  analytics?.topSellers.isPositive ? styles.positive : styles.negative,
+                  analytics?.topSellers?.isPositive ? styles.positive : styles.negative,
                 ]}
               >
-                {analytics?.topSellers.change}
+                {analytics?.topSellers?.change ?? '0%'}
               </Text>
             </View>
             <Text style={styles.chartSubtitle}>{getSubtitle()}</Text>
