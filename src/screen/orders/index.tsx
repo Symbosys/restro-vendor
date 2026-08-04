@@ -464,7 +464,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
         </View>
       )}
 
-      {order.status === 'PREPARING' && (
+      {order.status === 'PREPARING' && isAssigned && (
         <View
           style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}
         >
