@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useOrderDetails } from '../../api/hooks/order';
 import {
@@ -46,6 +46,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
   const { vendorId } = useAuth();
   const { data: vendor } = useVendorById();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const isAssigned = !!(
     order?.orderVendorAssignments?.vendorId &&
@@ -246,7 +247,10 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
 
       <ScrollView
         style={styles.main}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 130 + Math.max(insets.bottom, 16) },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -622,14 +626,24 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
 
       {/* Action Buttons Floating Footer */}
       {order.status === 'VENDOR_PENDING' && !isRejectedByMe && (
-        <View style={styles.actionButtonsContainer}>
+        <View
+          style={[
+            styles.actionButtonsContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+          ]}
+        >
           <RejectOrderButton orderId={order.id} label="Reject" />
           <AcceptOrderButton orderId={order.id} label="Accept" />
         </View>
       )}
 
       {order.status === 'PREPARING' && isAssigned && (
-        <View style={styles.actionButtonsContainer}>
+        <View
+          style={[
+            styles.actionButtonsContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+          ]}
+        >
           <MarkReadyButton orderId={order.id} label="Mark As Ready" />
         </View>
       )}
@@ -1210,8 +1224,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 24,
+    paddingTop: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.94)',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
