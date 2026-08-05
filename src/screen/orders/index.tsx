@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useOrderDetails } from '../../api/hooks/order';
@@ -118,16 +119,17 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
           >
-            <Icon name="arrow-back" size={24} color={COLORS.textPrimary} />
+            <Icon name="arrow-back" size={22} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
-          <ActivityIndicator size="large" color={COLORS.primary} />
+        <View style={styles.centerContainer}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -140,36 +142,27 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
           >
-            <Icon name="arrow-back" size={24} color={COLORS.textPrimary} />
+            <Icon name="arrow-back" size={22} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Details</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 20,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              color: COLORS.textSecondary,
-              textAlign: 'center',
-              marginBottom: 20,
-            }}
-          >
-            Failed to load order details.
-          </Text>
-          <TouchableOpacity
-            style={styles.readyButton}
-            onPress={() => refetch()}
-          >
-            <Text style={styles.readyButtonText}>Retry</Text>
-          </TouchableOpacity>
+        <View style={styles.centerContainer}>
+          <View style={styles.errorCard}>
+            <Icon name="error-outline" size={48} color={COLORS.danger} style={{ marginBottom: 12 }} />
+            <Text style={styles.errorText}>
+              Failed to load order details.
+            </Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => refetch()}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -178,11 +171,11 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CANCELLED':
-        return '#EF4444';
+        return COLORS.danger;
       case 'DELIVERED':
         return '#22C55E';
       case 'PREPARING':
-        return '#FB9240';
+        return '#F59E0B';
       case 'READY_FOR_PICKUP':
         return COLORS.primary;
       default:
@@ -209,15 +202,43 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
     }
   };
 
+  const isCancelled = order.status === 'CANCELLED';
+  const isDelivered = order.status === 'DELIVERED';
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Top App Bar */}
+      {/* Dynamic Ambient Background Glow Blobs */}
+      <View
+        style={[
+          styles.bgGlowTopRight,
+          isDelivered
+            ? { backgroundColor: 'rgba(34, 197, 94, 0.12)' }
+            : isCancelled
+            ? { backgroundColor: 'rgba(255, 159, 163, 0.2)' }
+            : null,
+        ]}
+        pointerEvents="none"
+      />
+      <View
+        style={[
+          styles.bgGlowLeft,
+          isDelivered
+            ? { backgroundColor: 'rgba(240, 253, 244, 0.6)' }
+            : isCancelled
+            ? { backgroundColor: 'rgba(249, 234, 233, 0.6)' }
+            : null,
+        ]}
+        pointerEvents="none"
+      />
+
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
         >
-          <Icon name="arrow-back" size={24} color={COLORS.textPrimary} />
+          <Icon name="arrow-back" size={22} color={COLORS.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Order Details</Text>
         <View style={styles.headerSpacer} />
@@ -225,25 +246,60 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
 
       <ScrollView
         style={styles.main}
-        contentContainerStyle={{ paddingBottom: 128 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isFetching}
             onRefresh={refetch}
             colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
           />
         }
       >
-        {/* Order Summary */}
-        <View style={styles.orderSummary}>
-          <Text style={styles.orderNumber}>
-            Order #{order.orderNumber.split('-').pop()}
-          </Text>
+        {/* Order Summary Card */}
+        <LinearGradient
+          colors={
+            isDelivered
+              ? ['#FFFFFF', '#F4FBF7']
+              : isCancelled
+              ? ['#FFFFFF', '#FFF5F6']
+              : ['#FFFFFF', '#FDF8FF']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.orderSummaryCard,
+            isDelivered && {
+              borderColor: 'rgba(34, 197, 94, 0.18)',
+              shadowColor: '#22C55E',
+              shadowOpacity: 0.08,
+            },
+            isCancelled && {
+              borderColor: 'rgba(239, 68, 68, 0.18)',
+              shadowColor: COLORS.danger,
+              shadowOpacity: 0.08,
+            },
+          ]}
+        >
+          <View style={styles.orderSummaryHeader}>
+            <View
+              style={[
+                styles.orderSummaryAccentLine,
+                isDelivered && { backgroundColor: '#22C55E' },
+                isCancelled && { backgroundColor: COLORS.danger },
+              ]}
+            />
+            <Text style={styles.orderNumber}>
+              Order #{order.orderNumber.split('-').pop()}
+            </Text>
+          </View>
+
           <View style={styles.statusRow}>
             <View
               style={[
                 styles.statusChip,
-                { backgroundColor: `${getStatusColor(order.status)}10` },
+                { backgroundColor: `${getStatusColor(order.status)}14` },
               ]}
             >
               <View
@@ -261,44 +317,44 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                 {order.status.replace(/_/g, ' ')}
               </Text>
             </View>
+
             {order.timestamps.estimatedDelivery && (
-              <View style={styles.deliveryChip}>
-                <Text style={styles.deliveryText}>
+              <View style={styles.infoChip}>
+                <Icon name="schedule" size={14} color={COLORS.primary} />
+                <Text style={styles.infoChipText}>
                   Delivery by{' '}
                   {safeFormat(order.timestamps.estimatedDelivery, 'h:mm a')}
                 </Text>
               </View>
             )}
+
             {distance !== undefined && distance > 0 ? (
-              <View
-                style={[
-                  styles.deliveryChip,
-                  { flexDirection: 'row', alignItems: 'center' },
-                ]}
-              >
-                <Icon
-                  name="location-on"
-                  size={14}
-                  color={COLORS.textSecondary}
-                  style={{ marginRight: 4 }}
-                />
-                <Text style={styles.deliveryText}>
+              <View style={styles.infoChip}>
+                <Icon name="location-on" size={15} color={COLORS.primary} />
+                <Text style={styles.infoChipText}>
                   {distance.toFixed(2)} km away
                 </Text>
               </View>
             ) : null}
           </View>
-        </View>
+        </LinearGradient>
 
-        {/* Delivery Partner Information (if assigned) */}
-        {order.status !== 'DELIVERED' &&
-          isAssigned &&
-          order.orderDeliveryAssignment && (
-            <View style={styles.deliverySection}>
-              <Text style={styles.sectionTitle}>Delivery Partner</Text>
-              <View style={styles.deliveryCard}>
-                <View style={styles.deliveryInfoRow}>
-                  <View style={styles.partnerProfile}>
+        {/* Delivery Partner Card (if assigned) */}
+        {isAssigned && order.orderDeliveryAssignment && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Delivery Partner</Text>
+            <LinearGradient
+              colors={['#FFFFFF', '#FAFAFF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.deliveryCard,
+                (isCancelled || isDelivered) && { opacity: 0.85 },
+              ]}
+            >
+              <View style={styles.deliveryInfoRow}>
+                <View style={styles.partnerProfile}>
+                  <View style={styles.avatarContainer}>
                     {order.orderDeliveryAssignment.deliveryPartner?.image
                       ?.url ? (
                       <Image
@@ -310,49 +366,65 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                       />
                     ) : (
                       <View style={styles.partnerAvatarPlaceholder}>
-                        <Icon name="person" size={24} color={COLORS.muted} />
+                        <Icon name="person" size={26} color={COLORS.muted} />
                       </View>
                     )}
-                    <View style={styles.partnerDetails}>
-                      <Text style={styles.partnerName} numberOfLines={1}>
-                        {order.orderDeliveryAssignment.deliveryPartner?.name ||
-                          'Assigned'}
-                      </Text>
-                      <Text style={styles.partnerRole}>Delivery Executive</Text>
-                    </View>
                   </View>
-                  <TouchableOpacity
-                    style={styles.callCircle}
-                    onPress={() =>
-                      handleCall(
-                        order.orderDeliveryAssignment?.deliveryPartner
-                          ?.mobile || '',
-                      )
-                    }
-                  >
-                    <Icon name="phone" size={20} color={COLORS.primary} />
-                  </TouchableOpacity>
+                  <View style={styles.partnerDetails}>
+                    <Text style={styles.partnerName} numberOfLines={1}>
+                      {order.orderDeliveryAssignment.deliveryPartner?.name ||
+                        'Assigned'}
+                    </Text>
+                    <Text style={styles.partnerRole}>Delivery Executive</Text>
+                  </View>
                 </View>
 
-                {order.orderDeliveryAssignment.pickupOtp && (
-                  <View style={styles.otpContainer}>
-                    <View style={styles.otpInfo}>
-                      <Icon name="vpn-key" size={18} color={COLORS.muted} />
-                      <Text style={styles.otpLabel}>Pickup Code</Text>
-                    </View>
-                    <View style={styles.otpBadge}>
-                      <Text style={styles.otpValue}>
-                        {order.orderDeliveryAssignment.pickupOtp}
-                      </Text>
-                    </View>
-                  </View>
-                )}
+                <TouchableOpacity
+                  onPress={() =>
+                    handleCall(
+                      order.orderDeliveryAssignment?.deliveryPartner
+                        ?.mobile || '',
+                    )
+                  }
+                  activeOpacity={0.8}
+                  disabled={isCancelled || isDelivered}
+                >
+                  <LinearGradient
+                    colors={
+                      isCancelled || isDelivered
+                        ? ['#CBD5E1', '#94A3B8']
+                        : ['#8719C6', '#9D2DE0']
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.callCircle}
+                  >
+                    <Icon name="phone" size={20} color={COLORS.white} />
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
-            </View>
-          )}
+
+              {order.orderDeliveryAssignment.pickupOtp && (
+                <View style={styles.otpContainer}>
+                  <View style={styles.otpInfo}>
+                    <View style={styles.otpIconBadge}>
+                      <Icon name="vpn-key" size={16} color={COLORS.primary} />
+                    </View>
+                    <Text style={styles.otpLabel}>Pickup Code</Text>
+                  </View>
+                  <View style={styles.otpBadge}>
+                    <Text style={styles.otpValue}>
+                      {order.orderDeliveryAssignment.pickupOtp}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </LinearGradient>
+          </View>
+        )}
 
         {/* Ordered Items */}
-        <View style={styles.itemsSection}>
+        <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Ordered Items</Text>
           <View style={styles.itemsCard}>
             <View style={styles.itemsList}>
@@ -360,10 +432,34 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                 const itemVendorPrice =
                   parseToDecimal(item.product?.vendorPrice) ||
                   parseToDecimal(item.unitPrice);
+                const imageUrl =
+                  (item.product as any)?.images?.[0]?.image?.url ||
+                  (item.product as any)?.images?.[0]?.url ||
+                  (typeof (item.product as any)?.images?.[0] === 'string'
+                    ? (item.product as any).images[0]
+                    : null) ||
+                  (item.product as any)?.image?.url ||
+                  (typeof (item.product as any)?.image === 'string'
+                    ? (item.product as any).image
+                    : null) ||
+                  (item.product as any)?.imageUrl;
                 return (
                   <View key={item.id} style={styles.itemRow}>
                     <View style={styles.itemLeft}>
-                      <Text style={styles.quantity}>{item.quantity}x</Text>
+                      {imageUrl ? (
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={styles.productImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View style={styles.productImagePlaceholder}>
+                          <Icon name="fastfood" size={20} color={COLORS.muted} />
+                        </View>
+                      )}
+                      <View style={styles.quantityBadge}>
+                        <Text style={styles.quantity}>{item.quantity}x</Text>
+                      </View>
                       <View style={styles.itemDetails}>
                         <Text style={styles.itemName}>
                           {item.product.name}
@@ -389,7 +485,9 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                 );
               })}
             </View>
+
             <View style={styles.subtotalDivider} />
+
             <View style={styles.pricingList}>
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>Item Total</Text>
@@ -397,77 +495,141 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                   ₹{getVendorOrderTotal(order).toFixed(2)}
                 </Text>
               </View>
-              <View style={styles.totalRow}>
+
+              <LinearGradient
+                colors={
+                  isDelivered
+                    ? ['#F0FDF4', '#DCFCE7']
+                    : isCancelled
+                    ? ['#FFF5F5', '#FFEBEB']
+                    : ['#FAF4FE', '#F5EBFD']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[
+                  styles.totalRowContainer,
+                  isDelivered && { borderColor: 'rgba(34, 197, 94, 0.2)' },
+                  isCancelled && { borderColor: 'rgba(239, 68, 68, 0.15)' },
+                ]}
+              >
                 <Text style={styles.totalLabel}>Total Earnings</Text>
-                <Text style={styles.totalValue}>
+                <Text
+                  style={[
+                    styles.totalValue,
+                    isDelivered && { color: '#059669' },
+                    isCancelled && { color: COLORS.danger },
+                  ]}
+                >
                   ₹{getVendorOrderTotal(order).toFixed(2)}
                 </Text>
-              </View>
+              </LinearGradient>
             </View>
           </View>
         </View>
 
         {/* History / Timeline */}
-        <View style={styles.historySection}>
+        <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Order Timeline</Text>
           <View style={styles.historyCard}>
-            {/* <View style={styles.paymentRow}>
-                            <View style={styles.paymentLeft}>
-                                <Icon name="payments" size={24} color={COLORS.textSecondary} />
-                                <Text style={styles.paymentText}>{order.paymentMethod}</Text>
-                            </View>
-                            <View style={[styles.paidBadge, { backgroundColor: order.paymentStatus === 'PAID' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(251, 146, 60, 0.1)' }]}>
-                                <Text style={[styles.paidText, { color: order.paymentStatus === 'PAID' ? '#22C55E' : '#FB9240' }]}>
-                                    {order.paymentStatus}
-                                </Text>
-                            </View>
-                        </View> */}
-            <View style={styles.timelineDivider} />
             <View style={styles.timelineList}>
-              {order.tracking?.map((track, index) => (
-                <View key={track.id} style={styles.timelineItem}>
-                  <View style={styles.timelineCircle}>
-                    <Icon
-                      name={index === 0 ? 'adjust' : 'check'}
-                      size={16}
-                      color={COLORS.primary}
-                    />
-                  </View>
-                  {index !== (order.tracking?.length || 0) - 1 && (
-                    <View style={styles.timelineLine} />
-                  )}
-                  <View style={styles.timelineContent}>
-                    <Text style={styles.timelineTitle}>
-                      {track.eventType.replace(/_/g, ' ')}
-                    </Text>
-                    <Text style={styles.timelineTime}>
-                      {safeFormat(track.timestamp, 'MMM d, h:mm a')}
-                    </Text>
-                    {track.notes && (
-                      <Text style={styles.itemNote}>{track.notes}</Text>
+              {order.tracking?.map((track, index) => {
+                const isLatest = index === 0;
+                const isEventCancelled = track.eventType === 'CANCELLED';
+                const isEventDelivered =
+                  track.eventType === 'DELIVERED' ||
+                  track.eventType === 'ORDER_DELIVERED';
+                return (
+                  <View key={track.id} style={styles.timelineItem}>
+                    {isEventDelivered ? (
+                      <LinearGradient
+                        colors={['#10B981', '#059669']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.timelineCircleDelivered}
+                      >
+                        <Icon name="check-circle" size={16} color={COLORS.white} />
+                      </LinearGradient>
+                    ) : isEventCancelled ? (
+                      <LinearGradient
+                        colors={['#EF4444', '#F87171']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.timelineCircleCancelled}
+                      >
+                        <Icon name="close" size={16} color={COLORS.white} />
+                      </LinearGradient>
+                    ) : isLatest ? (
+                      <LinearGradient
+                        colors={['#8719C6', '#9D2DE0']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.timelineCircleActive}
+                      >
+                        <Icon name="adjust" size={16} color={COLORS.white} />
+                      </LinearGradient>
+                    ) : (
+                      <View style={styles.timelineCircle}>
+                        <Icon name="check" size={15} color={COLORS.primary} />
+                      </View>
                     )}
+
+                    {index !== (order.tracking?.length || 0) - 1 && (
+                      <View
+                        style={[
+                          styles.timelineLine,
+                          isEventDelivered && {
+                            backgroundColor: 'rgba(16, 185, 129, 0.25)',
+                          },
+                          isEventCancelled && {
+                            backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                          },
+                        ]}
+                      />
+                    )}
+
+                    <View style={styles.timelineContent}>
+                      <Text
+                        style={[
+                          styles.timelineTitle,
+                          isEventDelivered && { color: '#059669' },
+                          isEventCancelled && { color: COLORS.danger },
+                        ]}
+                      >
+                        {track.eventType.replace(/_/g, ' ')}
+                      </Text>
+                      <Text style={styles.timelineTime}>
+                        {safeFormat(track.timestamp, 'MMM d, h:mm a')}
+                      </Text>
+                      {track.notes && (
+                        <Text
+                          style={[
+                            styles.itemNote,
+                            isEventDelivered && { color: '#047857' },
+                            isEventCancelled && { color: '#991B1B' },
+                          ]}
+                        >
+                          {track.notes}
+                        </Text>
+                      )}
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           </View>
         </View>
       </ScrollView>
 
-      {/* Action Buttons */}
+      {/* Action Buttons Floating Footer */}
       {order.status === 'VENDOR_PENDING' && !isRejectedByMe && (
-        <View
-          style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}
-        >
+        <View style={styles.actionButtonsContainer}>
           <RejectOrderButton orderId={order.id} label="Reject" />
           <AcceptOrderButton orderId={order.id} label="Accept" />
         </View>
       )}
 
       {order.status === 'PREPARING' && isAssigned && (
-        <View
-          style={[styles.actionButtons, { justifyContent: 'center', gap: 24 }]}
-        >
+        <View style={styles.actionButtonsContainer}>
           <MarkReadyButton orderId={order.id} label="Mark As Ready" />
         </View>
       )}
@@ -480,166 +642,357 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
+  /* Background Ambient Blobs */
+  bgGlowTopRight: {
+    position: 'absolute',
+    top: -60,
+    right: -60,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(181, 143, 240, 0.12)',
+  },
+  bgGlowLeft: {
+    position: 'absolute',
+    top: 260,
+    left: -80,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(249, 234, 233, 0.4)',
+  },
+
+  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 8,
-    backgroundColor: COLORS.background,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.2)',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: 'transparent',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: COLORS.textPrimary,
-    flex: 1,
+    letterSpacing: -0.3,
     textAlign: 'center',
-    paddingRight: 40,
   },
   headerSpacer: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
   },
+
+  /* Loading & Error States */
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingCard: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
+  },
+  errorCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
+    width: '100%',
+    maxWidth: 320,
+  },
+  errorText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    height: 44,
+    paddingHorizontal: 28,
+    borderRadius: 22,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  retryButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+
+  /* Main Scroll Content */
   main: {
     flex: 1,
   },
-  orderSummary: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 140,
+  },
+
+  /* Order Summary Card */
+  orderSummaryCard: {
+    borderRadius: 24,
+    padding: 20,
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.07,
+    shadowRadius: 24,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.1)',
+    marginBottom: 8,
+  },
+  orderSummaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  orderSummaryAccentLine: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+    marginRight: 10,
   },
   orderNumber: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '800',
     color: COLORS.textPrimary,
-    lineHeight: 21.6,
-    letterSpacing: -0.27,
-    marginBottom: 8,
+    letterSpacing: -0.4,
   },
   statusRow: {
     flexDirection: 'row',
     gap: 8,
     flexWrap: 'wrap',
+    alignItems: 'center',
   },
   statusChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: 9999,
-    backgroundColor: 'rgba(251, 146, 60, 0.1)',
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
   },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FB9240',
-    marginRight: 4,
+    marginRight: 6,
   },
   statusText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#FB9240',
-    lineHeight: 20,
+    fontSize: 13,
+    fontWeight: '700',
   },
-  deliveryChip: {
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: 9999,
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+  infoChip: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: 'rgba(135, 25, 198, 0.06)',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
   },
-  deliveryText: {
-    fontSize: 14,
-    fontWeight: '800',
+  infoChipText: {
+    fontSize: 13,
+    fontWeight: '600',
     color: COLORS.textSecondary,
-    lineHeight: 20,
   },
-  customerSection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+
+  /* Section Containers & Titles */
+  sectionContainer: {
+    marginTop: 24,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: COLORS.textPrimary,
-    lineHeight: 28.8,
-    letterSpacing: -0.015 * 24,
+    letterSpacing: -0.3,
     marginBottom: 12,
   },
-  customerCard: {
+
+  /* Delivery Partner Card */
+  deliveryCard: {
+    borderRadius: 24,
+    padding: 20,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
-    elevation: 1,
-    overflow: 'hidden',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.07,
+    shadowRadius: 24,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
   },
-  infoRow: {
+  deliveryInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    minHeight: 64,
   },
-  infoLeft: {
+  partnerProfile: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    flex: 1,
+    marginRight: 12,
+  },
+  avatarContainer: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    borderWidth: 2,
+    borderColor: 'rgba(135, 25, 198, 0.18)',
+    padding: 2,
+    backgroundColor: COLORS.white,
+  },
+  partnerAvatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 27,
+    backgroundColor: '#F5F3F8',
+  },
+  partnerAvatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 27,
+    backgroundColor: '#F5F3F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  partnerDetails: {
+    marginLeft: 14,
     flex: 1,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoText: {
-    fontSize: 16,
-    fontWeight: '400',
+  partnerName: {
+    fontSize: 17,
+    fontWeight: '700',
     color: COLORS.textPrimary,
-    lineHeight: 24,
-    flex: 1,
+    letterSpacing: -0.2,
   },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
+  partnerRole: {
+    fontSize: 13,
+    color: COLORS.muted,
+    marginTop: 3,
+    fontWeight: '500',
+  },
+  callCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+
+  /* OTP Section */
+  otpContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8F5FD',
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(135, 25, 198, 0.25)',
+    marginTop: 16,
   },
-  itemsSection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+  otpInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
+  otpIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(135, 25, 198, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  otpLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  otpBadge: {
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.12)',
+  },
+  otpValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: COLORS.primary,
+    letterSpacing: 2,
+  },
+
+  /* Ordered Items Card */
   itemsCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
-    elevation: 1,
-    overflow: 'hidden',
-    padding: 16,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.07,
+    shadowRadius: 24,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
   },
   itemsList: {
     gap: 16,
@@ -651,294 +1004,227 @@ const styles = StyleSheet.create({
   },
   itemLeft: {
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    gap: 12,
     flex: 1,
+    marginRight: 12,
+  },
+  productImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#F5F3F8',
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
+  },
+  productImagePlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(135, 25, 198, 0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
+  },
+  quantityBadge: {
+    backgroundColor: 'rgba(135, 25, 198, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
   quantity: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginTop: 2,
+    color: COLORS.primary,
   },
   itemDetails: {
     flex: 1,
   },
   itemName: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.textPrimary,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   itemNote: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.muted,
-    lineHeight: 20,
+    marginTop: 4,
+    lineHeight: 18,
   },
   itemPrice: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '700',
     color: COLORS.textSecondary,
+    marginTop: 2,
   },
   subtotalDivider: {
-    marginVertical: 16,
+    marginVertical: 18,
     height: 1,
-    borderStyle: 'dashed',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.2)',
+    backgroundColor: 'rgba(135, 25, 198, 0.08)',
   },
   pricingList: {
-    gap: 8,
+    gap: 10,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   priceLabel: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.textSecondary,
+    fontWeight: '500',
   },
   priceValue: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
   },
-  totalRow: {
+  totalRowContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 8,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.12)',
   },
   totalLabel: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     color: COLORS.textPrimary,
   },
   totalValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.textPrimary,
+    color: COLORS.primary,
+    letterSpacing: -0.3,
   },
-  historySection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
+
+  /* Order Timeline Card */
   historyCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
-    elevation: 1,
-    overflow: 'hidden',
-    padding: 16,
-  },
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(148, 163, 184, 0.1)',
-  },
-  paymentLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  paymentText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.textPrimary,
-  },
-  paidBadge: {
-    height: 28,
-    paddingHorizontal: 12,
-    borderRadius: 9999,
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  paidText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#22C55E',
-  },
-  timelineDivider: {
-    height: 16,
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.07,
+    shadowRadius: 24,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 25, 198, 0.08)',
   },
   timelineList: {
-    gap: 16,
+    gap: 20,
   },
   timelineItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 16,
+    position: 'relative',
   },
-  timelineCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: `${COLORS.primary}10`,
+  timelineCircleActive: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    zIndex: 2,
+  },
+  timelineCircleDelivered: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    zIndex: 2,
+  },
+  timelineCircleCancelled: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.danger,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    zIndex: 2,
+  },
+  timelineCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(135, 25, 198, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
   timelineLine: {
     position: 'absolute',
     left: 16,
-    top: 32,
-    bottom: -16,
-    width: 1,
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+    top: 34,
+    bottom: -20,
+    width: 2,
+    backgroundColor: 'rgba(135, 25, 198, 0.15)',
+    zIndex: 1,
   },
   timelineContent: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 14,
+    justifyContent: 'center',
   },
   timelineTitle: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '700',
     color: COLORS.textPrimary,
-    lineHeight: 24,
-  },
-  timelineTime: {
-    fontSize: 14,
-    color: COLORS.muted,
     lineHeight: 20,
   },
-  actionButtons: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.2)',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(148, 163, 184, 0.2)',
-  },
-  cancelButtonText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  readyButton: {
-    flex: 1,
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-  },
-  readyButtonText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  deliverySection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
-  deliveryCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 16,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.1)',
-  },
-  deliveryInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  partnerProfile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  partnerAvatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#F1F5F9',
-  },
-  partnerAvatarPlaceholder: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  partnerDetails: {
-    marginLeft: 14,
-    flex: 1,
-  },
-  partnerName: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },
-  partnerRole: {
+  timelineTime: {
     fontSize: 13,
     color: COLORS.muted,
     marginTop: 2,
   },
-  callCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: `${COLORS.primary}15`,
+
+  /* Bottom Floating Action Bar */
+  actionButtonsContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(135, 25, 198, 0.08)',
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-  },
-  otpContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#E2E8F0',
-  },
-  otpInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  otpLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.muted,
-  },
-  otpBadge: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  otpValue: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.primary,
-    letterSpacing: 1,
+    gap: 16,
   },
 });
 

@@ -104,43 +104,6 @@ export const useHome = () => {
     }
   }, [vendor?.isOpen, setStoreOpen]);
 
-  // === AUTO OPEN MODAL LOGIC ===
-  const staticOrder = useMemo(
-    () => ({
-      id: 'static-broadcast-demo',
-      status: BroadcastStatus.PENDING,
-      vendorId: vendorId || 'demo-vendor',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      order: {
-        id: 'static-order-demo',
-        orderNumber: 'DEMO-001',
-        status: OrderStatus.VENDOR_PENDING,
-        vendorId: vendorId || 'demo-vendor',
-        customerId: 'demo-customer',
-        subtotal: 450,
-        deliveryFee: 40,
-        totalAmount: 490,
-        items: [
-          {
-            id: 'item-1',
-            quantity: 1,
-            totalPrice: 450,
-            product: {
-              id: 'prod-1',
-              name: 'Premium Chicken Curry Cut',
-              images: [],
-            },
-          },
-        ],
-        timestamps: {
-          placedAt: new Date().toISOString(),
-        },
-      },
-    }),
-    [vendorId],
-  );
-
   // Modal Logic is now purely event-driven via Home.tsx and WebSocket events.
 
   const broadcasts = useMemo(
