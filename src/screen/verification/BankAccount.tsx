@@ -93,8 +93,7 @@ const BankAccountScreen = ({ navigation }: AppNavigation) => {
     if (loading) return <Loader />;
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 10 }}>
                     <Icon name="arrow-left" size={24} color={COLORS.textPrimary} />
@@ -261,7 +260,7 @@ const BankAccountScreen = ({ navigation }: AppNavigation) => {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 };
 

@@ -303,7 +303,7 @@ const NotificationsScreen: React.FC<any> = ({ navigation }) => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notifications</Text>
@@ -371,7 +371,7 @@ const NotificationsScreen: React.FC<any> = ({ navigation }) => {
           onViewDetails={handleViewOrderDetails}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

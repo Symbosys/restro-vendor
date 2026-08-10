@@ -174,8 +174,7 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
     );
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar backgroundColor="#F8FAFC" barStyle="dark-content" />
+        <View style={styles.safeArea}>
 
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -214,7 +213,7 @@ const SignatureUpload: React.FC<SignatureUploadProps> = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 

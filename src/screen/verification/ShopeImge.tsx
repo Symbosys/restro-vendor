@@ -160,9 +160,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar backgroundColor="#F8FAFC" barStyle="dark-content" />
-
+    <View style={styles.safeArea}>
       {/* --- Header --- */}
       <View style={styles.header}>
         <TouchableOpacity 
@@ -281,7 +279,7 @@ const ShopImageUploadScreen: React.FC<ShopImageUploadScreenProps> = ({ navigatio
         </TouchableOpacity>
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 };
 

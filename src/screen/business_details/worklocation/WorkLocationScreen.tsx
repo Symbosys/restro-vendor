@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  StatusBar,
   Dimensions,
   Modal,
   FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../../theme/color';
 import { useCities, useAreasByCity, City, Area } from '../../../api/hooks/location.hook';
 import { useChangeWorkLocation } from '../../../api/hooks/vendor.hook';
@@ -121,8 +119,7 @@ const WorkLocationScreen = ({ navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
+    <View style={styles.container}>
       
       {/* Premium Header */}
       <View style={styles.header}>
@@ -282,7 +279,7 @@ const WorkLocationScreen = ({ navigation }: any) => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

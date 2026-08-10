@@ -203,9 +203,7 @@ const VendorInventoryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           stickyHeaderIndices={[1]}
@@ -284,7 +282,7 @@ const VendorInventoryScreen = () => {
             <View style={{ height: 100 + tabBarHeight }} />
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* BOTTOM BAR - Only show when there are changes */}
       {hasChanges && (

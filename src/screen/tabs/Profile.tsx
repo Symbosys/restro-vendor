@@ -133,13 +133,7 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={COLORS.primary}
-        translucent={true}
-      />
-
+    // <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -213,7 +207,7 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
           <View style={{ height: 40 }} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    // </SafeAreaView>
   );
 };
 

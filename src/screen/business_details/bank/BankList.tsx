@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 // import GlobalHeader from '../../components/ui/custom/GlobalHeader';
 import Loader from '../../../components/ui/Loader';
@@ -47,7 +46,7 @@ const BankListScreen = ({ navigation }: AppNavigation) => {
     if (isLoading) return <Loader />;
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 10 }}>
                     <Icon name="arrow-back" size={24} color={COLORS.textPrimary} />
@@ -73,7 +72,7 @@ const BankListScreen = ({ navigation }: AppNavigation) => {
                     </View>
                 }
             />
-        </SafeAreaView>
+        </View>
     );
 };
 

@@ -24,7 +24,6 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 const BottomTab = ({ navigation }: AppNavigation) => {
     return (
         // <WebSocketProvider>
-        <SafeAreaView style={styles.safeArea} edges={['bottom']}>
             <Tab.Navigator
                 screenOptions={({ route }) => ({
                     headerShown: false,
@@ -85,7 +84,6 @@ const BottomTab = ({ navigation }: AppNavigation) => {
                 <Tab.Screen name='Inventory' component={VendorInventoryScreen} />
                 <Tab.Screen name="Profile" component={Profile} />
             </Tab.Navigator>
-        </SafeAreaView>
         // </WebSocketProvider>
     );
 };

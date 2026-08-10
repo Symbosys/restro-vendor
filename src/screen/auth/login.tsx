@@ -98,9 +98,7 @@ const LoginScreen = ({ navigation }: { navigation: NavigationProp<RootStackParam
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
-
+    <View style={styles.container}>
       <View style={[{ paddingTop: insets.top, flex: 1 }]}>
         {/* Top full-bleed logo section – ignores safe area for max height */}
         <View style={styles.topSection}>
@@ -270,7 +268,7 @@ const LoginScreen = ({ navigation }: { navigation: NavigationProp<RootStackParam
           </View>
         </Modal>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

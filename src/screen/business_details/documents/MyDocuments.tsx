@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     ScrollView,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useVendorDocumentStore } from '../../../api/hooks/document';
 import { useAuth } from '../../../context/AuthContext';
@@ -110,12 +109,7 @@ const MyDocuments = ({ navigation }: AppNavigation) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar
-                barStyle="light-content"
-                backgroundColor={COLORS.primary}
-                translucent={true}
-            />
+        <View style={styles.container}>
 
             {/* Premium Header with Gradient Effect */}
             <View style={[styles.headerContainer, { paddingTop: headerPaddingTop }]}>
@@ -343,7 +337,7 @@ const MyDocuments = ({ navigation }: AppNavigation) => {
 
                 <View style={{ height: 40 }} />
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 

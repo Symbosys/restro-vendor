@@ -6,12 +6,11 @@ import {
     ScrollView,
     Image,
     TouchableOpacity,
-    StatusBar,
     ActivityIndicator,
     Linking,
     Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useVendorById } from '../../../hooks/useVendorQueries';
 import { COLORS } from '../../../theme/color';
@@ -86,8 +85,7 @@ const MyShopDetails = ({ navigation }: AppNavigation) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} translucent />
+        <View style={styles.container}>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -333,7 +331,7 @@ const MyShopDetails = ({ navigation }: AppNavigation) => {
                     </View>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 

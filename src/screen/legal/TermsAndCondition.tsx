@@ -9,7 +9,6 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../theme/color";
 import { AppNavigation } from "../../types/types";
@@ -30,7 +29,6 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
     const [headerHeight, setHeaderHeight] = useState(72);
     const [progress, setProgress] = useState(0);
     const scrollRef = useRef<ScrollView>(null);
-    const insets = useSafeAreaInsets();
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
@@ -56,7 +54,7 @@ const TermsAndConditions = ({ navigation }: AppNavigation) => {
                 onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
             >
                 <View
-                    style={[styles.headerGradient, { paddingTop: insets.top + 16 }]}
+                    style={styles.headerGradient}
                 >
                     <View style={styles.headerContent}>
                         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>

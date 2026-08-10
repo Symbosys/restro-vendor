@@ -140,8 +140,6 @@ const DocumentVerification = ({ navigation }: { navigation: NavigationProp<RootS
 
   return (
     <View style={styles.mainContainer}>
-      <StatusBar backgroundColor="#8719C6" barStyle="light-content" />
-
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>

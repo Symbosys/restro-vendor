@@ -152,7 +152,7 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
   const isLocked = !!vendor?.isApproved;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -397,7 +397,7 @@ const UpdateProfile = ({ navigation }: AppNavigation) => {
           )}
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

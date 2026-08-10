@@ -207,7 +207,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
   const isDelivered = order.status === 'DELIVERED';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Dynamic Ambient Background Glow Blobs */}
       <View
         style={[
@@ -629,7 +629,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
         <View
           style={[
             styles.actionButtonsContainer,
-            { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+            { paddingBottom: 16 },
           ]}
         >
           <RejectOrderButton orderId={order.id} label="Reject" />
@@ -641,13 +641,13 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
         <View
           style={[
             styles.actionButtonsContainer,
-            { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+            { paddingBottom: 16 },
           ]}
         >
           <MarkReadyButton orderId={order.id} label="Mark As Ready" />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

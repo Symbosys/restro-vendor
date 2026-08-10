@@ -8,7 +8,6 @@ import {
     ActivityIndicator,
     RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -127,7 +126,7 @@ export default function InstallmentDetailsScreen({ navigation }: AppNavigation) 
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <View style={styles.container}>
                 {/* Top Bar */}
                 <View style={styles.topBar}>
@@ -247,7 +246,7 @@ export default function InstallmentDetailsScreen({ navigation }: AppNavigation) 
                     </ScrollView>
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

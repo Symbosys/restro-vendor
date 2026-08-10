@@ -10,7 +10,6 @@ import {
     RefreshControl,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -81,7 +80,7 @@ export default function PackingOrderHistoryScreen({ navigation }: AppNavigation)
     }, [navigation]);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <View style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
@@ -225,7 +224,7 @@ export default function PackingOrderHistoryScreen({ navigation }: AppNavigation)
                     </ScrollView>
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

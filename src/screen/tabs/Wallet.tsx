@@ -267,7 +267,7 @@ const MyWalletScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <FlatList
         data={flatTransactions}
         renderItem={renderTransaction}
@@ -289,7 +289,7 @@ const MyWalletScreen = () => {
           />
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

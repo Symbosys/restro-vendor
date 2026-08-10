@@ -136,8 +136,6 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#8719C6" />
-
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>

@@ -486,7 +486,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -657,7 +657,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

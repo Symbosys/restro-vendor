@@ -70,7 +70,7 @@ const ProductsScreen: React.FC = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {/* Sticky Header */}
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
@@ -157,7 +157,7 @@ const ProductsScreen: React.FC = () => {
                     </View>
                 ))}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 

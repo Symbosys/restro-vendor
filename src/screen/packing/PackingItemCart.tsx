@@ -11,7 +11,6 @@ import {
     Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -95,7 +94,7 @@ export default function CartScreen({ navigation }: AppNavigation) {
     // Empty cart state
     if (!isLoading && !isError && cartItems.length === 0) {
         return (
-            <SafeAreaView style={styles.safeArea}>
+            <View style={styles.safeArea}>
                 <View style={styles.container}>
                     <View style={styles.topBar}>
                         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -121,12 +120,12 @@ export default function CartScreen({ navigation }: AppNavigation) {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </SafeAreaView>
+            </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <View style={styles.container}>
                 {/* Top Bar */}
                 <View style={styles.topBar}>
@@ -340,7 +339,7 @@ export default function CartScreen({ navigation }: AppNavigation) {
                     </>
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

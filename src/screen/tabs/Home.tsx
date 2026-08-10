@@ -101,8 +101,7 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <View style={styles.container}>
             {!storeOpen ? (
                 <OfflineView onGoOnline={handleToggleStore} />
             ) : (
@@ -176,7 +175,7 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
                     }}
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 };
 

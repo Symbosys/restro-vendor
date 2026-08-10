@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { WebView } from "react-native-webview";
 import { LegalDocumentType, useGetLegalDocumentByType } from "../../api/hooks/legal.hook";
@@ -17,7 +16,6 @@ const { width: screenWidth } = Dimensions.get("window");
 
 const Docs = ({ navigation, route }: any) => {
     const { type } = route.params as { type: LegalDocumentType };
-    const insets = useSafeAreaInsets();
     
     // UI States
     const [progress, setProgress] = useState(0);
@@ -119,7 +117,7 @@ const Docs = ({ navigation, route }: any) => {
                 style={styles.header}
                 onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
             >
-                <View style={[styles.headerGradient, { paddingTop: insets.top + 16, paddingBottom: 24 }]}>
+                <View style={[styles.headerGradient, { paddingTop: 16, paddingBottom: 24 }]}>
                     <View style={styles.headerContent}>
                         <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
                             <Icon name="arrow-back" size={24} color={COLORS.white} />

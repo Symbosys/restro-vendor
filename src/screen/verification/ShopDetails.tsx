@@ -478,8 +478,7 @@ function AddAddress({ navigation }: AppNavigation) {
     areaName.trim().length > 0;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
+    <View style={styles.container}>
       {hasLocationPermission ? null : (
         <View
           style={{
@@ -1021,7 +1020,7 @@ function AddAddress({ navigation }: AppNavigation) {
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

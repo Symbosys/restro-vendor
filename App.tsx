@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+import { StatusBar } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import StackNavigation from './src/navigation/Stack';
 import AuthProvider from './src/context/AuthContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -15,17 +17,20 @@ const App = () => {
   }, []);
 
   return (
-    <>
-      <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <AuthProvider>
-            <WebSocketProvider>
-              <StackNavigation />
-            </WebSocketProvider>
-          </AuthProvider>
-        </GestureHandlerRootView>
-      </QueryClientProvider>
-    </>
+    <SafeAreaProvider>
+      <StatusBar barStyle="light-content" backgroundColor="#8719C6" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#8719C6' }}>
+        <QueryClientProvider client={queryClient}>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <AuthProvider>
+              <WebSocketProvider>
+                <StackNavigation />
+              </WebSocketProvider>
+            </AuthProvider>
+          </GestureHandlerRootView>
+        </QueryClientProvider>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

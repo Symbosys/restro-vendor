@@ -155,9 +155,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
   // ==========================================
   if (vendorDetails.status === 'PENDING') {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
-
+      <View style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.centerContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
 
           {/* Nested Circles to create the Glow/Ring effect */}
@@ -181,7 +179,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
             <Text style={styles.primaryBtnText}>Back to Home</Text>
           </TouchableOpacity> */}
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

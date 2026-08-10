@@ -3,14 +3,12 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
-    StatusBar,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Loader from '../../../components/ui/Loader';
 import { useAuth } from '../../../context/AuthContext';
@@ -75,8 +73,7 @@ const UpdateBankAccountScreen = ({ navigation }: AppNavigation) => {
     if (updateBankMutation.isPending) return <Loader />;
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <View style={styles.container}>
 
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 10 }}>
@@ -157,7 +154,7 @@ const UpdateBankAccountScreen = ({ navigation }: AppNavigation) => {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 };
 

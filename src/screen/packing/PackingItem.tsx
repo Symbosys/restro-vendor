@@ -12,7 +12,6 @@ import {
     RefreshControl,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -141,7 +140,7 @@ export default function PackingScreen({ navigation }: AppNavigation) {
     }, [getProductQuantity, incrementQuantity, decrementQuantity, handleAddToCart, addToCartMutation.isPending]);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <View style={styles.container}>
                 {/* Top App Bar */}
                 <View style={styles.topBar}>
@@ -290,7 +289,7 @@ export default function PackingScreen({ navigation }: AppNavigation) {
                     </TouchableOpacity>
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

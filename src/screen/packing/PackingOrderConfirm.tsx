@@ -12,7 +12,7 @@ import {
     ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../../theme/color';
 import { AppNavigation } from '../../types/types';
@@ -58,7 +58,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
     // SUCCESS STATE
     if (orderPlaced && orderDetails) {
         return (
-            <SafeAreaView style={styles.safeArea}>
+            <View style={styles.safeArea}>
                 <View style={styles.container}>
                     {/* Top Bar */}
                     <View style={styles.topBar}>
@@ -150,13 +150,13 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                         </TouchableOpacity>
                     </View>
                 </View>
-            </SafeAreaView>
+            </View>
         );
     }
 
     // CONFIRMATION STATE
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <KeyboardAvoidingView
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -265,7 +265,7 @@ export default function PackingOrderConfirmScreen({ navigation }: AppNavigation)
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 }
 
