@@ -8,7 +8,17 @@ export const fetchNotification = async (params: NotificationQueryParams): Promis
         const res = await api.get("/notification/all", { params });
         return res.data;
     } catch (error) {
-        ErrorMessage(error as AxiosError | Error)
+        ErrorMessage(error as AxiosError | Error);
         throw error;
     }
-}
+};
+
+export const markNotificationAsRead = async (id: string): Promise<any> => {
+    try {
+        const res = await api.patch(`/notification/${id}/read`);
+        return res.data;
+    } catch (error) {
+        ErrorMessage(error as AxiosError | Error);
+        throw error;
+    }
+};

@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../../context/AuthContext';
-import { useNotification } from '../../hooks/useNotification';
+import { useMarkNotificationRead, useNotification } from '../../hooks/useNotification';
 import { COLORS } from '../../theme/color';
 import { NotificationItem, NotificationType } from '../../types/notification.type';
 
@@ -87,19 +88,38 @@ const getColor = (category: Notification['type']): string => {
   }
 };
 
+const extractOrderId = (notification: Notification): string | undefined => {
+  if (notification.data?.orderId) {
+    return String(notification.data.orderId);
+  }
+  if (notification.data?.id) {
+    return String(notification.data.id);
+  }
+  if (notification.deepLink) {
+    const match = notification.deepLink.match(/order\/([^\/]+)/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return undefined;
+};
+
 interface NotificationModalProps {
   notification: Notification;
   visible: boolean;
   onClose: () => void;
+  onViewDetails?: (orderId: string) => void;
 }
 
-const NotificationDetailModal: React.FC<NotificationModalProps> = ({ notification, visible, onClose }) => {
+const NotificationDetailModal: React.FC<NotificationModalProps> = ({ notification, visible, onClose, onViewDetails }) => {
+  const orderId = extractOrderId(notification);
+  const showViewDetails = !!orderId || !!notification.deepLink;
+
   const handleDeepLink = () => {
-    if (notification.deepLink) {
-      // TODO: Implement navigation to deepLink using your navigation library (e.g., react-navigation)
-      console.log('Navigating to:', notification.deepLink);
-    }
     onClose();
+    if (orderId && onViewDetails) {
+      onViewDetails(orderId);
+    }
   };
 
   if (!visible) return null;
@@ -163,7 +183,7 @@ const NotificationDetailModal: React.FC<NotificationModalProps> = ({ notificatio
                   ))}
                 </View>
               )}
-              {notification.deepLink && (
+              {showViewDetails && (
                 <TouchableOpacity style={[styles.deepLinkButton, { backgroundColor: notification.iconColor }]} onPress={handleDeepLink}>
                   <Text style={styles.deepLinkText}>View Details</Text>
                 </TouchableOpacity>
@@ -176,28 +196,31 @@ const NotificationDetailModal: React.FC<NotificationModalProps> = ({ notificatio
   );
 };
 
-const NotificationsScreen: React.FC = () => {
+const NotificationsScreen: React.FC<any> = ({ navigation }) => {
   const [selectedFilter, setSelectedFilter] = React.useState<'All' | 'Orders' | 'Payments' | 'System'>('All');
-  const [localNotifications, setLocalNotifications] = React.useState<Notification[]>([]);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [selectedNotification, setSelectedNotification] = React.useState<Notification | null>(null);
 
   const { vendorId, isAuthenticated } = useAuth();
+  const markReadMutation = useMarkNotificationRead();
 
-  // CHANGE: Destructure isFetchingNextPage and hasNextPage from the hook (assuming it's useInfiniteQuery)
+  const handleViewOrderDetails = (orderId: string) => {
+    if (orderId && navigation?.navigate) {
+      navigation.navigate('OrderDetails', { orderId });
+    }
+  };
+
   const {
     data: queryData,
-    error,
-    isError,
     isLoading,
     isFetching,
-    isFetchingNextPage,  // NEW: For next-page loading
-    hasNextPage,         // NEW: For checking if more pages exist
-    fetchNextPage
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
   } = useNotification({
     recipientId: vendorId || "",
     recipientType: "VENDOR",
-    // REMOVE: page: 1, limit: 10  // Infinite query manages these internally
   }, { enabled: isAuthenticated });
 
   const notificationsFromApi = React.useMemo(() =>
@@ -205,11 +228,11 @@ const NotificationsScreen: React.FC = () => {
     [queryData]
   );
 
-  React.useEffect(() => {
-    const mapped = notificationsFromApi.map((item: NotificationItem) => {
+  const notifications: Notification[] = React.useMemo(() => {
+    return notificationsFromApi.map((item: NotificationItem) => {
       const category = getCategory(item.type);
       return {
-        id: item.id,
+        id: String(item.id),
         icon: getIcon(category),
         iconColor: getColor(category),
         title: item.title,
@@ -221,22 +244,22 @@ const NotificationsScreen: React.FC = () => {
         deepLink: item.deepLink,
       } as Notification;
     });
-    setLocalNotifications(mapped);
   }, [notificationsFromApi]);
 
-  const filteredNotifications = localNotifications.filter((notif) =>
-    selectedFilter === 'All' || notif.type === selectedFilter
-  );
+  const filteredNotifications = React.useMemo(() => {
+    return notifications.filter((notif) =>
+      selectedFilter === 'All' || notif.type === selectedFilter
+    );
+  }, [notifications, selectedFilter]);
 
   const handleNotificationPress = (notification: Notification) => {
-    setLocalNotifications((prev) =>
-      prev.map((n) => (n.id === notification.id ? { ...n, isUnread: false } : n))
-    );
+    if (notification.isUnread) {
+      markReadMutation.mutate(notification.id);
+    }
     setSelectedNotification(notification);
     setModalVisible(true);
   };
 
-  // CHANGE: Simplify to use hasNextPage && !isFetchingNextPage (more reliable than manual checks)
   const handleEndReached = () => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -262,7 +285,6 @@ const NotificationsScreen: React.FC = () => {
     );
   };
 
-  // NEW: Footer for next-page loading spinner
   const renderFooterComponent = () => {
     if (!isFetchingNextPage) return null;
     return (
@@ -285,9 +307,6 @@ const NotificationsScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notifications</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <Icon name="done-all" size={32} color={COLORS.white} />
-        </TouchableOpacity>
       </View>
       {/* Filter Bar */}
       <View style={styles.filterBar}>
@@ -324,14 +343,22 @@ const NotificationsScreen: React.FC = () => {
             onPress={() => handleNotificationPress(notification)}
           />
         )}
-        keyExtractor={(item, index) => index.toString()}  // CHANGE: Use real ID instead of index for better perf/reconciliation
+        keyExtractor={(item) => String(item.id)}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.1}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.mainContent, { paddingBottom: 100 }]}
         ListEmptyComponent={renderEmptyComponent}
-        ListFooterComponent={renderFooterComponent}  // NEW: Loading spinner at bottom during fetch
-        removeClippedSubviews={true}  // OPTIONAL: Perf boost for long lists
+        ListFooterComponent={renderFooterComponent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !isFetchingNextPage}
+            onRefresh={refetch}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+        removeClippedSubviews={true}
       />
       {modalVisible && selectedNotification && (
         <NotificationDetailModal
@@ -341,6 +368,7 @@ const NotificationsScreen: React.FC = () => {
             setModalVisible(false);
             setSelectedNotification(null);
           }}
+          onViewDetails={handleViewOrderDetails}
         />
       )}
     </SafeAreaView>
