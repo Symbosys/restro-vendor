@@ -298,7 +298,6 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
   // ==========================================
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
       <Header />
 
       <ScrollView contentContainerStyle={styles.centerContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
