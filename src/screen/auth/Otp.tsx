@@ -141,7 +141,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
         <View style={styles.logoContainer}>
           <Text style={styles.logoText}>Minta Fresh</Text>
         </View>
-        <Text style={styles.tagline}>Quick & Fresh</Text>
+        <Text style={styles.tagline}>Quick & Fresh</Text> 
       </View>
 
       {/* Content */}
