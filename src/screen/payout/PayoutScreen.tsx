@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
   },
   selectedBankOption: {
     borderColor: COLORS.primary,
-    backgroundColor: '#F5EEFF',
+    backgroundColor: COLORS.primaryLight,
   },
   bankOptionDetails: {
     flex: 1,

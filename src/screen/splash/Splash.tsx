@@ -7,11 +7,13 @@ import {
   Modal,
   PermissionsAndroid,
   Platform,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
+import { COLORS } from '../../theme/color';
 import { useAuth } from '../../context/AuthContext';
 import { updateVendor } from '../../services/vendor.service';
 import { RootStackParamList } from '../../types/types';
@@ -166,6 +168,7 @@ const Splash = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <Image
         source={require('../../assets/logo/LOGO.png')}
         style={styles.logo}
@@ -200,7 +203,7 @@ const Splash = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -215,7 +218,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalBox: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     padding: 25,
     borderRadius: 20,
     width: '80%',
@@ -226,22 +229,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   modalText: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#555',
+    color: COLORS.textSecondary,
     marginBottom: 20,
   },
   allowButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 30,
   },
   allowText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '600',
     fontSize: 16,
   },

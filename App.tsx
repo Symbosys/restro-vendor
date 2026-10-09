@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WebSocketProvider } from './src/context/WebSocketContext';
 import { initNotificationListeners } from './src/screen/splash/notification';
+import { COLORS } from './src/theme/color';
 
 const queryClient = new QueryClient();
 
@@ -18,8 +19,8 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#8719C6" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#8719C6' }}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <AuthProvider>

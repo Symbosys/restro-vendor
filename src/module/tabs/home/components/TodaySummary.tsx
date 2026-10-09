@@ -68,8 +68,8 @@ const TodaySummary: React.FC = () => {
                         icon="shopping-bag"
                         label="Orders"
                         value={ordersValue}
-                        color="#8719C6"
-                        bgColor="#f5eeff"
+                        color={COLORS.primary}
+                        bgColor={COLORS.primaryLight}
                     />
                     <SummaryItem
                         icon="account-balance-wallet"

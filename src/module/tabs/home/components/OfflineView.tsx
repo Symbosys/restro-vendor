@@ -11,7 +11,7 @@ interface OfflineViewProps {
 const OfflineView: React.FC<OfflineViewProps> = ({ onGoOnline }) => {
     return (
         <View style={styles.offlineContainer}>
-            <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+            <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
             <View style={styles.offlineContent}>
                 <View style={styles.offlineIllustration}>
                     <View style={styles.offlineCircleOuter}>

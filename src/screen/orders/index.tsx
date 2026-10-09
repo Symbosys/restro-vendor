@@ -397,7 +397,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                     colors={
                       isCancelled || isDelivered
                         ? ['#CBD5E1', '#94A3B8']
-                        : ['#8719C6', '#9D2DE0']
+                        : [COLORS.primary, COLORS.primaryDark]
                     }
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -564,7 +564,7 @@ const OrderDetailsScreen = ({ navigation, route }: AppNavigation) => {
                       </LinearGradient>
                     ) : isLatest ? (
                       <LinearGradient
-                        colors={['#8719C6', '#9D2DE0']}
+                        colors={[COLORS.primary, COLORS.primaryDark]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.timelineCircleActive}

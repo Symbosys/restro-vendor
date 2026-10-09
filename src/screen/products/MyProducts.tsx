@@ -11,6 +11,7 @@ import {
     Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from '../../theme/color';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     filterChipActive: {
-        backgroundColor: '#8719C6', // bg-primary
+        backgroundColor: COLORS.primary, // bg-primary
     },
     filterText: {
         fontSize: 14, // text-sm
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     vendorPriceText: {
         fontSize: 16, // text-base
         fontWeight: '700', // font-bold
-        color: '#8719C6', // text-primary
+        color: COLORS.primary, // text-primary
         lineHeight: 24,
     },
 });

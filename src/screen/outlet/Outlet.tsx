@@ -189,7 +189,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
   if (vendorDetails.status === 'REJECTED') {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <Header title="Verification Status" />
 
         <ScrollView contentContainerStyle={styles.scrollContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
@@ -256,7 +256,7 @@ const OutletStatus = ({ navigation }: AppNavigation) => {
   if (vendorDetails.status === 'BLOCKED') {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <Header title="Profile Status" />
 
         <ScrollView contentContainerStyle={styles.centerContent} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

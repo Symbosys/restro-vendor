@@ -8,7 +8,6 @@ import {
     Text,
     View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Error from '../../components/ui/error/Error';
 import { COLORS } from '../../theme/color';
@@ -102,6 +101,7 @@ const VendorDashboard = ({ navigation }: AppNavigation) => {
 
     return (
         <View style={styles.container}>
+            <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
             {!storeOpen ? (
                 <OfflineView onGoOnline={handleToggleStore} />
             ) : (

@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
 import { RootStackParamList } from '../../types/types';
+import { COLORS } from '../../theme/color';
 
 const { width } = Dimensions.get('window');
 
@@ -154,7 +155,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
             <Icon
               name="edit"
               size={20}
-              color="#8719C6"
+              color={COLORS.primary}
               style={styles.editIcon}
             />
           </TouchableOpacity>
@@ -231,10 +232,10 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
   },
   header: {
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
     paddingTop: 50,
     paddingBottom: 30,
     alignItems: 'center',
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: 'white',
     fontStyle: 'italic',
-    textShadowColor: '#8B008B',
+    textShadowColor: COLORS.primaryDark,
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 0,
   },
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#f9eae9',
+    backgroundColor: COLORS.secondary,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 24,
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
     height: (width - 80) / 4,
     borderRadius: (width - 80) / 4 / 2,
     borderWidth: 3,
-    borderColor: '#8719C6',
+    borderColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   verifyButton: {
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   timerValue: {
-    color: '#8719C6',
+    color: COLORS.primary,
     fontWeight: '700',
   },
   buttonsContainer: {
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',

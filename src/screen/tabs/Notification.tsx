@@ -81,9 +81,9 @@ const getIcon = (category: Notification['type']): string => {
 
 const getColor = (category: Notification['type']): string => {
   switch (category) {
-    case 'Orders': return '#8719C6';
+    case 'Orders': return COLORS.primary;
     case 'Payments': return '#16a34a';
-    case 'System': return '#ff9fa3';
+    case 'System': return COLORS.highlight;
     default: return '#3b82f6';
   }
 };
@@ -126,9 +126,9 @@ const NotificationDetailModal: React.FC<NotificationModalProps> = ({ notificatio
 
   const getTypeColor = (type: Notification['type']) => {
     switch (type) {
-      case 'Orders': return '#8719C6';
+      case 'Orders': return COLORS.primary;
       case 'Payments': return '#16a34a';
-      case 'System': return '#ff9fa3';
+      case 'System': return COLORS.highlight;
       default: return COLORS.primary;
     }
   };

@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
+import { COLORS } from '../theme/color';
 
 export type NotificationType =
   | "NEW_ORDER"
@@ -131,13 +132,13 @@ export const getIconColor = (backendType: string): string => {
     case 'ORDER_STATUS_UPDATE':
     case 'ORDER_DELIVERED':
     case 'ORDER_CANCELLED':
-      return '#8719C6';
+      return COLORS.primary;
     case 'PAYMENT_RECEIVED':
     case 'PAYOUT_PROCESSED':
       return '#16a34a';
     case 'ACCOUNT_ALERT':
     case 'SYSTEM':
-      return backendType === 'ACCOUNT_ALERT' ? '#ff9fa3' : '#3b82f6';
+      return backendType === 'ACCOUNT_ALERT' ? COLORS.highlight : '#3b82f6';
     default:
       return '#3b82f6';
   }

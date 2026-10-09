@@ -6,7 +6,7 @@ const { width } = Dimensions.get('window');
 // Enhanced Color Palette for a Premium Feel
 const THEME = {
     primary: COLORS.primary,
-    primaryLight: '#f5eeff',
+    primaryLight: COLORS.primaryLight,
     secondary: '#0f172a', // Dark Navy
     success: '#10b981',
     warning: '#f59e0b',

@@ -176,7 +176,7 @@ const ReportProblemScreen: React.FC<AppNavigation> = ({ navigation }) => {
             {/* Submit Button */}
             <View style={styles.submitContainer}>
                 <LinearGradient
-                    colors={['#8719C6', '#b58ff0']}
+                    colors={[COLORS.primary, COLORS.accent]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.submitButton}

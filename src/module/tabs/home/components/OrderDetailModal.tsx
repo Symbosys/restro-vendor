@@ -57,7 +57,7 @@ const OrderDetailModal: React.FC<OrderModalProps> = ({ orders, visible, onClose 
             case OrderStatus.PREPARING:
                 return { colors: ['#f59e0b', '#d97706'], label: 'PREPARING', secondary: '#fffbeb' };
             case OrderStatus.READY_FOR_PICKUP:
-                return { colors: [COLORS.primary, '#6d28d9'], label: 'READY', secondary: '#f5eeff' };
+                return { colors: [COLORS.primary, COLORS.primaryDark], label: 'READY', secondary: COLORS.primaryLight };
             default:
                 return { colors: ['#64748b', '#475569'], label: 'ORDER', secondary: '#f8fafc' };
         }

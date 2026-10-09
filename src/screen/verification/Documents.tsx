@@ -4,6 +4,7 @@ import { ScrollView, View, ToastAndroid, Image, StyleSheet, StatusBar, TextInput
 import { RootStackParamList } from '../../types/types';
 import { useVendorDocumentStore } from '../../api/hooks/document';
 import { useAuth } from '../../context/AuthContext';
+import { COLORS } from '../../theme/color';
 
 type DocumentType = 'aadhaar' | 'pan' | 'fssai';
 
@@ -344,16 +345,16 @@ const DocumentVerification = ({ navigation }: { navigation: NavigationProp<RootS
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#f9eae9',
+    backgroundColor: COLORS.secondary,
   },
   header: {
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
     paddingTop: 20,
     paddingBottom: 10,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 8,
-    shadowColor: '#8719C6',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -370,7 +371,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#f9eae9',
+    color: COLORS.secondary,
     textAlign: 'center',
     marginBottom: 12,
     opacity: 0.95,
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
     padding: 6,
     marginBottom: 24,
     elevation: 4,
-    shadowColor: '#8719C6',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -450,7 +451,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   selectorItemActive: {
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
   },
   selectorItemVerified: {
     backgroundColor: '#f0fdf4',
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: '#ffffff',
     elevation: 6,
-    shadowColor: '#8719C6',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#f9eae9',
+    backgroundColor: COLORS.secondary,
     opacity: 0.5,
   },
   imageDecorationRight: {
@@ -519,15 +520,15 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#e9d5f5',
+    backgroundColor: COLORS.highlight,
     opacity: 0.5,
   },
   imageContainer: {
-    backgroundColor: '#f9eae9',
+    backgroundColor: COLORS.secondary,
     borderRadius: 24,
     padding: 20,
     borderWidth: 3,
-    borderColor: '#8719C6',
+    borderColor: COLORS.primary,
     borderStyle: 'dashed',
   },
   image: {
@@ -588,12 +589,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
     paddingVertical: 18,
     borderRadius: 16,
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#8719C6',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -641,11 +642,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#8719C6',
+    borderColor: COLORS.primary,
     elevation: 2,
   },
   navButtonText: {
-    color: '#8719C6',
+    color: COLORS.primary,
     fontSize: 16,
     fontWeight: '600',
   },

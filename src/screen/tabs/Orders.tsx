@@ -304,7 +304,7 @@ const MyOrdersScreen = ({ navigation }: AppNavigation) => {
       case 'Pending':
         return { color: '#3b82f6', bgColor: '#eff6ff' };
       case 'Accepted':
-        return { color: COLORS.primary, bgColor: '#f5eeff' };
+        return { color: COLORS.primary, bgColor: COLORS.primaryLight };
       case 'Delivered':
       case 'Ready for Pickup':
         return { color: '#10b981', bgColor: '#ecfdf5' };
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
     marginLeft: 52,
   },
   moreItemsBadge: {
-    backgroundColor: '#f5eeff',
+    backgroundColor: COLORS.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,

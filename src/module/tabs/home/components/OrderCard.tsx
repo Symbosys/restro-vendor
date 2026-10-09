@@ -41,11 +41,11 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
             case OrderStatus.PREPARING:
                 return { color: '#f59e0b', bgColor: '#fffbeb', label: 'Preparing' };
             case OrderStatus.READY_FOR_PICKUP:
-                return { color: COLORS.primary, bgColor: '#f5eeff', label: 'Ready' };
+                return { color: COLORS.primary, bgColor: COLORS.primaryLight, label: 'Ready' };
             case OrderStatus.DELIVERED:
                 return { color: '#64748b', bgColor: '#f1f5f9', label: 'Delivered' };
             default:
-                return { color: COLORS.primary, bgColor: '#f5eeff', label: 'Accepted' };
+                return { color: COLORS.primary, bgColor: COLORS.primaryLight, label: 'Accepted' };
         }
     }, []);
 
@@ -137,7 +137,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ item: broadcast, onPress, onActio
 };
 
 const THEME = {
-    primary: '#8719C6',
+    primary: COLORS.primary,
     textMain: '#1e293b',
     textDim: '#64748b',
 };

@@ -385,7 +385,7 @@ const AISupportAssistantScreen = ({ navigation }: any) => {
                     </TouchableOpacity>
 
                     <LinearGradient
-                        colors={['#8719C6', '#b58ff0']}
+                        colors={[COLORS.primary, COLORS.accent]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={styles.gradientTextWrapper}>
@@ -436,7 +436,7 @@ const AISupportAssistantScreen = ({ navigation }: any) => {
                             <View style={msg.sender === 'user' ? styles.messageContainerUser : styles.messageContainer}>
                                 {msg.sender === 'ai' ? (
                                     <LinearGradient
-                                        colors={['#ffffff', '#f8f4ff']}
+                                        colors={[COLORS.surface, COLORS.primaryLight]}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
                                         style={styles.aiBubble}>
@@ -445,7 +445,7 @@ const AISupportAssistantScreen = ({ navigation }: any) => {
                                     </LinearGradient>
                                 ) : (
                                     <LinearGradient
-                                        colors={['#8719C6', '#b58ff0']}
+                                        colors={[COLORS.primary, COLORS.accent]}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
                                         style={styles.userBubble}>
@@ -599,13 +599,13 @@ const AISupportAssistantScreen = ({ navigation }: any) => {
                         {msg.cardType === 'call_support' && (
                             <View style={styles.cardContainer}>
                                 <LinearGradient
-                                    colors={['#8719C6', '#5B1186']}
+                                    colors={[COLORS.primary, COLORS.primaryDark]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                     style={styles.callSupportCard}>
                                     <View style={styles.callCardHeader}>
                                         <View style={styles.callIconCircle}>
-                                            <Icon name="headset-mic" size={28} color="#8719C6" />
+                                            <Icon name="headset-mic" size={28} color={COLORS.primary} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Text style={styles.callCardTitle}>Dedicated Vendor Helpline Unlocked</Text>
@@ -687,7 +687,7 @@ const AISupportAssistantScreen = ({ navigation }: any) => {
                         </View>
 
                         <LinearGradient
-                            colors={['#8719C6', '#b58ff0']}
+                            colors={[COLORS.primary, COLORS.accent]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={styles.sendButton}>

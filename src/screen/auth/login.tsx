@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    backgroundColor: '#8719C6',
+    backgroundColor: COLORS.primary,
     paddingVertical: 18,
     borderRadius: 30,
     alignItems: 'center',
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#8719C6',
+    borderColor: COLORS.primary,
     borderRadius: 30,
     paddingHorizontal: 16,
     paddingVertical: 14,
