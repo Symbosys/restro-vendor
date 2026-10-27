@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   continueButton: {
-    backgroundColor: '#1D9C3A',
+    backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',

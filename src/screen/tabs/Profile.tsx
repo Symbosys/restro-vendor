@@ -9,9 +9,12 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Linking
+  Linking,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../api/api';
 import { useAuth } from '../../context/AuthContext';
@@ -33,26 +36,75 @@ interface LinkItem {
 
 // --- Menu Data ---
 const restaurantInfo: LinkItem[] = [
-  { icon: 'person', title: 'Personal Info', route: 'UpdateProfile', subtext: 'Update your personal details' },
-  { icon: 'description', title: 'Documents', route: 'MyDocuments', subtext: 'Manage vendor documents' },
-  { icon: 'store', title: 'Shop Details', route: 'MyShopDetails', subtext: 'Address & shop info' },
-  { icon: 'location-on', title: 'Work Location', route: 'WorkLocation', subtext: 'Update service area' },
+  {
+    icon: 'person',
+    title: 'Personal Info',
+    route: 'UpdateProfile',
+    subtext: 'Update your personal details',
+  },
+  {
+    icon: 'description',
+    title: 'Documents',
+    route: 'MyDocuments',
+    subtext: 'Manage vendor documents',
+  },
+  {
+    icon: 'store',
+    title: 'Shop Details',
+    route: 'MyShopDetails',
+    subtext: 'Address & shop info',
+  },
+  {
+    icon: 'location-on',
+    title: 'Work Location',
+    route: 'WorkLocation',
+    subtext: 'Update service area',
+  },
   // { icon: 'image', title: 'Shop Image', route: 'ShopImage', subtext: 'Update storefront photo' },
   // { icon: 'gesture', title: 'Signature', route: 'SignatureUpload', subtext: 'Digital signature' },
-  { icon: 'account-balance', title: 'Bank Details', route: 'BankList', subtext: 'Payout accounts' },
+  {
+    icon: 'account-balance',
+    title: 'Bank Details',
+    route: 'BankList',
+    subtext: 'Payout accounts',
+  },
 ];
 
 const operations: LinkItem[] = [
-  { icon: 'analytics', title: 'Analytics', route: 'Analytics', subtext: 'Sales & performance' },
+  {
+    icon: 'analytics',
+    title: 'Analytics',
+    route: 'Analytics',
+    subtext: 'Sales & performance',
+  },
   { icon: 'inventory', title: 'Packing Items', route: 'PackingBegItems' },
   // { icon: 'shopping-cart', title: 'Packing Cart', route: 'Packingcart' },
-  { icon: 'receipt-long', title: 'Packing Orders', route: 'PackingOrderHistory' },
+  {
+    icon: 'receipt-long',
+    title: 'Packing Orders',
+    route: 'PackingOrderHistory',
+  },
 ];
 
 const support: LinkItem[] = [
-  { icon: 'help-outline', title: 'Help & Support', route: 'AiAssistant', subtext: 'AI Partner Support Assistant' },
-  { icon: 'gavel', title: 'Terms & Conditions', route: 'Docs', params: { type: 'TERMS_AND_CONDITIONS' } },
-  { icon: 'verified-user', title: 'Privacy Policy', route: 'Docs', params: { type: 'PRIVACY_POLICY' } },
+  {
+    icon: 'help-outline',
+    title: 'Help & Support',
+    route: 'AiAssistant',
+    subtext: 'AI Partner Support Assistant',
+  },
+  {
+    icon: 'gavel',
+    title: 'Terms & Conditions',
+    route: 'Docs',
+    params: { type: 'TERMS_AND_CONDITIONS' },
+  },
+  {
+    icon: 'verified-user',
+    title: 'Privacy Policy',
+    route: 'Docs',
+    params: { type: 'PRIVACY_POLICY' },
+  },
 ];
 
 const VendorProfileScreen = ({ navigation }: AppNavigation) => {
@@ -95,7 +147,8 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
         {data.map((item, index) => {
           const isDocsRoute = item.route === 'MyDocuments';
           // Check if all major docs are verified
-          const isVerified = isDocsRoute &&
+          const isVerified =
+            isDocsRoute &&
             document?.isAadhaarVerified &&
             document?.isPanVerified &&
             (document?.fassaiNumber ? document?.isFassaiVerified : true);
@@ -107,11 +160,22 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
                 onPress={() => handleLinkPress(item)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.iconBox, { backgroundColor: item.color || '#F3E8FF' }]}>
+                <View
+                  style={[
+                    styles.iconBox,
+                    { backgroundColor: item.color || '#F3E8FF' },
+                  ]}
+                >
                   <Icon name={item.icon} size={22} color={COLORS.primary} />
                 </View>
                 <View style={styles.menuContent}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
                     <Text style={styles.menuTitle}>{item.title}</Text>
                     {isVerified && (
                       <View style={styles.verifiedBadge}>
@@ -120,13 +184,17 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
                       </View>
                     )}
                   </View>
-                  {item.subtext && <Text style={styles.menuSubtitle}>{item.subtext}</Text>}
+                  {item.subtext && (
+                    <Text style={styles.menuSubtitle}>{item.subtext}</Text>
+                  )}
                 </View>
-                <Icon name="chevron-right" size={20} color="#CBD5E1" />
+                <View style={styles.arrowCircle}>
+                  <Icon name="chevron-right" size={22} color={COLORS.primary} />
+                </View>
               </TouchableOpacity>
               {index < data.length - 1 && <View style={styles.separator} />}
             </View>
-          )
+          );
         })}
       </View>
     </View>
@@ -134,79 +202,101 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
 
   return (
     // <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        overScrollMode="never"
-      >
-        {/* --- HEADER (Inside ScrollView now) --- */}
-        <View style={[styles.headerBackground, { paddingTop: headerPaddingTop }]}>
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Profile</Text>
-            {/* <TouchableOpacity style={styles.editBtn}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      overScrollMode="never"
+    >
+      {/* --- HEADER (Inside ScrollView now) --- */}
+      <View style={[styles.headerBackground, { paddingTop: headerPaddingTop }]}>
+        <View pointerEvents="none" style={styles.headerShapeTop} />
+        <View pointerEvents="none" style={styles.headerShapeRight} />
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Profile</Text>
+          {/* <TouchableOpacity style={styles.editBtn}>
               <Icon name="edit" size={20} color="#FFF" />
             </TouchableOpacity> */}
-          </View>
         </View>
+      </View>
 
-        {/* --- PROFILE CARD --- */}
-        <View style={styles.profileCard}>
-          {isLoading ? (
-            <ActivityIndicator color={COLORS.primary} size="large" />
-          ) : (
-            <>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={{ uri: vendor?.images?.url || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' }}
-                  style={styles.avatar}
-                />
-                <TouchableOpacity
-                  style={styles.cameraBadge}
-                  onPress={() => navigation.navigate('ShopImage' as never)}
-                  activeOpacity={0.8}
-                >
-                  <Icon name="camera-alt" size={16} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.name}>{vendor?.shopName || 'Vendor Name'}</Text>
-              <Text style={styles.address}>{vendor?.completeAddress || 'No address details available'}</Text>
-
-              <View style={[styles.statusBadge, { backgroundColor: vendor?.isApproved ? '#DCFCE7' : '#FEE2E2' }]}>
-                <Icon
-                  name={vendor?.isApproved ? 'verified' : 'pending'}
-                  size={14}
-                  color={vendor?.isApproved ? '#166534' : '#991B1B'}
-                />
-                <Text style={[styles.statusText, { color: vendor?.isApproved ? '#166534' : '#991B1B' }]}>
-                  {vendor?.isApproved ? 'Verified' : 'Pending Approval'}
-                </Text>
-              </View>
-            </>
-          )}
+      {/* --- PROFILE CARD --- */}
+      <View style={styles.profileCard}>
+        <View pointerEvents="none" style={styles.profileCardDecoration}>
+          <View style={styles.profileCardShapeLeft} />
+          <View style={styles.profileCardShapeRight} />
         </View>
+        {isLoading ? (
+          <ActivityIndicator color={COLORS.primary} size="large" />
+        ) : (
+          <>
+            <View style={styles.avatarContainer}>
+              <Image
+                source={{
+                  uri:
+                    vendor?.images?.url ||
+                    'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                }}
+                style={styles.avatar}
+              />
+              <TouchableOpacity
+                style={styles.cameraBadge}
+                onPress={() => navigation.navigate('ShopImage' as never)}
+                activeOpacity={0.8}
+              >
+                <Icon name="camera-alt" size={16} color="#FFF" />
+              </TouchableOpacity>
+            </View>
 
-        {/* --- MENU SECTIONS --- */}
-        <View style={styles.menuContainer}>
-          {renderSection('BUSINESS DETAILS', restaurantInfo)}
-          {renderSection('OPERATIONS', operations)}
-          {renderSection('SUPPORT & LEGAL', support)}
+            <Text style={styles.name}>{vendor?.shopName || 'Vendor Name'}</Text>
+            <Text style={styles.address}>
+              {vendor?.completeAddress || 'No address details available'}
+            </Text>
 
-          {/* --- LOGOUT --- */}
-          <TouchableOpacity
-            style={styles.logoutButton}
-            activeOpacity={0.8}
-            onPress={handleLogout}
-          >
-            <Icon name="logout" size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: vendor?.isApproved ? '#DCFCE7' : '#FEE2E2' },
+              ]}
+            >
+              <Icon
+                name={vendor?.isApproved ? 'verified' : 'pending'}
+                size={14}
+                color={vendor?.isApproved ? '#166534' : '#991B1B'}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: vendor?.isApproved ? '#166534' : '#991B1B' },
+                ]}
+              >
+                {vendor?.isApproved ? 'Verified' : 'Pending Approval'}
+              </Text>
+            </View>
+          </>
+        )}
+      </View>
 
-          <Text style={styles.versionText}>App Version 1.0.0</Text>
-          <View style={{ height: 40 }} />
-        </View>
-      </ScrollView>
+      {/* --- MENU SECTIONS --- */}
+      <View style={styles.menuContainer}>
+        {renderSection('BUSINESS DETAILS', restaurantInfo)}
+        {renderSection('OPERATIONS', operations)}
+        {renderSection('SUPPORT & LEGAL', support)}
+
+        {/* --- LOGOUT --- */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          activeOpacity={0.8}
+          onPress={handleLogout}
+        >
+          <Icon name="logout" size={20} color="#EF4444" />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.versionText}>App Version 1.0.0</Text>
+        <View style={{ height: 40 }} />
+      </View>
+    </ScrollView>
     // </SafeAreaView>
   );
 };
@@ -214,7 +304,7 @@ const VendorProfileScreen = ({ navigation }: AppNavigation) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F7F7FB',
   },
   scrollContent: {
     flexGrow: 1,
@@ -223,12 +313,31 @@ const styles = StyleSheet.create({
   // --- Header Styles ---
   headerBackground: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingBottom: 60, // Extra padding at bottom to allow card overlap
+    paddingHorizontal: 22,
+    paddingBottom: 66, // Keeps space for the overlapping profile card
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     // REMOVED: position: 'absolute', top: 0, etc.
     // This allows the header to scroll up naturally with the content
+  },
+  headerShapeTop: {
+    position: 'absolute',
+    top: -42,
+    right: 50,
+    width: 230,
+    height: 120,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    transform: [{ rotate: '-12deg' }],
+  },
+  headerShapeRight: {
+    position: 'absolute',
+    top: 10,
+    right: -70,
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    backgroundColor: 'rgba(150,100,220,0.20)',
   },
   headerContent: {
     flexDirection: 'row',
@@ -236,10 +345,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: '800',
     color: '#FFF',
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   editBtn: {
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -248,18 +357,46 @@ const styles = StyleSheet.create({
   },
   // --- Card Styles ---
   profileCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 24,
+    position: 'relative',
+    backgroundColor: '#F5F0FF',
+    borderRadius: 28,
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 26,
     marginHorizontal: 20,
-    marginTop: -50, // Negative margin pulls it UP over the header
-    marginBottom: 24,
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    marginTop: -54,
+    marginBottom: 28,
+    shadowColor: '#2E1558',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  profileCardDecoration: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 28,
+    overflow: 'hidden',
+  },
+  profileCardShapeLeft: {
+    position: 'absolute',
+    left: -70,
+    bottom: -55,
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    backgroundColor: 'rgba(124, 58, 237, 0.07)',
+  },
+  profileCardShapeRight: {
+    position: 'absolute',
+    right: -55,
+    bottom: -75,
+    width: 165,
+    height: 165,
+    borderRadius: 83,
+    backgroundColor: 'rgba(124, 58, 237, 0.045)',
+    borderWidth: 16,
+    borderColor: 'rgba(124, 58, 237, 0.025)',
   },
   avatarContainer: {
     position: 'relative',
@@ -267,9 +404,9 @@ const styles = StyleSheet.create({
     marginTop: -50, // Pulls avatar up to overlap card edge
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 108,
+    height: 108,
+    borderRadius: 54,
     borderWidth: 4,
     borderColor: '#FFF',
     backgroundColor: '#FFF',
@@ -285,16 +422,17 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
   },
   name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontSize: 23,
+    fontWeight: '800',
+    color: '#1E1B2E',
     marginBottom: 4,
     textAlign: 'center',
   },
   address: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#73758A',
     textAlign: 'center',
+    lineHeight: 20,
     marginBottom: 16,
     paddingHorizontal: 10,
   },
@@ -312,56 +450,65 @@ const styles = StyleSheet.create({
   },
   // --- Content Wrappers ---
   menuContainer: {
-    paddingHorizontal: 20, // Add padding here since ScrollView padding was removed
+    paddingHorizontal: 20,
   },
   sectionContainer: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#94A3B8',
+    fontWeight: '800',
+    color: '#8589A3',
     marginBottom: 12,
     marginLeft: 8,
-    letterSpacing: 1,
+    letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
   menuCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    paddingVertical: 8,
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingVertical: 6,
+    shadowColor: '#2E1558',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 3,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 15,
     paddingHorizontal: 16,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 15,
   },
   menuContent: {
     flex: 1,
   },
+  arrowCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F4ECFF',
+    marginLeft: 10,
+  },
   menuTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: '700',
+    color: '#242238',
   },
   menuSubtitle: {
     fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
+    color: '#73778D',
+    marginTop: 4,
   },
   verifiedBadge: {
     backgroundColor: '#ECFDF5',
@@ -380,15 +527,15 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: '#F1F5F9',
-    marginLeft: 72,
+    marginLeft: 79,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#FFF7F7',
     paddingVertical: 16,
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#FEE2E2',
     marginBottom: 24,
@@ -401,9 +548,9 @@ const styles = StyleSheet.create({
   },
   versionText: {
     textAlign: 'center',
-    color: '#CBD5E1',
+    color: '#A4A7B8',
     fontSize: 12,
-  }
+  },
 });
 
 export default VendorProfileScreen;

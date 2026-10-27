@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
 import api from '../api/api';
 import { ErrorMessage, SuccessMessage } from '../utils/utils';
 import { useAlertStore } from '../store/alert.store';
-import { navigate } from '../helpers/navigationService';
 import { AxiosError } from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface UpdateInventoryPayload {
+  modeIds?: string[];
   categoryIds: string[];
   productIds: string[];
 }
@@ -21,11 +20,12 @@ export const useUpdateInventory = () => {
     setIsUpdating(true);
     try {
       const response = await api.post('/vendor/inventory/update', payload);
-      
+
       // Invalidate queries to ensure fresh data is fetched
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['all-products'] }),
-        queryClient.invalidateQueries({ queryKey: ['all-categories'] })
+        queryClient.invalidateQueries({ queryKey: ['all-categories'] }),
+        queryClient.invalidateQueries({ queryKey: ['vendor-modes'] }),
       ]);
 
       SuccessMessage(

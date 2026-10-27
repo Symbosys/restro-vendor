@@ -141,6 +141,7 @@ const DocumentVerification = ({ navigation }: { navigation: NavigationProp<RootS
 
   return (
     <View style={styles.mainContainer}>
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -155,14 +156,19 @@ const DocumentVerification = ({ navigation }: { navigation: NavigationProp<RootS
                 (step === 'pan' && document?.isPanVerified) ||
                 (step === 'fssai' && document?.isFassaiVerified);
 
+              const isActive = activeStep === step;
+
               return (
                 <View key={step} style={styles.progressStep}>
                   <View style={[
                     styles.progressDot,
                     stepVerified && styles.progressDotCompleted,
-                    activeStep === step && styles.progressDotActive,
+                    isActive && styles.progressDotActive,
                   ]}>
-                    <Text style={styles.progressDotText}>
+                    <Text style={[
+                      styles.progressDotText,
+                      isActive && !stepVerified && styles.progressDotTextActive,
+                    ]}>
                       {stepVerified ? '✓' : index + 1}
                     </Text>
                   </View>
@@ -255,7 +261,7 @@ const DocumentVerification = ({ navigation }: { navigation: NavigationProp<RootS
                   maxLength={config.maxLength}
                   placeholder={config.placeholder}
                   editable={!isVerified()}
-                  placeholderTextColor="#a0aec0"
+                  placeholderTextColor={COLORS.muted}
                   textAlign="center"
                 />
                 {isVerified() && (
@@ -345,16 +351,16 @@ const DocumentVerification = ({ navigation }: { navigation: NavigationProp<RootS
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.background,
   },
   header: {
     backgroundColor: COLORS.primary,
     paddingTop: 20,
-    paddingBottom: 10,
+    paddingBottom: 16,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 8,
-    shadowColor: COLORS.primary,
+    shadowColor: COLORS.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -365,22 +371,22 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: COLORS.white,
     marginBottom: 4,
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: COLORS.secondary,
+    fontSize: 14,
+    color: COLORS.primaryLight,
     textAlign: 'center',
-    marginBottom: 12,
-    opacity: 0.95,
+    marginBottom: 14,
+    fontWeight: '500',
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   progressStep: {
     flexDirection: 'row',
@@ -390,25 +396,28 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   progressDotActive: {
-    backgroundColor: '#ffffff',
-    borderColor: '#ffffff',
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.white,
     transform: [{ scale: 1.1 }],
   },
   progressDotCompleted: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: COLORS.success,
+    borderColor: COLORS.success,
   },
   progressDotText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  progressDotTextActive: {
+    color: COLORS.primary,
   },
   progressLine: {
     width: 32,
@@ -417,10 +426,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   progressLineCompleted: {
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
   },
   progressText: {
-    color: '#ffffff',
+    color: COLORS.primaryLight,
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
@@ -430,19 +439,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 18,
   },
   selectorContainer: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     borderRadius: 20,
     padding: 6,
-    marginBottom: 24,
-    elevation: 4,
-    shadowColor: COLORS.primary,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: COLORS.primaryDark,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   selectorItem: {
     flex: 1,
@@ -457,22 +468,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0fdf4',
   },
   selectorIcon: {
-    fontSize: 24,
+    fontSize: 22,
     marginBottom: 4,
   },
   selectorText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4a5568',
+    color: COLORS.textSecondary,
   },
   selectorTextActive: {
-    color: '#ffffff',
+    color: COLORS.white,
+    fontWeight: '700',
   },
   verifiedBadge: {
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -480,19 +492,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   verifiedBadgeText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 12,
     fontWeight: 'bold',
   },
   card: {
     borderRadius: 28,
-    backgroundColor: '#ffffff',
-    elevation: 6,
-    shadowColor: COLORS.primary,
+    backgroundColor: COLORS.surface,
+    elevation: 4,
+    shadowColor: COLORS.primaryDark,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   cardInner: {
     padding: 24,
@@ -501,79 +515,81 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     marginBottom: 24,
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   imageDecorationLeft: {
     position: 'absolute',
-    left: -20,
-    top: 20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.secondary,
-    opacity: 0.5,
+    left: -15,
+    top: 15,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.6,
   },
   imageDecorationRight: {
     position: 'absolute',
-    right: -20,
-    bottom: 20,
+    right: -15,
+    bottom: 15,
     width: 80,
     height: 80,
     borderRadius: 40,
     backgroundColor: COLORS.highlight,
-    opacity: 0.5,
+    opacity: 0.7,
   },
   imageContainer: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.background,
     borderRadius: 24,
-    padding: 20,
-    borderWidth: 3,
-    borderColor: COLORS.primary,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: COLORS.primaryLight,
     borderStyle: 'dashed',
   },
   image: {
-    height: 160,
-    width: 220,
+    height: 150,
+    width: 210,
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   cardTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#2d3748',
+    color: COLORS.textPrimary,
   },
   cardSubtitle: {
-    fontSize: 15,
-    color: '#718096',
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
   inputSection: {
-    marginBottom: 24,
+    marginBottom: 22,
   },
   inputWrapper: {
     position: 'relative',
-    backgroundColor: '#f7fafc',
+    backgroundColor: COLORS.background,
     borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
   },
   textInput: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600',
-    backgroundColor: '#f7fafc',
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
     textAlign: 'center',
-    paddingVertical: 16,
+    paddingVertical: 15,
     letterSpacing: 2,
     textTransform: 'uppercase',
-    color: '#2d3748',
+    color: COLORS.textPrimary,
   },
   inputIconVerified: {
     position: 'absolute',
     right: 16,
     top: '50%',
     transform: [{ translateY: -15 }],
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
     width: 30,
     height: 30,
     borderRadius: 15,
@@ -581,7 +597,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inputIconText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -589,23 +605,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 18,
+    backgroundColor: COLORS.secondary,
+    paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
     elevation: 4,
-    shadowColor: COLORS.primary,
+    shadowColor: COLORS.secondary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#cbd5e0',
+    backgroundColor: COLORS.border,
     elevation: 0,
   },
   buttonText: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: COLORS.white,
+    fontSize: 17,
     fontWeight: 'bold',
   },
   successContainer: {
@@ -614,21 +630,21 @@ const styles = StyleSheet.create({
   successBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#d1fae5',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#10b981',
+    backgroundColor: '#E8F8F0',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: COLORS.success,
   },
   successIcon: {
-    fontSize: 20,
+    fontSize: 18,
     marginRight: 8,
-    color: '#10b981',
+    color: COLORS.success,
   },
   successText: {
-    color: '#065f46',
-    fontSize: 15,
+    color: COLORS.success,
+    fontSize: 14,
     fontWeight: '600',
   },
   navButtonsContainer: {
@@ -637,33 +653,37 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   navButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     paddingVertical: 14,
-    paddingHorizontal: 24,
+    paddingHorizontal: 22,
     borderRadius: 14,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
     elevation: 2,
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
   navButtonText: {
     color: COLORS.primary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   completeButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
     paddingVertical: 18,
     borderRadius: 16,
     alignItems: 'center',
-    elevation: 6,
-    shadowColor: '#10b981',
+    elevation: 4,
+    shadowColor: COLORS.success,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     marginBottom: 16,
   },
   completeButtonText: {
-    color: '#ffffff',
+    color: COLORS.white,
     fontSize: 18,
     fontWeight: 'bold',
   },

@@ -16,18 +16,18 @@ import {
   UIManager,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { COLORS } from '../../theme/color';
 import { useGetAllProducts } from '../../hooks/useProducts';
 import { useGetAllCategories } from '../../hooks/useCategory';
-import { Category, Product } from '../../types/product.type';
+import { useGetVendorModes } from '../../hooks/useMode';
+import { Category, Product, Mode } from '../../types/product.type';
 import { parseToDecimal } from '../../utils/utils';
 import { useUpdateInventory } from '../../hooks/useInventory';
 import Loader from '../../components/ui/Loader';
 import { useVendorById } from '../../hooks/useVendorQueries';
-
 
 if (
   Platform.OS === 'android' &&
@@ -47,94 +47,254 @@ const VendorInventoryScreen = () => {
   const isTabScreen = route.name === 'Inventory';
   const tabBarHeight = isTabScreen ? (Platform.OS === 'ios' ? 90 : 75) : 0;
 
-  const [activeTabId, setActiveTabId] = useState('1');
   const { updateInventory, isUpdating } = useUpdateInventory();
   const { data: vendor } = useVendorById();
 
-  // State for selections
+  // Mode, Category, and Product Queries
+  const { data: modesResponse, isLoading: isModesLoading } =
+    useGetVendorModes();
+  const { data: categoriesResponse, isLoading: isCategoriesLoading } =
+    useGetAllCategories();
+  const { data: productsResponse, isLoading: isProductsLoading } =
+    useGetAllProducts();
+
+  // Selection states
+  const [selectedModeIds, setSelectedModeIds] = useState<string[]>([]);
   const [enabledCategories, setEnabledCategories] = useState<string[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
-  // State to track initial values from API (to detect changes)
-  const [initialEnabledCategories, setInitialEnabledCategories] = useState<string[]>([]);
-  const [initialSelectedProductIds, setInitialSelectedProductIds] = useState<string[]>([]);
+  // Snapshots for change detection
+  const [initialSelectedModeIds, setInitialSelectedModeIds] = useState<
+    string[]
+  >([]);
+  const [initialEnabledCategories, setInitialEnabledCategories] = useState<
+    string[]
+  >([]);
+  const [initialSelectedProductIds, setInitialSelectedProductIds] = useState<
+    string[]
+  >([]);
 
-  // State to track if data has been synced with API once
+  // Active mode & active category view
+  const [activeModeTabId, setActiveModeTabId] = useState<string>('');
+  const [activeTabId, setActiveTabId] = useState<string>('');
+
+  // Hydration state
   const [isHydrated, setIsHydrated] = useState(false);
 
-  const { data: products } = useGetAllProducts();
-  console.log('products', products);
-  const { data: categories } = useGetAllCategories();
+  const allModes = modesResponse?.data || [];
+  const allCategories = categoriesResponse?.data || [];
+  const allProducts = productsResponse?.data?.products || [];
 
   // ==========================================================
-  // ⚡️ UPDATED: Hydrate State from API Response (isSelected/isAvailable)
+  // ⚡️ Hydrate State from API Responses
   // ==========================================================
   useEffect(() => {
-    // If we have already synced data, or data isn't ready, do nothing
-    if (isHydrated || !products?.data?.products || !categories?.data) return;
+    if (
+      isHydrated ||
+      !modesResponse?.data ||
+      !categoriesResponse?.data ||
+      !productsResponse?.data
+    ) {
+      return;
+    }
 
-    const apiProducts = products.data.products;
-    const apiCategories = categories.data;
+    const apiModes = modesResponse.data;
+    const apiCategories = categoriesResponse.data;
+    const apiProducts = productsResponse.data.products;
 
-    // 1. Get Categories where isSelected === true
+    // 1. Pre-selected Modes
+    const preSelectedModeIds = apiModes
+      .filter((m: any) => m.isSelected)
+      .map((m: any) => m.id);
+
+    // If vendor has no modes pre-selected yet, default to first mode
+    const finalModeIds =
+      preSelectedModeIds.length > 0
+        ? preSelectedModeIds
+        : apiModes.length > 0
+        ? [apiModes[0].id]
+        : [];
+
+    // 2. Pre-selected Categories
     const preSelectedCategoryIds = apiCategories
       .filter((cat: any) => cat.isSelected)
       .map((cat: any) => cat.id);
 
-    // 2. Get Products where isAvailable === true
+    // 3. Pre-selected Products
     const preSelectedProductIds = apiProducts
       .filter((prod: any) => prod.isAvailable)
       .map((prod: any) => prod.id);
 
-    // 3. Update State
+    // 4. Update states
+    setSelectedModeIds(finalModeIds);
     setEnabledCategories(preSelectedCategoryIds);
     setSelectedProductIds(preSelectedProductIds);
 
-    // 4. Save initial state for change detection
+    // 5. Save initial snapshots
+    setInitialSelectedModeIds(finalModeIds);
     setInitialEnabledCategories(preSelectedCategoryIds);
     setInitialSelectedProductIds(preSelectedProductIds);
 
-    // 5. Set Active Tab to first category if available
-    if (apiCategories.length > 0) {
+    // 6. Set initial active mode & category tab
+    const initialModeId = finalModeIds[0] || (apiModes[0]?.id ?? '');
+    setActiveModeTabId(initialModeId);
+
+    const categoriesForInitialMode = apiCategories.filter(
+      (c: any) => !c.modeId || c.modeId === initialModeId,
+    );
+    if (categoriesForInitialMode.length > 0) {
+      setActiveTabId(categoriesForInitialMode[0].id);
+    } else if (apiCategories.length > 0) {
       setActiveTabId(apiCategories[0].id);
     }
 
-    // Mark as hydrated so user changes aren't overwritten later
     setIsHydrated(true);
+  }, [modesResponse, categoriesResponse, productsResponse, isHydrated]);
 
-  }, [products, categories, isHydrated]);
+  // Categories filtered by the active mode being viewed
+  const visibleCategories = useMemo(() => {
+    if (!allCategories.length) return [];
+    if (!activeModeTabId) {
+      return allCategories;
+    }
+    return allCategories.filter(
+      (c: any) => !c.modeId || c.modeId === activeModeTabId,
+    );
+  }, [allCategories, activeModeTabId]);
 
+  // Products under active category
+  const categoryProducts = useMemo(() => {
+    return allProducts.filter((p: any) => p.categoryId === activeTabId);
+  }, [allProducts, activeTabId]);
 
-  const realProducts = products?.data?.products || [];
-  const categoryProducts = useMemo(
-    () => realProducts.filter(p => p.categoryId === activeTabId),
-    [realProducts, activeTabId],
-  );
+  // Active Category & Enabled Status
+  const activeCategory = allCategories.find((c: any) => c.id === activeTabId);
+  const isCategoryEnabled = enabledCategories.includes(activeTabId);
 
+  // ==========================================================
+  // 🔘 Mode Selection / Activation Handlers
+  // ==========================================================
+  const handleModeCardPress = (modeId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
+    // Always switch active view to this mode
+    setActiveModeTabId(modeId);
+    const catsForMode = allCategories.filter((c: any) => c.modeId === modeId);
+    if (catsForMode.length > 0) {
+      setActiveTabId(catsForMode[0].id);
+    }
+
+    // If it was not selected in the shop, select it too!
+    if (!selectedModeIds.includes(modeId)) {
+      setSelectedModeIds(prev => [...prev, modeId]);
+    }
+  };
+
+  const handleToggleModeSelectionOnly = (modeId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+    const isCurrentlySelected = selectedModeIds.includes(modeId);
+
+    if (isCurrentlySelected) {
+      if (selectedModeIds.length === 1) {
+        Alert.alert(
+          'Mode Required',
+          'Your shop must support at least one operational mode.',
+        );
+        return;
+      }
+
+      const categoriesInThisMode = allCategories
+        .filter((c: any) => c.modeId === modeId)
+        .map((c: any) => c.id);
+
+      const hasEnabledCategories = categoriesInThisMode.some((catId: string) =>
+        enabledCategories.includes(catId),
+      );
+
+      const performDeselect = () => {
+        const nextSelectedModes = selectedModeIds.filter(id => id !== modeId);
+        setSelectedModeIds(nextSelectedModes);
+
+        // Remove categories and their products under this mode
+        setEnabledCategories(prev =>
+          prev.filter(cId => !categoriesInThisMode.includes(cId)),
+        );
+
+        const productsInThisMode = allProducts
+          .filter((p: any) => categoriesInThisMode.includes(p.categoryId))
+          .map((p: any) => p.id);
+
+        setSelectedProductIds(prev =>
+          prev.filter(pId => !productsInThisMode.includes(pId)),
+        );
+
+        // If the deselected mode was currently active, switch to another selected mode
+        if (activeModeTabId === modeId) {
+          const fallbackModeId = nextSelectedModes[0] || '';
+          setActiveModeTabId(fallbackModeId);
+          const fallbackCats = allCategories.filter(
+            (c: any) => c.modeId === fallbackModeId,
+          );
+          if (fallbackCats.length > 0) {
+            setActiveTabId(fallbackCats[0].id);
+          }
+        }
+      };
+
+      if (hasEnabledCategories) {
+        Alert.alert(
+          'Disable Mode?',
+          'Deselecting this mode will disable its categories and products from your inventory.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Disable', style: 'destructive', onPress: performDeselect },
+          ],
+        );
+      } else {
+        performDeselect();
+      }
+    } else {
+      setSelectedModeIds(prev => [...prev, modeId]);
+      setActiveModeTabId(modeId);
+      const catsForMode = allCategories.filter((c: any) => c.modeId === modeId);
+      if (catsForMode.length > 0) {
+        setActiveTabId(catsForMode[0].id);
+      }
+    }
+  };
+
+  // ==========================================================
+  // 🔘 Category Toggle Handler
+  // ==========================================================
   const toggleCategoryEnabled = (val: boolean) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (val) {
       setEnabledCategories(prev => [...prev, activeTabId]);
-      const mandatoryItems = realProducts
-        .filter(p => p.categoryId === activeTabId && p.isMandatory)
-        .map(p => p.id);
-      // Only add mandatory items that aren't already selected to prevent duplicates
+      const mandatoryItems: string[] = allProducts
+        .filter((p: any) => p.categoryId === activeTabId && p.isMandatory)
+        .map((p: any) => String(p.id));
+
       setSelectedProductIds(prev => {
-        const newItems = mandatoryItems.filter(id => !prev.includes(id));
+        const newItems = mandatoryItems.filter(
+          (id: string) => !prev.includes(id),
+        );
         return [...prev, ...newItems];
       });
     } else {
       setEnabledCategories(prev => prev.filter(id => id !== activeTabId));
-      const categoryProductIds = realProducts
-        .filter(p => p.categoryId === activeTabId)
-        .map(p => p.id);
+      const categoryProductIds = allProducts
+        .filter((p: any) => p.categoryId === activeTabId)
+        .map((p: any) => p.id);
       setSelectedProductIds(prev =>
         prev.filter(id => !categoryProductIds.includes(id)),
       );
     }
   };
 
+  // ==========================================================
+  // 🔘 Product Selection Handler
+  // ==========================================================
   const toggleProductSelection = (id: string, isMandatory: boolean) => {
     if (!enabledCategories.includes(activeTabId)) {
       Alert.alert(
@@ -150,26 +310,37 @@ const VendorInventoryScreen = () => {
     );
   };
 
+  // ==========================================================
+  // 💾 Save Inventory
+  // ==========================================================
   const handleSave = async () => {
+    if (selectedModeIds.length === 0) {
+      Alert.alert('Error', 'Please select at least one operational mode.');
+      return;
+    }
+    if (enabledCategories.length === 0) {
+      Alert.alert('Error', 'Please enable at least one category.');
+      return;
+    }
     if (selectedProductIds.length === 0) {
       Alert.alert('Error', 'Please select at least one product.');
       return;
     }
+
     const payload = {
+      modeIds: selectedModeIds,
       categoryIds: enabledCategories,
       productIds: selectedProductIds,
     };
 
-    console.log('📦 SENDING PAYLOAD:', payload);
+    console.log('📦 SENDING INVENTORY PAYLOAD:', payload);
 
-    // Trigger the API call
     await updateInventory(payload);
 
-    // Update initial state to current state (so hasChanges becomes false)
+    setInitialSelectedModeIds(selectedModeIds);
     setInitialEnabledCategories(enabledCategories);
     setInitialSelectedProductIds(selectedProductIds);
 
-    // navigation.reset({ index: 0, routes: [{ name: 'Outlet' }] });
     if (vendor?.status === 'APPROVED') {
       navigation.goBack();
     } else {
@@ -177,12 +348,14 @@ const VendorInventoryScreen = () => {
     }
   };
 
-  const activeCategory = categories?.data.find(c => c.id === activeTabId);
-  const isCategoryEnabled = enabledCategories.includes(activeTabId);
-
-  // Detect if user has made any changes
+  // ==========================================================
+  // 🔎 Change Detection
+  // ==========================================================
   const hasChanges = useMemo(() => {
-    // Compare arrays by sorting and converting to strings
+    const modesChanged =
+      JSON.stringify([...selectedModeIds].sort()) !==
+      JSON.stringify([...initialSelectedModeIds].sort());
+
     const categoriesChanged =
       JSON.stringify([...enabledCategories].sort()) !==
       JSON.stringify([...initialEnabledCategories].sort());
@@ -191,14 +364,21 @@ const VendorInventoryScreen = () => {
       JSON.stringify([...selectedProductIds].sort()) !==
       JSON.stringify([...initialSelectedProductIds].sort());
 
-    return categoriesChanged || productsChanged;
-  }, [enabledCategories, selectedProductIds, initialEnabledCategories, initialSelectedProductIds]);
+    return modesChanged || categoriesChanged || productsChanged;
+  }, [
+    selectedModeIds,
+    initialSelectedModeIds,
+    enabledCategories,
+    initialEnabledCategories,
+    selectedProductIds,
+    initialSelectedProductIds,
+  ]);
 
-  // Show Loader until hydration is complete
-  if (!isHydrated && (!products || !categories)) {
-    return (
-      <Loader />
-    )
+  if (
+    !isHydrated &&
+    (isModesLoading || isCategoriesLoading || isProductsLoading)
+  ) {
+    return <Loader />;
   }
 
   return (
@@ -208,63 +388,181 @@ const VendorInventoryScreen = () => {
           showsVerticalScrollIndicator={false}
           stickyHeaderIndices={[1]}
         >
-          {/* [Index 0] HEADER */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerSubtitle}>Vendor Portal</Text>
-              <Text style={styles.headerTitle}>Manage Inventory</Text>
+          {/* [Index 0] HEADER & ENHANCED MODE CARDS (NO OUTER WRAPPER, NO EXTRA TEXT) */}
+          <View>
+            <View style={styles.header}>
+              {/* Soft brand-colour accents in the header background */}
+              <View pointerEvents="none" style={styles.headerPurpleGlow} />
+              <View pointerEvents="none" style={styles.headerOrangeGlow} />
+              <View style={styles.headerContent}>
+                <View style={styles.headerTextContent}>
+                  <Text style={styles.headerSubtitle}>VENDOR PORTAL</Text>
+                  <Text style={styles.headerTitle}>
+                    Manage{' '}
+                    <Text style={styles.headerTitleAccent}>Inventory</Text>
+                  </Text>
+                  <Text style={styles.headerDescription}>
+                    Configure your shop's modes, categories & products
+                  </Text>
+                </View>
+                <View style={styles.profileIcon}>
+                  <Icon name="store-cog" size={27} color={COLORS.primary} />
+                </View>
+              </View>
             </View>
-            <View style={styles.profileIcon}>
-              <Icon name="store-cog" size={26} color={COLORS.primary} />
-            </View>
+
+            {/* Enhanced Mode Carousel */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.modeCarouselContent}
+            >
+              {allModes.map((mode: Mode) => {
+                const isSelected = selectedModeIds.includes(mode.id);
+                const isActiveView = activeModeTabId === mode.id;
+                const modeImgUrl =
+                  typeof mode.image === 'string'
+                    ? mode.image
+                    : mode.image?.url ||
+                      (mode.image as any)?.secure_url ||
+                      null;
+
+                return (
+                  <TouchableOpacity
+                    key={mode.id}
+                    style={[
+                      styles.modeCard,
+                      isActiveView && styles.modeCardActiveView,
+                      !isActiveView && isSelected && styles.modeCardSelected,
+                      !isSelected && styles.modeCardUnselected,
+                    ]}
+                    onPress={() => handleModeCardPress(mode.id)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={styles.modeCardHeader}>
+                      <View
+                        style={[
+                          styles.modeIconContainer,
+                          isActiveView && styles.modeIconContainerActive,
+                        ]}
+                      >
+                        {modeImgUrl ? (
+                          <Image
+                            source={{ uri: modeImgUrl }}
+                            style={styles.modeImage}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Icon
+                            name="silverware-fork-knife"
+                            size={22}
+                            color={isActiveView ? COLORS.primary : '#6B7280'}
+                          />
+                        )}
+                      </View>
+
+                      {/* Mode On/Off Switch */}
+                      <Switch
+                        trackColor={{ false: '#E2E8F0', true: COLORS.accent }}
+                        thumbColor={isSelected ? COLORS.primary : '#FFFFFF'}
+                        onValueChange={() =>
+                          handleToggleModeSelectionOnly(mode.id)
+                        }
+                        value={isSelected}
+                        style={
+                          Platform.OS === 'ios'
+                            ? { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }
+                            : { transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }
+                        }
+                      />
+                    </View>
+
+                    <Text
+                      style={[
+                        styles.modeName,
+                        isActiveView && styles.modeNameActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {mode.name}
+                    </Text>
+
+                    <View style={styles.modeMetaRow}>
+                      {mode.badge ? (
+                        <View style={styles.modeBadge}>
+                          <Text style={styles.modeBadgeText}>{mode.badge}</Text>
+                        </View>
+                      ) : null}
+                      <Text style={styles.modeCategoryCount}>
+                        {mode.categoryCount || 0} Categories
+                      </Text>
+                    </View>
+
+                    {/* Active view indicator pill */}
+                    {isActiveView && (
+                      <View style={styles.activePill}>
+                        <View style={styles.activePillDot} />
+                        <Text style={styles.activePillText}>Viewing</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
 
-          {/* [Index 1] STICKY SECTION */}
-          <View style={{ backgroundColor: COLORS.background, zIndex: 10 }}>
-            <View style={styles.tabsContainer}>
-              <FlatList
-                data={categories?.data}
-                renderItem={({ item }) => (
-                  <CategoryTab
-                    item={item}
-                    activeTabId={activeTabId}
-                    setActiveTabId={setActiveTabId}
-                    enabledCategories={enabledCategories}
-                  />
-                )}
-                keyExtractor={item => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: SPACING }}
-              />
-            </View>
-
-            <View style={styles.categoryActionHeader}>
-              <View style={styles.categoryActionLeft}>
-                <Text style={styles.categoryActionTitle}>
-                  Selling {activeCategory?.name}?
-                </Text>
-                <Text style={styles.categoryActionSub}>
-                  {isCategoryEnabled
-                    ? 'Toggle off to stop selling this category.'
-                    : 'Toggle on to select products.'}
-                </Text>
+          {/* [Index 1] STICKY CATEGORIES & TOGGLE SECTION */}
+          <View style={styles.stickySection}>
+            {/* Category Avatar Tabs */}
+            {visibleCategories.length > 0 ? (
+              <View style={styles.tabsContainer}>
+                <FlatList
+                  data={visibleCategories}
+                  renderItem={({ item }) => (
+                    <CategoryTab
+                      item={item}
+                      activeTabId={activeTabId}
+                      setActiveTabId={setActiveTabId}
+                      enabledCategories={enabledCategories}
+                    />
+                  )}
+                  keyExtractor={item => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: SPACING }}
+                />
               </View>
-              <Switch
-                trackColor={{ false: '#e0e0e0', true: COLORS.accent }}
-                thumbColor={isCategoryEnabled ? COLORS.primary : '#f4f3f4'}
-                onValueChange={toggleCategoryEnabled}
-                value={isCategoryEnabled}
-                style={{ transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }] }}
-              />
-            </View>
+            ) : null}
+
+            {/* Category Toggle Card */}
+            {activeCategory && (
+              <View style={styles.categoryActionCard}>
+                <View style={styles.categoryActionLeft}>
+                  <Text style={styles.categoryActionTitle} numberOfLines={1}>
+                    Selling {activeCategory.name}?
+                  </Text>
+                  <Text style={styles.categoryActionSub}>
+                    {isCategoryEnabled
+                      ? 'Toggle off to stop selling this category.'
+                      : 'Toggle on to select products.'}
+                  </Text>
+                </View>
+                <Switch
+                  trackColor={{ false: '#E2E8F0', true: COLORS.accent }}
+                  thumbColor={isCategoryEnabled ? COLORS.primary : '#FFFFFF'}
+                  onValueChange={toggleCategoryEnabled}
+                  value={isCategoryEnabled}
+                  style={{ transform: [{ scaleX: 1.05 }, { scaleY: 1.05 }] }}
+                />
+              </View>
+            )}
           </View>
 
           {/* [Index 2] PRODUCTS GRID */}
           <View style={styles.gridContent}>
             {categoryProducts.length > 0 ? (
               <View style={styles.gridContainer}>
-                {categoryProducts.map(item => (
+                {categoryProducts.map((item: Product) => (
                   <ProductCard
                     key={item.id}
                     item={item}
@@ -276,33 +574,46 @@ const VendorInventoryScreen = () => {
               </View>
             ) : (
               <View style={styles.emptyState}>
-                <Text>No products found in this category.</Text>
+                <Icon
+                  name="package-variant"
+                  size={44}
+                  color="#D1D5DB"
+                  style={{ marginBottom: 6 }}
+                />
+                <Text style={styles.emptyStateText}>
+                  No products found in this category.
+                </Text>
               </View>
             )}
-            <View style={{ height: 100 + tabBarHeight }} />
+            <View style={{ height: 120 + tabBarHeight }} />
           </View>
         </ScrollView>
       </View>
 
-      {/* BOTTOM BAR - Only show when there are changes */}
+      {/* BOTTOM BAR - Show when changes exist */}
       {hasChanges && (
-        <View style={[styles.bottomBarContainer, { bottom: Math.max(tabBarHeight, insets.bottom) }]}>
+        <View
+          style={[
+            styles.bottomBarContainer,
+            { bottom: Math.max(tabBarHeight, insets.bottom) },
+          ]}
+        >
           <View style={styles.bottomBar}>
             <View>
-              <Text style={styles.bottomBarLabel}>Total Active Items</Text>
+              <Text style={styles.bottomBarLabel}>Inventory Selected</Text>
               <Text style={styles.bottomBarCount}>
-                {selectedProductIds.length} Products
+                {selectedModeIds.length} Modes • {selectedProductIds.length}{' '}
+                Products
               </Text>
             </View>
 
             <TouchableOpacity
-              style={[styles.saveButton, isUpdating && { opacity: 0.7 }]} // 👈 Dim when loading
+              style={[styles.saveButton, isUpdating && { opacity: 0.7 }]}
               activeOpacity={0.85}
               onPress={handleSave}
-              disabled={isUpdating} // 👈 Disable when loading
+              disabled={isUpdating}
             >
               {isUpdating ? (
-                // 👈 Show Loader
                 <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
                 <>
@@ -340,6 +651,10 @@ const CategoryTab = ({
 }) => {
   const isActiveTab = activeTabId === item.id;
   const isEnabled = enabledCategories.includes(item.id);
+  const catImgUrl =
+    typeof item.image === 'string'
+      ? item.image
+      : item.image?.url || (item.image as any)?.secure_url || null;
 
   return (
     <TouchableOpacity
@@ -354,10 +669,16 @@ const CategoryTab = ({
         style={[
           styles.tabImageContainer,
           isActiveTab && styles.tabImageContainerActive,
-          !isEnabled && !isActiveTab && { opacity: 0.5 },
+          !isEnabled && !isActiveTab && { opacity: 0.6 },
         ]}
       >
-        <Image source={{ uri: item.image.url }} style={styles.tabImage} />
+        {catImgUrl ? (
+          <Image source={{ uri: catImgUrl }} style={styles.tabImage} />
+        ) : (
+          <View style={styles.tabFallback}>
+            <Icon name="food" size={24} color={COLORS.primary} />
+          </View>
+        )}
         {isActiveTab && <View style={styles.tabActiveOverlay} />}
         {isEnabled && (
           <View style={styles.categoryBadge}>
@@ -370,6 +691,7 @@ const CategoryTab = ({
           styles.tabText,
           isActiveTab ? styles.tabTextActive : { color: COLORS.textSecondary },
         ]}
+        numberOfLines={2}
       >
         {item.name}
       </Text>
@@ -388,16 +710,20 @@ const ProductCard = ({
   isCategoryEnabled: boolean;
   toggleProductSelection: (id: string, isMandatory: boolean) => void;
 }) => {
-  // Fix: Check if product is selected OR if it's mandatory and category is enabled
-  // This ensures mandatory products show as selected immediately when category is toggled on
-  const isSelected = selectedProductIds.includes(item.id) || (item.isMandatory && isCategoryEnabled);
+  const isSelected =
+    selectedProductIds.includes(item.id) ||
+    (item.isMandatory && isCategoryEnabled);
   const isDisabled = !isCategoryEnabled;
 
-  // Show selected styling for all selected products (including mandatory ones)
-  const cardBg = isSelected ? '#FBF5FF' : COLORS.white;
-  const borderColor = isSelected ? COLORS.primary : '#E0E0E0';
+  const cardBg = isSelected ? '#FAF5FF' : COLORS.white;
+  const borderColor = isSelected ? COLORS.primary : '#E5E7EB';
   const borderWidth = isSelected ? 2 : 1;
   const opacity = isDisabled && !isSelected ? 0.5 : 1;
+
+  const productImgUrl =
+    item.images?.[0]?.image?.url ||
+    (item.images?.[0]?.image as any)?.secure_url ||
+    null;
 
   return (
     <TouchableOpacity
@@ -411,10 +737,13 @@ const ProductCard = ({
       disabled={isDisabled}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.images[0]?.image?.url }}
-          style={styles.productImage}
-        />
+        {productImgUrl ? (
+          <Image source={{ uri: productImgUrl }} style={styles.productImage} />
+        ) : (
+          <View style={styles.productImageFallback}>
+            <Icon name="image" size={32} color="#D1D5DB" />
+          </View>
+        )}
         <View style={styles.imageOverlay} />
         <View
           style={[
@@ -422,15 +751,15 @@ const ProductCard = ({
             isSelected
               ? { backgroundColor: COLORS.primary }
               : {
-                backgroundColor: COLORS.white,
-                borderWidth: 1,
-                borderColor: '#ddd',
-              },
+                  backgroundColor: COLORS.white,
+                  borderWidth: 1,
+                  borderColor: '#D1D5DB',
+                },
           ]}
         >
           <Icon
             name={isSelected ? 'check' : item.isMandatory ? 'lock' : 'circle'}
-            size={14}
+            size={13}
             color={isSelected ? COLORS.white : '#fefefeff'}
           />
         </View>
@@ -447,16 +776,20 @@ const ProductCard = ({
         </Text>
         <View style={styles.specsRow}>
           <View style={styles.specBadge}>
-            <Text style={styles.specText}>{item.weight}</Text>
+            <Text style={styles.specText}>{item.weight || 'Std'}</Text>
           </View>
-          <Text style={styles.dot}>•</Text>
-          <Text style={styles.pieceText}>{item.pieces}</Text>
+          {item.pieces ? (
+            <>
+              <Text style={styles.dot}>•</Text>
+              <Text style={styles.pieceText}>{item.pieces}</Text>
+            </>
+          ) : null}
         </View>
         <View style={styles.divider} />
         <View style={styles.priceRow}>
           <Text style={styles.priceLabel}>Your Price</Text>
           <Text style={styles.priceValue}>
-            ₹{parseToDecimal(item.vendorPrice)}
+            ₹{parseToDecimal(item.vendorPrice ?? item.sellingPrice)}
           </Text>
         </View>
       </View>
@@ -467,90 +800,278 @@ const ProductCard = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#FFFEFC',
   },
   // HEADER
   header: {
-    paddingHorizontal: SPACING,
-    paddingBottom: 10,
+    position: 'relative',
+    overflow: 'hidden',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 22,
+    backgroundColor: '#FCF9FF',
+  },
+  headerPurpleGlow: {
+    position: 'absolute',
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    top: -112,
+    right: 42,
+    backgroundColor: 'rgba(113, 45, 190, 0.10)',
+  },
+  headerOrangeGlow: {
+    position: 'absolute',
+    width: 145,
+    height: 145,
+    borderRadius: 73,
+    top: -68,
+    right: -76,
+    backgroundColor: 'rgba(255, 111, 24, 0.10)',
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 10,
+    gap: 12,
+  },
+  headerTextContent: {
+    flex: 1,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: '700',
+    color: '#5B16B8',
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.1,
   },
   headerTitle: {
-    fontSize: 26,
-    color: COLORS.textPrimary,
+    fontSize: 27,
+    color: '#32105F',
     fontWeight: '800',
+    marginTop: 5,
+    letterSpacing: -0.5,
+  },
+  headerTitleAccent: {
+    color: '#6A20C8',
+  },
+  headerDescription: {
+    fontSize: 13,
+    color: '#77718A',
+    marginTop: 5,
+    lineHeight: 19,
   },
   profileIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.white,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 1,
+    borderColor: '#F0E6FF',
+    shadowColor: '#3B126E',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
   },
 
-  // TABS
+  // MODE CAROUSEL CONTENT (Directly below header)
+  modeCarouselContent: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 18,
+  },
+  modeCard: {
+    width: CARD_WIDTH,
+    minHeight: 194,
+    padding: 15,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    backgroundColor: '#FFFFFF',
+    marginRight: 12,
+    shadowColor: '#3B126E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 3,
+    position: 'relative',
+  },
+  modeCardActiveView: {
+    borderColor: '#5713B8',
+    backgroundColor: '#FBF7FF',
+    borderWidth: 2,
+    shadowColor: '#5713B8',
+    shadowOpacity: 0.12,
+    elevation: 4,
+  },
+  modeCardSelected: {
+    borderColor: '#E6D8FF',
+    backgroundColor: '#FFFFFF',
+  },
+  modeCardUnselected: {
+    borderColor: '#E9DFFF',
+    backgroundColor: '#FFFFFF',
+    opacity: 1,
+  },
+  modeCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modeIconContainer: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: '#F5F1FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  modeIconContainerActive: {
+    backgroundColor: 'rgba(135, 25, 198, 0.1)',
+  },
+  modeImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 31,
+  },
+  modeCheckCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  modeCheckCircleActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  modeName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#32105F',
+    marginTop: 2,
+  },
+  modeNameActive: {
+    color: COLORS.primary,
+  },
+  modeMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  modeBadge: {
+    backgroundColor: '#FFF0D8',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 14,
+  },
+  modeBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#D96A0B',
+    textTransform: 'uppercase',
+  },
+  modeCategoryCount: {
+    fontSize: 11,
+    color: '#77718A',
+    fontWeight: '600',
+  },
+  activePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#F0E1FF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    marginTop: 10,
+    gap: 5,
+  },
+  activePillDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: COLORS.primary,
+  },
+  activePillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#5713B8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+
+  // STICKY SECTION (CATEGORIES + TOGGLE)
+  stickySection: {
+    backgroundColor: '#FFFEFC',
+    zIndex: 10,
+    paddingBottom: 6,
+  },
+
+  // CATEGORY TABS
   tabsContainer: {
-    paddingVertical: 15,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   tabItem: {
     alignItems: 'center',
-    marginRight: 20,
+    marginRight: 16,
+    width: 92,
   },
   tabImageContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     padding: 3,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#F0E5FF',
     marginBottom: 8,
-    backgroundColor: COLORS.white,
-    shadowColor: '#000',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#3B126E',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginTop: 10,
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    elevation: 2,
   },
   tabImageContainerActive: {
     borderColor: COLORS.primary,
-    transform: [{ scale: 1.05 }],
   },
   tabImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 30,
-    backgroundColor: '#eee',
+    borderRadius: 35,
+    backgroundColor: '#F3F0F8',
+  },
+  tabFallback: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 35,
+    backgroundColor: '#F3F0F8',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabActiveOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 30,
-    backgroundColor: 'rgba(135, 25, 198, 0.15)',
+    borderRadius: 35,
+    backgroundColor: 'rgba(91, 22, 184, 0.10)',
   },
   categoryBadge: {
     position: 'absolute',
     top: 0,
     right: 0,
     backgroundColor: COLORS.primary,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -559,78 +1080,100 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 12,
     fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 16,
+    color: '#77718A',
   },
   tabTextActive: {
     color: COLORS.primary,
-    fontWeight: '800',
+    fontWeight: '700',
   },
 
-  // CATEGORY TOGGLE SECTION
-  categoryActionHeader: {
+  // CATEGORY ACTION CARD
+  categoryActionCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    backgroundColor: '#FBF7FF',
     marginHorizontal: SPACING,
-    marginBottom: SPACING,
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    borderRadius: 20,
+    marginBottom: 10,
+    borderWidth: 1.5,
+    borderColor: '#F0E3FF',
+    shadowColor: '#3B126E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
-  },
-  categoryActionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
   },
   categoryActionLeft: {
     flex: 1,
-    paddingRight: 12,
-    justifyContent: 'center',
+    marginRight: 12,
+  },
+  categoryActionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#32105F',
   },
   categoryActionSub: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
+    fontSize: 12,
+    color: '#77718A',
+    marginTop: 4,
+    lineHeight: 17,
   },
 
-  // GRID
+  // GRID & PRODUCTS
   gridContent: {
     paddingHorizontal: SPACING,
-    paddingBottom: 20,
+    marginTop: 8,
   },
-  // New Grid Container Style to mimic FlatList numColumns
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 46,
+  },
+  emptyStateText: {
+    color: '#32105F',
+    fontSize: 15,
+    fontWeight: '600',
+    marginTop: 4,
+    textAlign: 'center',
+  },
   card: {
     width: CARD_WIDTH,
-    borderRadius: 20,
-    marginBottom: 16,
+    borderRadius: 14,
+    marginBottom: SPACING,
     overflow: 'hidden',
-    backgroundColor: COLORS.white,
-    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   imageContainer: {
-    height: 120,
     width: '100%',
+    height: 115,
     position: 'relative',
+    backgroundColor: '#F3F4F6',
   },
   productImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  productImageFallback: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
   },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -645,66 +1188,58 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
   },
   mandatoryTag: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(34, 34, 34, 0.9)',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
     paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   mandatoryText: {
     color: COLORS.white,
     fontSize: 8,
     fontWeight: '800',
-    letterSpacing: 0.5,
   },
-
-  // CARD INFO
   cardInfo: {
     padding: 10,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: COLORS.textPrimary,
-    marginBottom: 6,
   },
   specsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginTop: 4,
   },
   specBadge: {
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
     borderRadius: 4,
   },
   specText: {
     fontSize: 10,
+    color: COLORS.textSecondary,
     fontWeight: '600',
-    color: COLORS.primary,
   },
   dot: {
     marginHorizontal: 4,
-    color: COLORS.muted,
+    color: '#9CA3AF',
     fontSize: 10,
   },
   pieceText: {
-    fontSize: 11,
+    fontSize: 10,
     color: COLORS.textSecondary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#f0f0f0',
-    marginBottom: 8,
+    backgroundColor: '#F0F0F0',
+    marginVertical: 6,
   },
   priceRow: {
     flexDirection: 'row',
@@ -713,12 +1248,10 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 10,
-    color: COLORS.muted,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    color: COLORS.textSecondary,
   },
   priceValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '800',
     color: COLORS.primary,
   },
@@ -726,79 +1259,58 @@ const styles = StyleSheet.create({
   // BOTTOM BAR
   bottomBarContainer: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    padding: SPACING,
-    paddingBottom: Platform.OS === 'ios' ? 20 : SPACING,
+    paddingHorizontal: SPACING,
+    paddingBottom: 8,
   },
   bottomBar: {
-    backgroundColor: '#1E1E2D',
-    borderRadius: 18,
+    backgroundColor: COLORS.textPrimary,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
   },
   bottomBarLabel: {
-    color: '#8F9BB3',
     fontSize: 10,
-    fontWeight: '600',
+    color: '#D1D5DB',
     textTransform: 'uppercase',
-    marginBottom: 2,
+    letterSpacing: 0.5,
   },
   bottomBarCount: {
+    fontSize: 13,
+    fontWeight: '700',
     color: COLORS.white,
-    fontSize: 18,
-    fontWeight: 'bold',
+    marginTop: 1,
   },
   saveButton: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
   },
   saveButtonText: {
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
-
-  // DISABLED OVERLAY
   disabledOverlay: {
     position: 'absolute',
-    top: 280, // Approximate height of sticky header area
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(250,250,250, 0.4)',
-    zIndex: 10,
-  },
-  disabledMessage: {
-    alignItems: 'center',
-    opacity: 0.3,
-  },
-  disabledText: {
-    marginTop: 8,
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.muted,
-  },
-  emptyState: {
-    alignItems: 'center',
-    marginTop: 40,
-    opacity: 0.5,
+    top: 300,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
   },
 });
 

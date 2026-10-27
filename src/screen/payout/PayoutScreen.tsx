@@ -46,7 +46,8 @@ interface BankAccount {
 }
 
 const PayoutScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { vendorId, isAuthenticated } = useAuth();
 
   // Modal State for payout request
@@ -55,11 +56,14 @@ const PayoutScreen = () => {
   const [selectedBankId, setSelectedBankId] = useState<string | number>('');
 
   // Fetch Wallet transactions (to get balance)
-  const { data: walletData, isLoading: walletLoading, refetch: refetchWallet } =
-    useVendorWalletTransactions(
-      { vendorId: vendorId || "", limit: 1 },
-      { enabled: isAuthenticated }
-    );
+  const {
+    data: walletData,
+    isLoading: walletLoading,
+    refetch: refetchWallet,
+  } = useVendorWalletTransactions(
+    { vendorId: vendorId || '', limit: 1 },
+    { enabled: isAuthenticated },
+  );
 
   // Fetch Payout history
   const {
@@ -70,8 +74,11 @@ const PayoutScreen = () => {
   } = useVendorPayouts({ page: 1, limit: 100 });
 
   // Fetch Bank Accounts
-  const { data: bankAccounts = [], isLoading: banksLoading, refetch: refetchBanks } =
-    useBankAccounts();
+  const {
+    data: bankAccounts = [],
+    isLoading: banksLoading,
+    refetch: refetchBanks,
+  } = useBankAccounts();
 
   // Mutations
   const requestPayoutMutation = useRequestPayout();
@@ -88,7 +95,9 @@ const PayoutScreen = () => {
 
   // Filters APPROVED bank accounts
   const approvedBanks: BankAccount[] = useMemo(() => {
-    return bankAccounts.filter((bank: BankAccount) => bank.status === 'APPROVED');
+    return bankAccounts.filter(
+      (bank: BankAccount) => bank.status === 'APPROVED',
+    );
   }, [bankAccounts]);
 
   const onRefresh = useCallback(() => {
@@ -106,7 +115,7 @@ const PayoutScreen = () => {
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Add Bank', onPress: () => navigation.navigate('BankList') },
-        ]
+        ],
       );
       return;
     }
@@ -119,12 +128,18 @@ const PayoutScreen = () => {
   const handleRequestPayout = () => {
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount < MIN_PAYOUT_AMOUNT) {
-      Alert.alert('Invalid Amount', `Minimum payout amount is ₹${MIN_PAYOUT_AMOUNT}.`);
+      Alert.alert(
+        'Invalid Amount',
+        `Minimum payout amount is ₹${MIN_PAYOUT_AMOUNT}.`,
+      );
       return;
     }
 
     if (parsedAmount > balance) {
-      Alert.alert('Insufficient Balance', 'Payout amount cannot exceed available balance.');
+      Alert.alert(
+        'Insufficient Balance',
+        'Payout amount cannot exceed available balance.',
+      );
       return;
     }
 
@@ -143,7 +158,7 @@ const PayoutScreen = () => {
           setModalVisible(false);
           onRefresh();
         },
-      }
+      },
     );
   };
 
@@ -163,7 +178,7 @@ const PayoutScreen = () => {
             });
           },
         },
-      ]
+      ],
     );
   };
 
@@ -201,14 +216,18 @@ const PayoutScreen = () => {
     });
 
     const bankDetails = item.bankAccount
-      ? `${item.bankAccount.bankName} (**** ${item.bankAccount.accountNumber.slice(-4)})`
+      ? `${
+          item.bankAccount.bankName
+        } (**** ${item.bankAccount.accountNumber.slice(-4)})`
       : 'N/A';
 
     return (
       <View style={[styles.payoutCard, { backgroundColor: cardBg }]}>
         <View style={styles.cardHeader}>
           <View>
-            <Text style={styles.cardAmount}>₹ {parseToDecimal(item.amount).toFixed(2)}</Text>
+            <Text style={styles.cardAmount}>
+              ₹ {parseToDecimal(item.amount).toFixed(2)}
+            </Text>
             <Text style={styles.cardDate}>{formattedDate}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: badgeColor }]}>
@@ -220,7 +239,11 @@ const PayoutScreen = () => {
 
         <View style={styles.cardDetails}>
           <View style={styles.detailRow}>
-            <Icon name="account-balance" size={16} color={COLORS.textSecondary} />
+            <Icon
+              name="account-balance"
+              size={16}
+              color={COLORS.textSecondary}
+            />
             <Text style={styles.detailValue}>{bankDetails}</Text>
           </View>
 
@@ -263,39 +286,54 @@ const PayoutScreen = () => {
 
   const renderHeader = () => (
     <>
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.accent]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.balanceHeader}
-      >
+      <View style={styles.balanceHeader}>
         <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back" size={24} color={COLORS.white} />
+          <TouchableOpacity
+            style={styles.headerIcon}
+            onPress={() => navigation.goBack()}
+          >
+            <Icon name="arrow-back" size={26} color={COLORS.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Payouts</Text>
-          <View style={styles.headerIcon} />
+          <View style={styles.headerIcon}>
+            <Icon
+              name="account-balance-wallet"
+              size={26}
+              color={COLORS.white}
+            />
+          </View>
         </View>
 
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balanceValue}>
-            {currency} {balance.toFixed(2)}
-          </Text>
-          <Text style={styles.balanceLabel}>Withdrawable Balance</Text>
-        </View>
+        <LinearGradient
+          colors={['#48217D', '#32165F', '#54206C', '#F58232']}
+          locations={[0, 0.55, 0.82, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.balanceCard}
+        >
+          <View pointerEvents="none" style={styles.balanceGlowTop} />
+          <View pointerEvents="none" style={styles.balanceGlowBottom} />
+          <View style={styles.balanceContainer}>
+            <Text style={styles.currencyLabel}>{currency}</Text>
+            <Text style={styles.balanceValue}>{balance.toFixed(2)}</Text>
+            <Text style={styles.balanceLabel}>Withdrawable Balance</Text>
+          </View>
 
-        <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={[
-              styles.requestButton,
-              approvedBanks.length === 0 && styles.disabledRequestButton,
-            ]}
-            onPress={handleOpenRequestModal}
-          >
-            <Text style={styles.requestButtonText}>Request Payout</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+          <View style={styles.actionContainer}>
+            <TouchableOpacity
+              style={[
+                styles.requestButton,
+                approvedBanks.length === 0 && styles.disabledRequestButton,
+              ]}
+              onPress={handleOpenRequestModal}
+              activeOpacity={0.85}
+            >
+              <Icon name="send" size={22} color="#F97316" />
+              <Text style={styles.requestButtonText}>Request Payout</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
 
       {approvedBanks.length === 0 && (
         <View style={styles.warningCard}>
@@ -323,7 +361,7 @@ const PayoutScreen = () => {
       <FlatList
         data={listData}
         renderItem={renderPayoutItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         ListHeaderComponent={renderHeader}
         refreshControl={
           <RefreshControl
@@ -337,7 +375,9 @@ const PayoutScreen = () => {
         ListEmptyComponent={
           !payoutsLoading ? (
             <View style={styles.emptyContainer}>
-              <Icon name="payments" size={64} color={COLORS.muted} />
+              <View style={styles.emptyIconCircle}>
+                <Icon name="account-balance-wallet" size={52} color="#8B7DA8" />
+              </View>
               <Text style={styles.emptyTitle}>No Payouts Yet</Text>
               <Text style={styles.emptySubtitle}>
                 Your requested payouts and withdrawals will show up here.
@@ -370,10 +410,15 @@ const PayoutScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.modalForm}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={styles.modalForm}
+            >
               <View style={styles.modalBalanceContainer}>
                 <Text style={styles.modalBalanceLabel}>Available Balance</Text>
-                <Text style={styles.modalBalanceValue}>₹ {balance.toFixed(2)}</Text>
+                <Text style={styles.modalBalanceValue}>
+                  ₹ {balance.toFixed(2)}
+                </Text>
               </View>
 
               <Text style={styles.inputLabel}>Enter Amount (₹)</Text>
@@ -387,7 +432,7 @@ const PayoutScreen = () => {
               />
 
               <Text style={styles.inputLabel}>Select Bank Account</Text>
-              {approvedBanks.map((bank) => (
+              {approvedBanks.map(bank => (
                 <TouchableOpacity
                   key={bank.id}
                   style={[
@@ -397,9 +442,15 @@ const PayoutScreen = () => {
                   onPress={() => setSelectedBankId(bank.id)}
                 >
                   <Icon
-                    name={selectedBankId === bank.id ? 'radio-button-checked' : 'radio-button-unchecked'}
+                    name={
+                      selectedBankId === bank.id
+                        ? 'radio-button-checked'
+                        : 'radio-button-unchecked'
+                    }
                     size={20}
-                    color={selectedBankId === bank.id ? COLORS.primary : COLORS.muted}
+                    color={
+                      selectedBankId === bank.id ? COLORS.primary : COLORS.muted
+                    }
                   />
                   <View style={styles.bankOptionDetails}>
                     <Text style={styles.bankNameText}>{bank.bankName}</Text>
@@ -413,7 +464,8 @@ const PayoutScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.submitButton,
-                  requestPayoutMutation.isPending && styles.disabledSubmitButton,
+                  requestPayoutMutation.isPending &&
+                    styles.disabledSubmitButton,
                 ]}
                 onPress={handleRequestPayout}
                 disabled={requestPayoutMutation.isPending}
@@ -441,17 +493,45 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   balanceHeader: {
-    paddingTop: 16,
-    paddingBottom: 32,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    backgroundColor: '#32165F',
+    paddingTop: 4,
+    paddingBottom: 0,
   },
   headerTop: {
+    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 24,
+  },
+  balanceCard: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    minHeight: 250,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  balanceGlowTop: {
+    position: 'absolute',
+    top: -80,
+    left: -55,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(166, 116, 230, 0.14)',
+  },
+  balanceGlowBottom: {
+    position: 'absolute',
+    right: -90,
+    bottom: -100,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(255, 143, 57, 0.2)',
   },
   headerIcon: {
     width: 40,
@@ -467,35 +547,50 @@ const styles = StyleSheet.create({
   balanceContainer: {
     alignItems: 'center',
     marginTop: 20,
+    paddingHorizontal: 12,
+  },
+  currencyLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.72)',
+    marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 42,
+    fontSize: 40,
     fontWeight: '800',
+    letterSpacing: -0.6,
     color: COLORS.white,
   },
   balanceLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.78)',
     marginTop: 4,
   },
   actionContainer: {
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 18,
+    paddingHorizontal: 24,
   },
   requestButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+    width: '100%',
+    minHeight: 48,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   disabledRequestButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: '#FFFFFF',
   },
   requestButtonText: {
     fontSize: 16,
@@ -504,14 +599,14 @@ const styles = StyleSheet.create({
   },
   warningCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFBEB',
+    backgroundColor: '#FFFCF5',
     borderWidth: 1,
-    borderColor: '#FEF3C7',
+    borderColor: '#FFE4B5',
     borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    gap: 12,
+    padding: 13,
+    marginHorizontal: 18,
+    marginTop: 10,
+    gap: 10,
   },
   warningContent: {
     flex: 1,
@@ -534,12 +629,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 12,
+    color: '#351568',
+    marginHorizontal: 18,
+    marginTop: 16,
+    marginBottom: 8,
   },
   payoutCard: {
     borderRadius: 16,
@@ -621,21 +716,30 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 20,
     paddingHorizontal: 24,
+  },
+  emptyIconCircle: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    backgroundColor: '#F3EEFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginTop: 12,
+    fontWeight: '800',
+    color: '#351568',
+    marginTop: 10,
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+    fontSize: 13,
+    color: '#817895',
     textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 20,
+    marginTop: 5,
+    lineHeight: 18,
   },
   modalOverlay: {
     flex: 1,

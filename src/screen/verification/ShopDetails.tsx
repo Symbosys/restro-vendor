@@ -706,7 +706,7 @@ function AddAddress({ navigation }: AppNavigation) {
                   style={[
                     styles.textInput,
                     styles.pickerButton,
-                    isShopDetailsFixed && { backgroundColor: COLORS.secondary },
+                    isShopDetailsFixed && styles.pickerDisabled,
                   ]}
                   onPress={() => {
                     if (!isShopDetailsFixed) {
@@ -719,7 +719,7 @@ function AddAddress({ navigation }: AppNavigation) {
                     style={[
                       styles.pickerButtonText,
                       !selectedState && { color: COLORS.muted },
-                      isShopDetailsFixed && { color: COLORS.textSecondary },
+                      isShopDetailsFixed && { color: COLORS.muted },
                     ]}>
                     {selectedState ? selectedState.name : 'Select State *'}
                   </Text>
@@ -733,7 +733,7 @@ function AddAddress({ navigation }: AppNavigation) {
                   style={[
                     styles.textInput,
                     styles.pickerButton,
-                    (!selectedState || isShopDetailsFixed) && { backgroundColor: COLORS.secondary },
+                    (!selectedState || isShopDetailsFixed) && styles.pickerDisabled,
                   ]}
                   onPress={() => {
                     if (!isShopDetailsFixed && selectedState) {
@@ -746,7 +746,7 @@ function AddAddress({ navigation }: AppNavigation) {
                     style={[
                       styles.pickerButtonText,
                       !selectedCity && { color: COLORS.muted },
-                      (!selectedState || isShopDetailsFixed) && { color: COLORS.textSecondary },
+                      (!selectedState || isShopDetailsFixed) && { color: COLORS.muted },
                     ]}>
                     {selectedCity
                       ? selectedCity.name
@@ -1060,7 +1060,9 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
@@ -1221,7 +1223,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   currentAddressContainer: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     padding: 16,
     borderRadius: 8,
     flexDirection: 'row',
@@ -1230,19 +1234,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   currentAddress: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
+    fontSize: 15,
+    color: COLORS.textPrimary,
     flex: 1,
+    marginRight: 10,
+    lineHeight: 20,
   },
   changeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(135,25,198,0.1)',
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    backgroundColor: COLORS.primaryLight,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   changeButtonText: {
     color: COLORS.primary,
     fontWeight: '600',
+    fontSize: 13,
   },
   mapPinNote: {
     fontSize: 12,
@@ -1252,6 +1261,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   textInput: {
+    backgroundColor: COLORS.white,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     borderRadius: 8,
@@ -1260,6 +1270,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
     minHeight: 50,
+    color: COLORS.textPrimary,
   },
   pickerButton: {
     flexDirection: 'row',
@@ -1270,12 +1281,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textPrimary,
   },
+  pickerDisabled: {
+    backgroundColor: '#f5f5f5',
+    borderColor: '#e0e0e0',
+  },
   pickerArrow: {
     fontSize: 12,
     color: COLORS.muted,
   },
   selectedPickerItem: {
-    backgroundColor: 'rgba(135,25,198,0.08)',
+    backgroundColor: 'rgba(50, 16, 94, 0.08)',
     borderLeftWidth: 3,
     borderLeftColor: COLORS.primary,
   },
@@ -1292,15 +1307,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   confirmButtonSubmitting: {
-    backgroundColor: 'rgba(135,25,198,0.6)',
+    backgroundColor: 'rgba(50, 16, 94, 0.6)',
     paddingVertical: 16,
   },
   confirmButtonDisabled: {
-    backgroundColor: 'rgba(135,25,198,0.3)',
+    backgroundColor: '#E0E0E0',
   },
   confirmButtonTextDisabled: {
-    color: COLORS.white,
-    opacity: 0.6,
+    color: COLORS.muted,
   },
   confirmButtonTextSubmitting: {
     opacity: 0.8,
@@ -1346,7 +1360,9 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     borderRadius: 8,
     marginLeft: 8,
   },
