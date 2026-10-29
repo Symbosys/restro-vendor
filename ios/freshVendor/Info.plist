@@ -56,7 +56,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.mintafresh.vendor</string>
+			<string>com.restro.vendor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>mintafresh-vendor</string>
